@@ -24,6 +24,17 @@ Algorithms:
   * "Tree search algorithms for the Sequential Ordering Problem" (Libralesso et al., 2019)
 * State-of-the-art on the `soplib` dataset (same algorithm as `libralesso2019`)
 
+[Thief Orienteering Problem](examples/thieforienteering.hpp)
+* Description
+  * Determine a subset of items to collect
+  * Maximize the profit of collected items
+  * Each item is in a location, a location may contain multiple items
+  * Each collected item decreases the speed of the traveller
+  * Time limit and capacity constraint
+* Literature
+  * "The Thief Orienteering Problem: Formulation and Heuristic Approaches" (Santos et Chagas, 2018)
+  * "Ants can orienteer a thief in their robbery" (Chagas et Wagner, 2020)
+
 ## Usage, running examples from command line
 
 Compile:
@@ -47,5 +58,6 @@ python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/travellin
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv data/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -t 62
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/sequentialordering/data.csv -l sequentialordering --main "./bazel-bin/examples/main -p sequentialordering" -a "iterativebeamsearch" -f "row['Dataset'] == 'soplib'" -t 600
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv data/sequentialordering/data.csv -l sequentialordering -f "row['Dataset'] == 'soplib'" -t 602
+python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/thieforienteering/data.csv -l thieforienteering --main "./bazel-bin/examples/main -p thieforienteering" -a "iterativememoryboundedastar" --timelimitfield "Time limit"
 ```
 

@@ -61,10 +61,10 @@ public:
 
     virtual ~Instance() { }
 
-    VertexId vertex_number() const { return locations_.size(); }
-    Distance distance(VertexId j1, VertexId j2) const { return distances_[j1][j2]; }
-    const std::vector<VertexId>& predecessors(VertexId j) const { return locations_[j].predecessors; }
-    Distance maximum_distance() const { return distance_max_; }
+    inline VertexId vertex_number() const { return locations_.size(); }
+    inline Distance distance(VertexId j1, VertexId j2) const { return distances_[j1][j2]; }
+    inline const std::vector<VertexId>& predecessors(VertexId j) const { return locations_[j].predecessors; }
+    inline Distance maximum_distance() const { return distance_max_; }
 
 private:
 
@@ -78,17 +78,17 @@ private:
         for (;;) {
             getline(file, tmp);
             line = optimizationtools::split(tmp, ' ');
-            if (line[0].rfind("DIMENSION", 0) == 0) {
+            if (tmp.rfind("DIMENSION", 0) == 0) {
                 n = std::stol(line.back());
                 locations_ = std::vector<Location>(n);
                 distances_ = std::vector<std::vector<Distance>>(n, std::vector<Distance>(n, -1));
                 for (VertexId j = 0; j < n; ++j)
                     distances_[j][j] = std::numeric_limits<Distance>::max();
-            } else if (line[0].rfind("EDGE_WEIGHT_TYPE", 0) == 0) {
+            } else if (tmp.rfind("EDGE_WEIGHT_TYPE", 0) == 0) {
                 edge_weight_type = line.back();
-            } else if (line[0].rfind("EDGE_WEIGHT_FORMAT", 0) == 0) {
+            } else if (tmp.rfind("EDGE_WEIGHT_FORMAT", 0) == 0) {
                 edge_weight_format = line.back();
-            } else if (line[0].rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
+            } else if (tmp.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
                 if (edge_weight_format == "FULL_MATRIX") {
                     for (VertexId j1 = 0; j1 < n - 1; ++j1) {
                         getline(file, tmp);
@@ -105,7 +105,7 @@ private:
                 } else {
                     std::cerr << "\033[31m" << "ERROR, EDGE_WEIGHT_FORMAT \"" << edge_weight_format << "\" not implemented." << "\033[0m" << std::endl;
                 }
-            } else if (line[0].rfind("EOF", 0) == 0) {
+            } else if (tmp.rfind("EOF", 0) == 0) {
                 break;
             } else {
                 std::cerr << "\033[31m" << "ERROR, ENTRY \"" << line[0] << "\" not implemented." << "\033[0m" << std::endl;
@@ -326,7 +326,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        return node_1->length < node_2->length;
+        if (node_1->length > node_2->length)
+            return false;
+        return true;
     }
 
 private:

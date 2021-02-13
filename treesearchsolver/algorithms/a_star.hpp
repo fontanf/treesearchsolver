@@ -73,6 +73,7 @@ inline AStarOutput<BranchingScheme> astar(
                 std::stringstream ss;
                 ss << "node " << output.node_number;
                 output.solution_pool.add(child, ss, parameters.info);
+                output.solution_pool.display(ss, parameters.info);
             }
             // Add child to the queue.
             if (!branching_scheme.leaf(child)

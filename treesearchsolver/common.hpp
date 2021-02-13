@@ -12,6 +12,7 @@ namespace treesearchsolver
 typedef int64_t NodeId;
 typedef int64_t Counter;
 typedef double Value;
+typedef int64_t GuideId;
 
 enum class ObjectiveSense { Min, Max };
 
@@ -30,7 +31,7 @@ struct SolutionPoolComparator
             const std::shared_ptr<Node>& node_2) const {
         if (branching_scheme.better(node_1, node_2))
             return true;
-        if (branching_scheme.better(node_1, node_2))
+        if (branching_scheme.better(node_2, node_1))
             return false;
         if (branching_scheme.equals(node_1, node_2))
             return false;
@@ -80,7 +81,6 @@ public:
             PUT(info, sol_str, "Value", branching_scheme_.display(node));
             PUT(info, sol_str, "Time", t);
             PUT(info, sol_str, "Comment", ss.str());
-            display(ss, info);
             if (!info.output->onlywriteattheend) {
                 info.write_ini();
                 //write(info);
@@ -96,9 +96,8 @@ public:
     void display_init(optimizationtools::Info& info)
     {
         VER(info, "----------------------------------------------------------------------" << std::endl);
-        VER(info, std::left << std::setw(6) << "Sol");
         VER(info, std::left << std::setw(16) << "Time");
-        VER(info, std::left << std::setw(16) << "Value");
+        VER(info, std::left << std::setw(40) << "Value");
         VER(info, std::left << std::setw(32) << "Comment");
         VER(info, std::endl);
         VER(info, "----------------------------------------------------------------------" << std::endl);
@@ -107,9 +106,8 @@ public:
     void display(const std::stringstream& ss, optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
-        VER(info, std::left << std::setw(6) << info.output->sol_number);
         VER(info, std::left << std::setw(16) << t);
-        VER(info, std::left << std::setw(16) << branching_scheme_.display(best()));
+        VER(info, std::left << std::setw(40) << branching_scheme_.display(best()));
         VER(info, std::left << std::setw(32) << ss.str());
         VER(info, std::endl);
     }

@@ -1,5 +1,6 @@
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
+#include "examples/thieforienteering.hpp"
 
 #include "treesearchsolver/read_args.hpp"
 
@@ -9,8 +10,49 @@ using namespace treesearchsolver;
 
 namespace po = boost::program_options;
 
+inline GuideId read_guide(
+        const std::vector<char*> argv)
+{
+    GuideId guide_id = 0;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return guide_id;
+}
+
+inline thieforienteering::BranchingScheme::Parameters read_thieforienteering_args(
+        const std::vector<char*> argv)
+{
+    thieforienteering::BranchingScheme::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ("exponent-time,t", boost::program_options::value<double>(&parameters.exponent_time), "")
+        ("exponent-weight,w", boost::program_options::value<double>(&parameters.exponent_weight), "")
+        ("exponent-profit,p", boost::program_options::value<double>(&parameters.exponent_profit), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
 template <typename BranchingScheme>
-void run(
+SolutionPool<BranchingScheme> run(
         std::string algorithm,
         const BranchingScheme& branching_scheme,
         const optimizationtools::Info& info)
@@ -24,18 +66,19 @@ void run(
     if (algorithm_args[0] == "astar") {
         auto parameters = read_astar_args(algorithm_argv);
         parameters.info = info;
-        astar(branching_scheme, parameters);
+        return astar(branching_scheme, parameters).solution_pool;
     } else if (algorithm_args[0] == "iterativebeamsearch") {
         auto parameters = read_iterativebeamsearch_args(algorithm_argv);
         parameters.info = info;
-        iterativebeamsearch(branching_scheme, parameters);
+        return iterativebeamsearch(branching_scheme, parameters).solution_pool;
     } else if (algorithm_args[0] == "iterativememoryboundedastar") {
         auto parameters = read_iterativememoryboundedastar_args(algorithm_argv);
         parameters.info = info;
-        iterativememoryboundedastar(branching_scheme, parameters);
+        return iterativememoryboundedastar(branching_scheme, parameters).solution_pool;
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown algorithm: '" << algorithm_args[0] << "'.\033[0m" << std::endl;
     }
+    return SolutionPool<BranchingScheme>(branching_scheme, 1);
 }
 
 int main(int argc, char *argv[])
@@ -50,7 +93,6 @@ int main(int argc, char *argv[])
     std::string format = "";
     std::string algorithm = "astar";
     std::string branching_scheme_parameters = "";
-    std::string columngeneration_args_string = "";
     double time_limit = std::numeric_limits<double>::infinity();
 
     po::options_description desc("Allowed options");
@@ -89,14 +131,28 @@ int main(int argc, char *argv[])
 
     // Run algorithm
 
+    std::vector<std::string> branching_scheme_args
+        = boost::program_options::split_unix(branching_scheme_parameters);
+    std::vector<char*> branching_scheme_argv;
+    std::string dummy = "dummy";
+    branching_scheme_argv.push_back(const_cast<char*>(dummy.c_str()));
+    for (Counter i = 0; i < (Counter)branching_scheme_args.size(); ++i)
+        branching_scheme_argv.push_back(const_cast<char*>(branching_scheme_args[i].c_str()));
+
     if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
         travellingsalesman::BranchingScheme branching_scheme(instance);
-        run(algorithm, branching_scheme, info);
+        auto solution_pool = run(algorithm, branching_scheme, info);
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
         sequentialordering::BranchingScheme branching_scheme(instance);
-        run(algorithm, branching_scheme, info);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+    } else if (problem == "thieforienteering") {
+        thieforienteering::Instance instance(instance_path, format);
+        auto parameters = read_thieforienteering_args(branching_scheme_argv);
+        thieforienteering::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown problem: '" << problem << "'.\033[0m" << std::endl;
         return 1;

@@ -42,14 +42,15 @@ inline IterativeMemoryBoundedAStarOutput<BranchingScheme> iterativememorybounded
     NodeSet<BranchingScheme> q(branching_scheme);
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
 
-    for (output.queue_size_max = parameters.queue_size_min;
-            output.queue_size_max <= (Counter)parameters.queue_size_max;
+    for (output.queue_size_max = parameters.queue_size_min;;
             output.queue_size_max = output.queue_size_max * parameters.growth_factor) {
         if (output.queue_size_max == (Counter)(output.queue_size_max * parameters.growth_factor))
             output.queue_size_max++;
+        if (output.queue_size_max > parameters.queue_size_max)
+            break;
 
         std::stringstream ss;
-        ss << "queue size max: " << output.queue_size_max << " (start)";
+        ss << "q " << output.queue_size_max;
         output.solution_pool.display(ss, parameters.info);
 
         q.clear();
@@ -73,7 +74,8 @@ inline IterativeMemoryBoundedAStarOutput<BranchingScheme> iterativememorybounded
             // Get node from the queue.
             if (node_cur == nullptr) {
                 node_cur = *q.begin();
-                remove_from_history_and_queue(branching_scheme, history, q, q.begin());
+                //remove_from_history_and_queue(branching_scheme, history, q, q.begin());
+                q.erase(q.begin());
             }
 
             // Bound.
@@ -89,18 +91,21 @@ inline IterativeMemoryBoundedAStarOutput<BranchingScheme> iterativememorybounded
                 // Update best solution.
                 if (branching_scheme.better(child, output.solution_pool.worst())) {
                     std::stringstream ss;
-                    ss << "queue size max: " << output.queue_size_max;
+                    ss << "q " << output.queue_size_max;
                     output.solution_pool.add(child, ss, parameters.info);
                 }
                 // Add child to the queue.
                 if (!branching_scheme.leaf(child)
                         && !branching_scheme.bound(child, output.solution_pool.worst())) {
+                    if ((Counter)q.size() == output.queue_size_max) {
+                        stop = false;
+                    }
                     if ((Counter)q.size() < output.queue_size_max
                             || branching_scheme(child, *(std::prev(q.end())))) {
                         add_to_history_and_queue(branching_scheme, history, q, child);
                         if ((Counter)q.size() > output.queue_size_max) {
-                            stop = false;
-                            remove_from_history_and_queue(branching_scheme, history, q, std::prev(q.end()));
+                            //remove_from_history_and_queue(branching_scheme, history, q, std::prev(q.end()));
+                            q.erase(std::prev(q.end()));
                         }
                     }
                 }
@@ -111,11 +116,13 @@ inline IterativeMemoryBoundedAStarOutput<BranchingScheme> iterativememorybounded
                 node_cur = nullptr;
             } else if ((Counter)q.size() != 0
                     && branching_scheme(*(q.begin()), node_cur)) {
-                add_to_history_and_queue(branching_scheme, history, q, node_cur);
+                //add_to_history_and_queue(branching_scheme, history, q, node_cur);
+                q.insert(node_cur);
                 node_cur = nullptr;
                 if ((Counter)q.size() > output.queue_size_max) {
                     stop = false;
-                    remove_from_history_and_queue(branching_scheme, history, q, std::prev(q.end()));
+                    //remove_from_history_and_queue(branching_scheme, history, q, std::prev(q.end()));
+                    q.erase(std::prev(q.end()));
                 }
             }
 

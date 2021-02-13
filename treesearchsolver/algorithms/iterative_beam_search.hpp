@@ -43,14 +43,15 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
     NodeSet<BranchingScheme> q2(branching_scheme);
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
 
-    for (output.queue_size_max = parameters.queue_size_min;
-            output.queue_size_max <= (Counter)parameters.queue_size_max;
+    for (output.queue_size_max = parameters.queue_size_min;;
             output.queue_size_max = output.queue_size_max * parameters.growth_factor) {
         if (output.queue_size_max == (Counter)(output.queue_size_max * parameters.growth_factor))
             output.queue_size_max++;
+        if (output.queue_size_max > parameters.queue_size_max)
+            break;
 
         std::stringstream ss;
-        ss << "queue size max: " << output.queue_size_max << " (start)";
+        ss << "q " << output.queue_size_max;
         output.solution_pool.display(ss, parameters.info);
 
         // Initialize queue.
@@ -105,19 +106,20 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
                         std::stringstream ss;
-                        ss << "queue size max: " << output.queue_size_max;
+                        ss << "q " << output.queue_size_max;
                         output.solution_pool.add(child, ss, parameters.info);
                     }
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
                             && !branching_scheme.bound(child, output.solution_pool.worst())) {
+                        if ((Counter)q_next->size() == output.queue_size_max)
+                            stop = false;
                         if ((Counter)q_next->size() < output.queue_size_max
                                 || branching_scheme(child, *(std::prev(q_next->end())))) {
                             add_to_history_and_queue(branching_scheme, history, *q_next, child);
-                            if ((Counter)q_next->size() > output.queue_size_max) {
-                                stop = false;
+                            //q_next->insert(child);
+                            if ((Counter)q_next->size() > output.queue_size_max)
                                 remove_from_history_and_queue(branching_scheme, history, *q_next, std::prev(q_next->end()));
-                            }
                         }
                     }
                 }
