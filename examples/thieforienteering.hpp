@@ -4,6 +4,34 @@
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
 
+/**
+ * Thief orienterring problem.
+ *
+ * Input:
+ * - n cities and an n×n symmetric matrix d containing the distances between
+ *   each pair of cities
+ * - m items with profit pᵢ, weight wᵢ (i = 1..m) and location nᵢ
+ * - A time limit T
+ * - A capacity c
+ * - A maximum speed vmax and a minimum speed vmin such that the time to travel
+ *   from city j1 to city j2 is equal to:
+ *       d(j1, j2) / (vmax - w * (vmax - vmin) / c)
+ *   with w the sum of the weights of the currently collected items
+ * Problem:
+ * - find a route from city 1 to city n and a set of items to collect such
+ *   that:
+ *   - an item can only be collected in the city in which it is located
+ *   - the total weight of the collected items does not exceed the capacity
+ *   - the total time of the route does not exceed the time limit
+ * Objective:
+ * - maximize the profit of collected items
+ *
+ * Tree search
+ * - forward branching on the next item
+ * - guide: time^exponent_time * weight^exponent_weight / profit^exponent_profit
+ * - no bound
+ */
+
 namespace treesearchsolver
 {
 
@@ -305,12 +333,6 @@ private:
 
 class BranchingScheme
 {
-    /**
-     * - Branching on the next item
-     * - Guide:
-     *   - time^exponent_time * weight^exponent_weight / profit^exponent_profit
-     * - No bound
-     */
 
 public:
 

@@ -154,6 +154,7 @@ inline bool add_to_history_and_queue(
         const std::shared_ptr<typename BranchingScheme::Node>& node)
 {
     typedef typename BranchingScheme::Node Node;
+    assert(node != nullptr);
 
     // If node is not comparable, stop.
     if (branching_scheme.comparable(node)) {
@@ -167,9 +168,9 @@ inline bool add_to_history_and_queue(
         // Remove dominated nodes from history.
         for (auto it = list.begin(); it != list.end();) {
             if (branching_scheme.dominates(node, *it)) {
+                q.erase(*it);
                 *it = list.back();
                 list.pop_back();
-                q.erase(*it);
             } else {
                 ++it;
             }

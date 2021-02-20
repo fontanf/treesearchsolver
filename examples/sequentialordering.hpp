@@ -4,6 +4,29 @@
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
 
+/**
+ * Sequential Ordering Problem.
+ * (Asymmetric Travelling Salesman Problem with Precedence Constraints)
+ *
+ * Input:
+ * - n cities and an n×n matrix containing the distances between each pair of
+ *   cities (not necessarily symmetric)
+ * - a directed acyclic graph such that each vertex represents a city and an
+ *   arc from vertex j1 to vertex j2 indicates that city j1 must be visited
+ *   before city j2
+ * Problem:
+ * - find a route from city 1 such that:
+ *   - each city is visited exactly once
+ *   - precedence constraints are satisfied
+ * Objective:
+ * - minimize the total length of the tour
+ *
+ * Tree search:
+ * - forward branching
+ * - guide: current length + distance to the closest next child
+ *
+ */
+
 namespace treesearchsolver
 {
 

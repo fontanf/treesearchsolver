@@ -19,6 +19,13 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_library(
+        name = "batchschedulingtotalweightedtardiness",
+        hdrs = ["batchschedulingtotalweightedtardiness.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
 cc_binary(
         name = "main",
         srcs = ["main.cpp"],
@@ -26,6 +33,7 @@ cc_binary(
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":batchschedulingtotalweightedtardiness",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",
         ],
@@ -39,6 +47,7 @@ cc_binary(
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":batchschedulingtotalweightedtardiness",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",
         ],

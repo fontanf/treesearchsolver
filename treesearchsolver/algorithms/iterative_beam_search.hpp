@@ -112,7 +112,7 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
                             && !branching_scheme.bound(child, output.solution_pool.worst())) {
-                        if ((Counter)q_next->size() == output.queue_size_max)
+                        if ((Counter)q_next->size() >= output.queue_size_max)
                             stop = false;
                         if ((Counter)q_next->size() < output.queue_size_max
                                 || branching_scheme(child, *(std::prev(q_next->end())))) {

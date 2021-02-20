@@ -4,6 +4,24 @@
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
 
+/**
+ * Travelling Salesman Problem.
+ *
+ * Input:
+ * - n cities and an n×n symmetric matrix containing the distances between each
+ *   pair of cities
+ * Problem:
+ * - find a tour from city 1 to city 1 such that
+ *   - each other city is visited exactly once
+ * Objective:
+ * - minimize the total length of the tour
+ *
+ * Tree search:
+ * - forward branching
+ * - guide: current length + distance to the closest next child
+ *
+ */
+
 namespace treesearchsolver
 {
 
