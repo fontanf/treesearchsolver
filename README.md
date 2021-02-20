@@ -23,6 +23,10 @@ Algorithms:
 
 [Sequential Ordering Problem](examples/sequentialordering.hpp)
 * Literature:
+  * "A hybrid particle swarm optimization approach for the sequential ordering problem" (Anghinolfi et al., 2011)
+  * "A bee colony optimization with automated parameter tuning for sequential ordering problem" (Wun et al., 2014)
+  * "An improved Ant Colony System for the Sequential Ordering Problem (Skinderowicz, 2017)
+  * "An extension of the Lin-Kernighan-Helsgaun TSP solver for constrained traveling salesman and vehicle routing problems" (Helsgaun, 2017)
   * "Tree search algorithms for the Sequential Ordering Problem" (Libralesso et al., 2019)
 * Notes:
   * State-of-the-art on the `soplib` dataset (same algorithm as `libralesso2019`)
@@ -38,7 +42,7 @@ Algorithms:
   * "The Thief Orienteering Problem: Formulation and Heuristic Approaches" (Santos et Chagas, 2018)
   * "Ants can orienteer a thief in their robbery" (Chagas et Wagner, 2020)
 
-[Single machine batch scheduling problem, Total weighted tardiness](examples/batchschedulingtotalweightedtardiness)
+[Single machine batch scheduling problem, Total weighted tardiness](examples/batchschedulingtotalweightedtardiness.hpp)
 * Three field classification: `1 | batch, rⱼ, sⱼ, compt | ∑wⱼTⱼ`
 * Literature
   * "Scheduling a batch processing machine to minimize total weighted tardiness" (Chou et Wang, 2008)
