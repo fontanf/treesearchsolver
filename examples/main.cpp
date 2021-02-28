@@ -1,56 +1,9 @@
-#include "examples/travellingsalesman.hpp"
-#include "examples/sequentialordering.hpp"
-#include "examples/thieforienteering.hpp"
-#include "examples/batchschedulingtotalweightedtardiness.hpp"
-
 #include "treesearchsolver/read_args.hpp"
-
-#include <boost/program_options.hpp>
+#include "examples/read_args.hpp"
 
 using namespace treesearchsolver;
 
 namespace po = boost::program_options;
-
-inline GuideId read_guide(
-        const std::vector<char*> argv)
-{
-    GuideId guide_id = 0;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("guide,g", boost::program_options::value<GuideId>(&guide_id), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return guide_id;
-}
-
-inline thieforienteering::BranchingScheme::Parameters read_thieforienteering_args(
-        const std::vector<char*> argv)
-{
-    thieforienteering::BranchingScheme::Parameters parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
-        ("exponent-time,t", boost::program_options::value<double>(&parameters.exponent_time), "")
-        ("exponent-weight,w", boost::program_options::value<double>(&parameters.exponent_weight), "")
-        ("exponent-profit,p", boost::program_options::value<double>(&parameters.exponent_profit), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
 
 template <typename BranchingScheme>
 SolutionPool<BranchingScheme> run(
@@ -142,11 +95,13 @@ int main(int argc, char *argv[])
 
     if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
-        travellingsalesman::BranchingScheme branching_scheme(instance);
+        auto parameters = read_travellingsalesman_args(branching_scheme_argv);
+        travellingsalesman::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
-        sequentialordering::BranchingScheme branching_scheme(instance);
+        auto parameters = read_sequentialordering_args(branching_scheme_argv);
+        sequentialordering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
@@ -154,6 +109,31 @@ int main(int argc, char *argv[])
         thieforienteering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
+    } else if (problem == "orderacceptanceandscheduling") {
+        orderacceptanceandscheduling::Instance instance(instance_path, format);
+        auto parameters = read_orderacceptanceandscheduling_args(branching_scheme_argv);
+        orderacceptanceandscheduling::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+
+        //auto node_tmp = solution_pool.best();;
+        //while (node_tmp->father != nullptr) {
+        //    std::cout << "node_tmp"
+        //        << " n " << node_tmp->job_number
+        //        << " t " << node_tmp->time
+        //        << " p " << node_tmp->profit
+        //        << " w " << node_tmp->weight
+        //        << " j " << node_tmp->j
+        //        << " rj " << instance.job(node_tmp->j).release_date
+        //        << " dj " << instance.job(node_tmp->j).due_date
+        //        << " dj " << instance.job(node_tmp->j).deadline
+        //        << " pj " << instance.job(node_tmp->j).processing_time
+        //        << " vj " << instance.job(node_tmp->j).profit
+        //        << " wj " << instance.job(node_tmp->j).weight
+        //        << " sij " << instance.setup_time(node_tmp->father->j, node_tmp->j)
+        //        << std::endl;
+        //    node_tmp = node_tmp->father;
+        //}
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
         batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance);

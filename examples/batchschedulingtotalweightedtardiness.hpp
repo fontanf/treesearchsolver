@@ -216,7 +216,7 @@ public:
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node> father) const
+            const std::shared_ptr<Node>& father) const
     {
         assert(!infertile(father));
         assert(!leaf(father));

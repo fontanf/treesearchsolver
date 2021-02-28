@@ -12,7 +12,6 @@ namespace treesearchsolver
 typedef int64_t NodeId;
 typedef int64_t Counter;
 typedef double Value;
-typedef int64_t GuideId;
 
 enum class ObjectiveSense { Min, Max };
 
@@ -198,6 +197,8 @@ inline void remove_from_history(
             if (*it == node) {
                 *it = list.back();
                 list.pop_back();
+                if (list.empty())
+                    history.erase(node);
                 break;
             } else {
                 ++it;

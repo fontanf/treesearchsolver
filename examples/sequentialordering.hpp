@@ -36,6 +36,7 @@ namespace sequentialordering
 typedef int64_t VertexId;
 typedef int64_t VertexPos;
 typedef int64_t Distance;
+typedef int64_t GuideId;
 
 struct Location
 {
@@ -101,7 +102,11 @@ private:
         for (;;) {
             getline(file, tmp);
             line = optimizationtools::split(tmp, ' ');
-            if (tmp.rfind("DIMENSION", 0) == 0) {
+            if (line.size() == 0) {
+            } else if (tmp.rfind("NAME", 0) == 0) {
+            } else if (tmp.rfind("COMMENT", 0) == 0) {
+            } else if (tmp.rfind("TYPE", 0) == 0) {
+            } else if (tmp.rfind("DIMENSION", 0) == 0) {
                 n = std::stol(line.back());
                 locations_ = std::vector<Location>(n);
                 distances_ = std::vector<std::vector<Distance>>(n, std::vector<Distance>(n, -1));
@@ -113,11 +118,11 @@ private:
                 edge_weight_format = line.back();
             } else if (tmp.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
                 if (edge_weight_format == "FULL_MATRIX") {
-                    for (VertexId j1 = 0; j1 < n - 1; ++j1) {
-                        getline(file, tmp);
-                        line = optimizationtools::split(tmp, ' ');
+                    Distance d;
+                    file >> d;
+                    for (VertexId j1 = 0; j1 < n; ++j1) {
                         for (VertexId j2 = 0; j2 < n; ++j2) {
-                            Distance d = std::stol(line[j2]);
+                            file >> d;
                             if (d == -1)
                                 add_predecessor(j1, j2);
                             if (j2 == j1 || d == -1)
@@ -175,6 +180,11 @@ class BranchingScheme
 
 public:
 
+    struct Parameters
+    {
+        GuideId bound_id = 0;
+    };
+
     struct Node
     {
         std::shared_ptr<Node> father = nullptr;
@@ -182,12 +192,44 @@ public:
         VertexId j = 0; // Last visited vertex.
         VertexId vertex_number = 1;
         Distance length = 0;
+        Distance bound_outgoing = 0;
+        Distance bound = 0;
         Distance guide = 0;
         VertexPos next_child_pos = 0;
     };
 
-    BranchingScheme(const Instance& instance):
+    inline void compute_bound(
+            const std::shared_ptr<Node>& node) const
+    {
+        switch (parameters_.bound_id) {
+        case 0: { // prefix
+            node->bound = node->length
+                + instance_.distance(node->j, neighbor(node->j, 0));
+            break;
+        } case 1: { // outgoing O(1)
+            if (node->j == 0) { // root
+                node->bound_outgoing = 0;
+                for (VertexId j = 0; j < instance_.vertex_number(); ++j) {
+                    Distance d = instance_.distance(j, neighbor(j, 0));
+                    if (d != std::numeric_limits<Distance>::max())
+                        node->bound_outgoing += instance_.distance(j, neighbor(j, 0));
+                }
+            } else {
+                node->bound_outgoing = node->father->bound_outgoing
+                    - instance_.distance(node->father->j, neighbor(node->father->j, 0));
+            }
+            node->bound = node->length + node->bound_outgoing;
+            break;
+        } default: {
+            node->bound = node->length
+                + instance_.distance(node->j, neighbor(node->j, 0));
+        }
+        }
+    }
+
+    BranchingScheme(const Instance& instance, const Parameters& parameters):
         instance_(instance),
+        parameters_(parameters),
         sorted_vertices_(instance.vertex_number()),
         generator_(0)
     {
@@ -208,12 +250,13 @@ public:
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->visited.resize(instance_.vertex_number(), false);
-        r->guide = instance_.distance(0, neighbor(0, 0));
+        compute_bound(r);
+        r->guide = r->bound;
         return r;
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node> father) const
+            const std::shared_ptr<Node>& father) const
     {
         assert(!infertile(father));
         assert(!leaf(father));
@@ -228,7 +271,8 @@ public:
         if (d_next == std::numeric_limits<Distance>::max()) {
             father->guide = -1;
         } else {
-            father->guide = father->guide - d + d_next;
+            father->bound = father->bound - d + d_next;
+            father->guide = father->bound;
         }
         if (father->visited[j_next]
                 || d == std::numeric_limits<Distance>::max())
@@ -245,8 +289,8 @@ public:
         child->j = j_next;
         child->vertex_number = father->vertex_number + 1;
         child->length = father->length + d;
-        child->guide = child->length
-            + instance_.distance(j_next, neighbor(j_next, 0));
+        compute_bound(child);
+        child->guide = child->bound;
         return child;
     }
 
@@ -280,7 +324,7 @@ public:
     {
         if (node_2->vertex_number != instance_.vertex_number())
             return false;
-        return node_1->length >= node_2->length;
+        return node_1->bound >= node_2->length;
     }
 
     bool better(
@@ -357,6 +401,7 @@ public:
 private:
 
     const Instance& instance_;
+    Parameters parameters_;
 
     mutable std::vector<optimizationtools::SortedOnDemandArray> sorted_vertices_;
     mutable std::mt19937_64 generator_;

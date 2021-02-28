@@ -20,6 +20,13 @@ cc_library(
 )
 
 cc_library(
+        name = "orderacceptanceandscheduling",
+        hdrs = ["orderacceptanceandscheduling.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
+cc_library(
         name = "batchschedulingtotalweightedtardiness",
         hdrs = ["batchschedulingtotalweightedtardiness.hpp"],
         deps = ["//treesearchsolver:treesearchsolver"],
@@ -28,11 +35,12 @@ cc_library(
 
 cc_binary(
         name = "main",
-        srcs = ["main.cpp"],
+        srcs = ["read_args.hpp", "main.cpp"],
         deps = [
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",
@@ -47,6 +55,7 @@ cc_binary(
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",

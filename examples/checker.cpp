@@ -1,6 +1,8 @@
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
 #include "examples/thieforienteering.hpp"
+#include "examples/orderacceptanceandscheduling.hpp"
+#include "examples/batchschedulingtotalweightedtardiness.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -47,10 +49,8 @@ int main(int argc, char *argv[])
 
     if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
-        travellingsalesman::BranchingScheme branching_scheme(instance);
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
-        sequentialordering::BranchingScheme branching_scheme(instance);
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
         thieforienteering::Time t = 0;
@@ -76,6 +76,10 @@ int main(int argc, char *argv[])
         std::cout << "Duration:  " << t << " / " << instance.time_limit() << std::endl;
         std::cout << "Weight:    " << w << " / " << instance.capacity() << std::endl;
         std::cout << "Profit:    " << p << std::endl;
+    } else if (problem == "orderacceptanceandscheduling") {
+        orderacceptanceandscheduling::Instance instance(instance_path, format);
+    } else if (problem == "batchschedulingtotalweightedtardiness") {
+        batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown problem: '" << problem << "'.\033[0m" << std::endl;
         return 1;

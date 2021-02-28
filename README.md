@@ -42,6 +42,15 @@ Algorithms:
   * "The Thief Orienteering Problem: Formulation and Heuristic Approaches" (Santos et Chagas, 2018)
   * "Ants can orienteer a thief in their robbery" (Chagas et Wagner, 2020)
 
+[Single machine order acceptance and scheduling problem with sequence-dependent setup times](examples/orderacceptanceandscheduling.hpp)
+* Three field classification `1 | rⱼ, sᵢⱼ, reject, đⱼ | ∑wⱼTⱼ - ∑vⱼ`
+* Literature
+  * "A tabu search algorithm for order acceptance and scheduling" (Cesaret et al., 2012)
+  * "Hybrid evolutionary approaches for the single machine order acceptance and scheduling problem" (Chaurasia et Singh, 2017)
+  * "Exact and heuristic algorithms for order acceptance and scheduling with sequence-dependent setup times" (Silva et al., 2018)
+  * "Tabu-Based Large Neighbourhood Search for Time/Sequence-Dependent Scheduling Problems with Time Windows" (He et al., 2019)
+  * "Single-machine scheduling with release times, deadlines, setup times, and rejection" (de Weerdt et al., 2020)
+
 [Single machine batch scheduling problem, Total weighted tardiness](examples/batchschedulingtotalweightedtardiness.hpp)
 * Three field classification: `1 | batch, rⱼ, sⱼ, compt | ∑wⱼTⱼ`
 * Literature
@@ -77,5 +86,6 @@ python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/thieforie
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv data/thieforienteering/data.csv -l thieforienteering -t 1003
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness --main "./bazel-bin/examples/main -p batchschedulingtotalweightedtardiness" -a "iterativebeamsearch" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv data/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -t 61
+python3 ../optimizationtools/optimizationtools/bench_run.py --csv data/orderacceptanceandscheduling/data.csv -l orderacceptanceandscheduling --main "./bazel-bin/examples/main -p orderacceptanceandscheduling" -a "iterativebeamsearch" -f "row['Dataset'] == 'cesaret2012'" -t 10
 ```
 

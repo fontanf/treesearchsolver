@@ -31,6 +31,7 @@ namespace travellingsalesman
 typedef int64_t VertexId;
 typedef int64_t VertexPos;
 typedef int64_t Distance;
+typedef int64_t GuideId;
 
 struct Location
 {
@@ -260,6 +261,11 @@ class BranchingScheme
 
 public:
 
+    struct Parameters
+    {
+        GuideId bound_id = 0;
+    };
+
     struct Node
     {
         std::shared_ptr<Node> father = nullptr;
@@ -267,12 +273,15 @@ public:
         VertexId j = 0; // Last visited vertex.
         VertexId vertex_number = 1;
         Distance length = 0;
+        Distance bound_outgoing = 0;
+        Distance bound = 0;
         Distance guide = 0;
         VertexPos next_child_pos = 0;
     };
 
-    BranchingScheme(const Instance& instance):
+    BranchingScheme(const Instance& instance, const Parameters& parameters):
         instance_(instance),
+        parameters_(parameters),
         sorted_vertices_(instance.vertex_number()),
         generator_(0)
     {
@@ -289,16 +298,56 @@ public:
         return sorted_vertices_[j].get(pos, generator_);
     }
 
+    inline VertexId closest_unvisited_neighbor(
+            const std::shared_ptr<Node>& node,
+            VertexId j) const
+    {
+        for (VertexPos j2_pos = 0; j2_pos < instance_.vertex_number(); ++j2_pos) {
+            VertexId j2 = neighbor(j, j2_pos);
+            if (j2 == 0 || (!node->visited[j2] && j2 != node->j))
+                return j2;
+        }
+        assert(false);
+        return -1;
+    }
+
+    inline void compute_bound(
+            const std::shared_ptr<Node>& node) const
+    {
+        switch (parameters_.bound_id) {
+        case 0: { // prefix
+            node->bound = node->length
+                + instance_.distance(node->j, neighbor(node->j, 0));
+            break;
+        } case 1: { // outgoing
+            if (node->j == 0) { // root
+                node->bound_outgoing = 0;
+                for (VertexId j = 0; j < instance_.vertex_number(); ++j)
+                    node->bound_outgoing += instance_.distance(j, neighbor(j, 0));
+            } else {
+                node->bound_outgoing = node->father->bound_outgoing
+                    - instance_.distance(node->father->j, neighbor(node->father->j, 0));
+            }
+            node->bound = node->length + node->bound_outgoing;
+            break;
+        } default: {
+            node->bound = node->length
+                + instance_.distance(node->j, neighbor(node->j, 0));
+        }
+        }
+    }
+
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->visited.resize(instance_.vertex_number(), false);
-        r->guide = instance_.distance(0, neighbor(0, 0));
+        compute_bound(r);
+        r->guide = r->bound;
         return r;
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node> father) const
+            const std::shared_ptr<Node>& father) const
     {
         assert(!infertile(father));
         assert(!leaf(father));
@@ -313,7 +362,8 @@ public:
         if (d_next == std::numeric_limits<Distance>::max()) {
             father->guide = -1;
         } else {
-            father->guide = father->guide - d + d_next;
+            father->bound = father->bound - d + d_next;
+            father->guide = father->bound;
         }
         if (father->visited[j_next])
             return nullptr;
@@ -326,8 +376,8 @@ public:
         child->j = j_next;
         child->vertex_number = father->vertex_number + 1;
         child->length = father->length + d;
-        child->guide = child->length
-            + instance_.distance(j_next, neighbor(j_next, 0));
+        compute_bound(child);
+        child->guide = child->bound;
         return child;
     }
 
@@ -362,7 +412,7 @@ public:
         if (node_2->vertex_number != instance_.vertex_number())
             return false;
         Distance d2 = node_2->length + instance_.distance(node_2->j, 0);
-        return node_1->length >= d2;
+        return node_1->bound >= d2;
     }
 
     bool better(
@@ -441,6 +491,7 @@ public:
 private:
 
     const Instance& instance_;
+    Parameters parameters_;
 
     mutable std::vector<optimizationtools::SortedOnDemandArray> sorted_vertices_;
     mutable std::mt19937_64 generator_;

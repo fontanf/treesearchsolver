@@ -408,7 +408,7 @@ public:
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node> father) const
+            const std::shared_ptr<Node>& father) const
     {
         assert(!infertile(father));
         assert(!leaf(father));
@@ -551,7 +551,9 @@ public:
             if (branching_scheme_.instance().item(node_1->i).location
                     != branching_scheme_.instance().item(node_2->i).location)
                 return false;
-            return node_1->available_items == node_2->available_items;
+            if (node_1->available_items != node_2->available_items)
+                return false;
+            return true;
         }
 
         inline std::size_t operator()(
@@ -569,11 +571,11 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->time > node_2->time
-                || node_1->profit < node_2->profit
-                || node_1->weight > node_2->weight)
-            return false;
-        return true;
+        if (node_1->time <= node_2->time
+                && node_1->profit >= node_2->profit
+                && node_1->weight <= node_2->weight)
+            return true;
+        return false;
     }
 
     inline void write(
