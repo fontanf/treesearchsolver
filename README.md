@@ -61,7 +61,7 @@ Algorithms:
   * "Solving single batch-processing machine problems using an iterated heuristic" (Wang, 2011)
   * "Iterated local search for single machine total weighted tardiness batch scheduling" (Queiroga et al., 2020)
 
-[Simple Assembly Line Balancing Problem of Type 1 (SALBP-1)](exaples/simpleassemblylinebalancing1.hpp)
+[Simple Assembly Line Balancing Problem of Type 1 (SALBP-1)](examples/simpleassemblylinebalancing1.hpp)
 * Bin Packing Problem with precedence constraints of the form `bin(j1) <= bin(j2) `
 * Literature:
   * "Simple assembly line balancing—Heuristic approaches" (Scholl et Voß, 1997)
@@ -77,6 +77,8 @@ Pricing problems from [fontanf/columngenerationsolver](https://github.com/fontan
 
 ## Usage, running examples from command line
 
+[Download data](https://github.com/fontanf/treesearchsolver/releases/download/data/treesearchdata.zip)
+
 Compile:
 ```shell
 bazel build -- //...
@@ -84,7 +86,7 @@ bazel build -- //...
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/main -v -p travellingsalesman -a iterativebeamsearch -i data/travellingsalesman/tsplib/a280.tsp
+./bazel-bin/examples/main -v -p travellingsalesman -a iterativebeamsearch -i ../treesearchdata/travellingsalesman/tsplib/a280.tsp -t 5
 ```
 
 ## Usage, C++ library
