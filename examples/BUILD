@@ -33,6 +33,13 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_library(
+        name = "simpleassemblylinebalancing1",
+        hdrs = ["simpleassemblylinebalancing1.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
 cc_binary(
         name = "main",
         srcs = ["read_args.hpp", "main.cpp"],
@@ -42,10 +49,10 @@ cc_binary(
                 ":thieforienteering",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
+                ":simpleassemblylinebalancing1",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",
         ],
-        data = ["//data:data"],
 )
 
 cc_binary(
@@ -57,9 +64,9 @@ cc_binary(
                 ":thieforienteering",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
+                ":simpleassemblylinebalancing1",
                 "//treesearchsolver:read_args",
                 "@boost//:program_options",
         ],
-        data = ["//data:data"],
 )
 

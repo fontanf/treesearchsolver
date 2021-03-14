@@ -41,8 +41,8 @@ namespace orderacceptanceandscheduling
 typedef int64_t JobId;
 typedef int64_t JobPos;
 typedef int64_t Time;
-typedef int64_t Weight;
-typedef int64_t Profit;
+typedef double Weight;
+typedef double Profit;
 typedef int64_t GuideId;
 
 struct Job
@@ -140,11 +140,11 @@ private:
         getline(file, tmp);
         line = optimizationtools::split(tmp, ',');
         for (JobId j = 0; j < n; ++j)
-            jobs_[j].profit = std::stol(line[j]);
+            jobs_[j].profit = std::stod(line[j]);
         getline(file, tmp);
         line = optimizationtools::split(tmp, ',');
         for (JobId j = 0; j < n; ++j)
-            jobs_[j].weight = std::stol(line[j]);
+            jobs_[j].weight = std::stod(line[j]);
         for (JobId j1 = 0; j1 < n; ++j1) {
             getline(file, tmp);
             line = optimizationtools::split(tmp, ',');

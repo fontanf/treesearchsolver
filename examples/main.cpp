@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
         ("time-limit,t", po::value<double>(&time_limit), "Time limit in seconds\n  ex: 3600")
         ("only-write-at-the-end,e", "Only write output and certificate files at the end")
         ("verbose,v", "")
+        ("print-instance", "")
+        ("print-solution", "")
         ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -116,56 +118,85 @@ int main(int argc, char *argv[])
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
 
-        //auto node_tmp = solution_pool.best();;
-        //while (node_tmp->father != nullptr) {
-        //    std::cout << "node_tmp"
-        //        << " n " << node_tmp->job_number
-        //        << " t " << node_tmp->time
-        //        << " p " << node_tmp->profit
-        //        << " w " << node_tmp->weight
-        //        << " j " << node_tmp->j
-        //        << " rj " << instance.job(node_tmp->j).release_date
-        //        << " dj " << instance.job(node_tmp->j).due_date
-        //        << " dj " << instance.job(node_tmp->j).deadline
-        //        << " pj " << instance.job(node_tmp->j).processing_time
-        //        << " vj " << instance.job(node_tmp->j).profit
-        //        << " wj " << instance.job(node_tmp->j).weight
-        //        << " sij " << instance.setup_time(node_tmp->father->j, node_tmp->j)
-        //        << std::endl;
-        //    node_tmp = node_tmp->father;
-        //}
+        if (vm.count("print-solution")) {
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
+                    node_tmp = node_tmp->father)
+                std::cout << "node_tmp"
+                    << " n " << node_tmp->job_number
+                    << " t " << node_tmp->time
+                    << " p " << node_tmp->profit
+                    << " w " << node_tmp->weight
+                    << " j " << node_tmp->j
+                    << " rj " << instance.job(node_tmp->j).release_date
+                    << " dj " << instance.job(node_tmp->j).due_date
+                    << " dj " << instance.job(node_tmp->j).deadline
+                    << " pj " << instance.job(node_tmp->j).processing_time
+                    << " vj " << instance.job(node_tmp->j).profit
+                    << " wj " << instance.job(node_tmp->j).weight
+                    << " sij " << instance.setup_time(node_tmp->father->j, node_tmp->j)
+                    << std::endl;
+        }
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
         batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance);
         auto solution_pool = run(algorithm, branching_scheme, info);
 
-        //auto node_tmp = solution_pool.best();;
-        //batchschedulingtotalweightedtardiness::Time current_batch_end = node_tmp->current_batch_end;
-        //while (node_tmp->father != nullptr) {
-        //    batchschedulingtotalweightedtardiness::Weight wtj
-        //        = (current_batch_end <= instance.job(node_tmp->j).due_date)? 0:
-        //        instance.job(node_tmp->j).weight * (current_batch_end - instance.job(node_tmp->j).due_date);
-        //    std::cout << "node_tmp"
-        //        << " n " << node_tmp->job_number
-        //        << " bs " << node_tmp->current_batch_start
-        //        << " be " << node_tmp->current_batch_end
-        //        << " rbe " << current_batch_end
-        //        << " s " << node_tmp->current_batch_size
-        //        << " twt " << node_tmp->total_weighted_tardiness
-        //        << " bnd " << node_tmp->bound
-        //        << " j " << node_tmp->j
-        //        << " nb " << node_tmp->new_batch
-        //        << " pj " << instance.job(node_tmp->j).processing_time
-        //        << " sj " << instance.job(node_tmp->j).size
-        //        << " rj " << instance.job(node_tmp->j).release_date
-        //        << " dj " << instance.job(node_tmp->j).due_date
-        //        << " wj " << instance.job(node_tmp->j).weight
-        //        << " wtj " << wtj
-        //        << std::endl;
-        //    if (node_tmp->new_batch)
-        //        current_batch_end = node_tmp->father->current_batch_end;
-        //    node_tmp = node_tmp->father;
-        //}
+        if (vm.count("print-solution")) {
+            batchschedulingtotalweightedtardiness::Time current_batch_end
+                = solution_pool.best()->current_batch_end;
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
+                    node_tmp = node_tmp->father) {
+                batchschedulingtotalweightedtardiness::Weight wtj
+                    = (current_batch_end <= instance.job(node_tmp->j).due_date)? 0:
+                    instance.job(node_tmp->j).weight * (current_batch_end - instance.job(node_tmp->j).due_date);
+                std::cout << "node_tmp"
+                    << " n " << node_tmp->job_number
+                    << " bs " << node_tmp->current_batch_start
+                    << " be " << node_tmp->current_batch_end
+                    << " rbe " << current_batch_end
+                    << " s " << node_tmp->current_batch_size
+                    << " twt " << node_tmp->total_weighted_tardiness
+                    << " bnd " << node_tmp->bound
+                    << " j " << node_tmp->j
+                    << " nb " << node_tmp->new_batch
+                    << " pj " << instance.job(node_tmp->j).processing_time
+                    << " sj " << instance.job(node_tmp->j).size
+                    << " rj " << instance.job(node_tmp->j).release_date
+                    << " dj " << instance.job(node_tmp->j).due_date
+                    << " wj " << instance.job(node_tmp->j).weight
+                    << " wtj " << wtj
+                    << std::endl;
+                if (node_tmp->new_batch)
+                    current_batch_end = node_tmp->father->current_batch_end;
+            }
+        }
+    } else if (problem == "simpleassemblylinebalancing1") {
+        simpleassemblylinebalancing1::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+
+        auto parameters = read_simpleassemblylinebalancing1_args(branching_scheme_argv);
+        simpleassemblylinebalancing1::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path);
+        auto node_tmp = solution_pool.best();;
+        simpleassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
+        std::vector<std::vector<simpleassemblylinebalancing1::JobId>> stations(m);
+
+        if (vm.count("print-solution")) {
+            std::vector<simpleassemblylinebalancing1::Time> times(m, 0);
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father) {
+                stations[node_tmp->station_number - 1].push_back(node_tmp->j);
+                times[node_tmp->station_number - 1] += instance.job(node_tmp->j).processing_time;
+            }
+            for (simpleassemblylinebalancing1::StationId i = 0; i < m; ++i) {
+                std::cout << "Station " << i << " " << times[i] << "/" << instance.cycle_time() << ":";
+                std::reverse(stations[i].begin(), stations[i].end());
+                for (simpleassemblylinebalancing1::JobId j: stations[i])
+                    std::cout << " " << j;
+                std::cout << std::endl;
+            }
+        }
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown problem: '" << problem << "'.\033[0m" << std::endl;
         return 1;
