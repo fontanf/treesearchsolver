@@ -19,6 +19,17 @@ Algorithms:
 
 ## Examples
 
+### Packing
+
+[Knapsack Problem with Conflicts](examples/knapsackwithconflicts.hpp)
+* Literature:
+  * "Local branching-based algorithms for the disjunctively constrained knapsack problem" (Akeb et al., 2011)
+  * "Bin Packing with Conflicts: A Generic Branch-and-Price Algorithm" (Sadykov et Vanderbeck, 2012) 
+  * "A Branch-and-Bound Algorithm for the Knapsack Problem with Conflict Graph" (Bettinelli et al., 2017)
+  * "A new combinatorial branch-and-bound algorithm for the Knapsack Problem with Conflicts" (Coniglio et al., 2020)
+
+### Routing
+
 [Travelling Salesman Problem](examples/travellingsalesman.hpp)
 * Three field classification: `1 | sᵢⱼ | Cₘₐₓ`
 
@@ -30,8 +41,6 @@ Algorithms:
   * "An improved Ant Colony System for the Sequential Ordering Problem (Skinderowicz, 2017)
   * "An extension of the Lin-Kernighan-Helsgaun TSP solver for constrained traveling salesman and vehicle routing problems" (Helsgaun, 2017)
   * "Tree search algorithms for the Sequential Ordering Problem" (Libralesso et al., 2019)
-* Notes:
-  * State-of-the-art on the `soplib` dataset (same algorithm as `libralesso2019`)
 
 [Thief Orienteering Problem](examples/thieforienteering.hpp)
 * Description
@@ -43,6 +52,8 @@ Algorithms:
 * Literature
   * "The Thief Orienteering Problem: Formulation and Heuristic Approaches" (Santos et Chagas, 2018)
   * "Ants can orienteer a thief in their robbery" (Chagas et Wagner, 2020)
+
+### Scheduling
 
 [Single machine order acceptance and scheduling problem with time windows and sequence-dependent setup times, Total weighted tardiness](examples/orderacceptanceandscheduling.hpp)
 * Three field classification: `1 | rⱼ, sᵢⱼ, reject, đⱼ | ∑wⱼTⱼ - ∑vⱼ`
@@ -70,9 +81,17 @@ Algorithms:
   * "A Branch, Bound, and Remember Algorithm for the Simple Assembly Line Balancing Problem" (Sewell et Jacobson, 2011)
   * "An application of the branch, bound, and remember algorithm to a new simple assembly line balancing dataset" (Morrison et al., 2014)
 
+[U-shaped Assembly Line Balancing Problem of Type 1 (UALBP-1)](examples/ushapedassemblylinebalancing1.hpp)
+* Literature
+  * "Branch, bound and remember algorithm for U-shaped assembly line balancing problem" (Li et al., 2018)
+  * "Enhanced beam search heuristic for U-shaped assembly line balancing problems" (Li et al., 2020)
+
+### Others
+
 Pricing problems from [fontanf/columngenerationsolver](https://github.com/fontanf/columngenerationsolver)
 * [Elementary Shortest Path Problem with Resource Constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprc.hpp)
 * [Elementary Shortest Path Problem with Resource Constraint and Time Windows](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprctw.hpp)
+* [Elementary Open Shortest Path Problem with Resource Constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/eospprc.hpp)
 * [Single machine order acceptance and scheduling problem with family setup times, Total weighted completion time](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/oaschedulingwithfamilysetuptimestwct.hpp)
 
 ## Usage, running examples from command line
@@ -96,6 +115,8 @@ See examples.
 ## Benchmarks
 
 ```
+python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -a "iterativebeamsearch" -t 60
+python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv ../treesearchdata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -t 62
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/travellingsalesman/data.csv -l travellingsalesman -a "iterativebeamsearch" -f "'pla85900.tsp' not in row['Path']" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv ../treesearchdata/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -t 62
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/sequentialordering/data.csv -l sequentialordering -a "iterativebeamsearch" -f "row['Dataset'] == 'soplib'" -t 600

@@ -82,7 +82,8 @@ int main(int argc, char *argv[])
         .set_verbose(vm.count("verbose"))
         .set_timelimit(time_limit)
         .set_outputfile(output_path)
-        .set_onlywriteattheend(vm.count("only-write-at-the-end"))
+        //.set_onlywriteattheend(vm.count("only-write-at-the-end"))
+        .set_onlywriteattheend(true)
         ;
 
     // Run algorithm
@@ -95,7 +96,24 @@ int main(int argc, char *argv[])
     for (Counter i = 0; i < (Counter)branching_scheme_args.size(); ++i)
         branching_scheme_argv.push_back(const_cast<char*>(branching_scheme_args[i].c_str()));
 
-    if (problem == "travellingsalesman") {
+    if (problem == "knapsackwithconflicts") {
+        knapsackwithconflicts::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+
+        auto parameters = read_knapsackwithconflicts_args(branching_scheme_argv);
+        knapsackwithconflicts::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path);
+
+        if (vm.count("print-solution")) {
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father)
+                std::cout << "j " << node_tmp->j
+                    << " wj " << instance.item(node_tmp->j).weight
+                    << " pj " << instance.item(node_tmp->j).profit
+                    << std::endl;
+        }
+    } else if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
         auto parameters = read_travellingsalesman_args(branching_scheme_argv);
         travellingsalesman::BranchingScheme branching_scheme(instance, parameters);
@@ -179,11 +197,10 @@ int main(int argc, char *argv[])
         simpleassemblylinebalancing1::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         //branching_scheme.write(solution_pool.best(), certificate_path);
-        auto node_tmp = solution_pool.best();;
-        simpleassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
-        std::vector<std::vector<simpleassemblylinebalancing1::JobId>> stations(m);
 
         if (vm.count("print-solution")) {
+            simpleassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
+            std::vector<std::vector<simpleassemblylinebalancing1::JobId>> stations(m);
             std::vector<simpleassemblylinebalancing1::Time> times(m, 0);
             for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father) {
                 stations[node_tmp->station_number - 1].push_back(node_tmp->j);
@@ -193,6 +210,32 @@ int main(int argc, char *argv[])
                 std::cout << "Station " << i << " " << times[i] << "/" << instance.cycle_time() << ":";
                 std::reverse(stations[i].begin(), stations[i].end());
                 for (simpleassemblylinebalancing1::JobId j: stations[i])
+                    std::cout << " " << j;
+                std::cout << std::endl;
+            }
+        }
+    } else if (problem == "ushapedassemblylinebalancing1") {
+        ushapedassemblylinebalancing1::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+
+        auto parameters = read_ushapedassemblylinebalancing1_args(branching_scheme_argv);
+        ushapedassemblylinebalancing1::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path);
+
+        if (vm.count("print-solution")) {
+            ushapedassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
+            std::vector<std::vector<ushapedassemblylinebalancing1::JobId>> stations(m);
+            std::vector<ushapedassemblylinebalancing1::Time> times(m, 0);
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father) {
+                stations[node_tmp->station_number - 1].push_back(node_tmp->j);
+                times[node_tmp->station_number - 1] += instance.job(node_tmp->j).processing_time;
+            }
+            for (ushapedassemblylinebalancing1::StationId i = 0; i < m; ++i) {
+                std::cout << "Station " << i << " " << times[i] << "/" << instance.cycle_time() << ":";
+                std::reverse(stations[i].begin(), stations[i].end());
+                for (ushapedassemblylinebalancing1::JobId j: stations[i])
                     std::cout << " " << j;
                 std::cout << std::endl;
             }

@@ -4,7 +4,7 @@
 #include "optimizationtools/utils.hpp"
 
 /**
- * Simple Assembly Line Balancing Problem of Type 1.
+ * U-shaped Assembly Line Balancing Problem of Type 1.
  *
  * Input:
  * - n jobs with processing time pⱼ (j = 1..n)
@@ -25,7 +25,7 @@
 namespace treesearchsolver
 {
 
-namespace simpleassemblylinebalancing1
+namespace ushapedassemblylinebalancing1
 {
 
 typedef int64_t JobId;
@@ -239,9 +239,14 @@ public:
 
         if (father->jobs[j_next])
             return nullptr;
-        for (JobId j_pred: instance_.job(j_next).predecessors)
-            if (!father->jobs[j_pred])
-                return nullptr;
+        for (JobId j_pred: instance_.job(j_next).predecessors) {
+            if (!father->jobs[j_pred]) {
+                for (JobId j_succ: instance_.job(j_next).successors)
+                    if (!father->jobs[j_succ])
+                        return nullptr;
+                break;
+            }
+        }
         Time p = instance_.job(j_next).processing_time;
         if (father->added_in_current_station
                && father->current_station_time + p > instance_.cycle_time()) {
