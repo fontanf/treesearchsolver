@@ -55,6 +55,8 @@ Algorithms:
 
 ### Scheduling
 
+#### Single machine scheduling
+
 [Single machine order acceptance and scheduling problem with time windows and sequence-dependent setup times, Total weighted tardiness](examples/orderacceptanceandscheduling.hpp)
 * Three field classification: `1 | rⱼ, sᵢⱼ, reject, đⱼ | ∑wⱼTⱼ - ∑vⱼ`
 * Literature
@@ -71,6 +73,20 @@ Algorithms:
   * "Minimizing total weighted tardiness on a batch-processing machine with non-agreeable release times and due dates" (Mathirajan et al., 2010)
   * "Solving single batch-processing machine problems using an iterated heuristic" (Wang, 2011)
   * "Iterated local search for single machine total weighted tardiness batch scheduling" (Queiroga et al., 2020)
+
+#### Flow shop scheduling
+
+[Permutation flow shop scheduling problem, Total completion time](examples/permutationflowshopschedulingtct.hpp)
+* Three field classification: `Fm | prmu | ∑Cⱼ`
+* Literature:
+  * "Constructive and composite heuristic solutions to the P//∑Ci scheduling problem" (Liu et Reeves, 2001)
+  * "Local search methods for the flowshop scheduling problem with flowtime minimization" (Pan et Ruiz, 2012)
+  * "A new set of high-performing heuristics to minimise flowtime in permutation flowshops" (Fernandez-Viagas et Framinan, 2015)
+  * "A beam-search-based constructive heuristic for the PFSP to minimise total flowtime" (Fernandez-Viagas et Framinan, 2017)
+  * "Minimizing flowtime in a flowshop scheduling problem with a biased random-key genetic algorithm" (Andrade et al., 2019)
+  * "Iterative beam search algorithms for the permutation flowshop" (Libralesso et al., 2020)
+
+#### Assembly Line Balancing
 
 [Simple Assembly Line Balancing Problem of Type 1 (SALBP-1)](examples/simpleassemblylinebalancing1.hpp)
 * Bin Packing Problem with precedence constraints of the form `bin(j1) <= bin(j2) `
@@ -127,6 +143,8 @@ python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchd
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv ../treesearchdata/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -t 61
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/orderacceptanceandscheduling/data.csv -l orderacceptanceandscheduling -a "iterativebeamsearch" -f "row['Dataset'] == 'cesaret2012'" -t 10
 python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv ../treesearchdata/orderacceptanceandscheduling/data.csv -l orderacceptanceandscheduling -f "row['Dataset'] == 'cesaret2012'" -t 11
+python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/permutationflowshopschedulingtct/data.csv -l permutationflowshopschedulingtct -a "iterativebeamsearch" --timelimitfield "Time limit"
+python3 ../optimizationtools/optimizationtools/bench_process.py -b heuristiclong --csv ../treesearchdata/permutationflowshopschedulingtct/data.csv -l permutationflowshopschedulingtct -t 500
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -l simpleassemblylinebalancing1 -a "iterativebeamsearch" -f "row['Dataset'] == 'otto2013_small'" -t 10
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -l simpleassemblylinebalancing1 -a "iterativebeamsearch" -f "row['Dataset'] == 'otto2013_medium'" -t 10
 python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -l simpleassemblylinebalancing1 -a "iterativebeamsearch" -f "row['Dataset'] == 'otto2013_large'" -t 10

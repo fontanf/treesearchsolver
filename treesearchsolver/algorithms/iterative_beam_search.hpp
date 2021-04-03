@@ -8,7 +8,7 @@ namespace treesearchsolver
 struct IterativeBeamSearchOptionalParameters
 {
     NodeId solution_pool_size_max = 1;
-    double growth_factor = 1.5;
+    double growth_factor = 2;
     NodeId queue_size_min = 0;
     NodeId queue_size_max = 100000000;
     NodeId node_number_max = -1;

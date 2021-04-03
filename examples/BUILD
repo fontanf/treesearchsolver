@@ -41,6 +41,13 @@ cc_library(
 )
 
 cc_library(
+        name = "permutationflowshopschedulingtct",
+        hdrs = ["permutationflowshopschedulingtct.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
+cc_library(
         name = "simpleassemblylinebalancing1",
         hdrs = ["simpleassemblylinebalancing1.hpp"],
         deps = ["//treesearchsolver:treesearchsolver"],
@@ -64,6 +71,7 @@ cc_binary(
                 ":thieforienteering",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
+                ":permutationflowshopschedulingtct",
                 ":simpleassemblylinebalancing1",
                 ":ushapedassemblylinebalancing1",
                 "//treesearchsolver:read_args",
@@ -81,6 +89,7 @@ cc_binary(
                 ":thieforienteering",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
+                ":permutationflowshopschedulingtct",
                 ":simpleassemblylinebalancing1",
                 ":ushapedassemblylinebalancing1",
                 "//treesearchsolver:read_args",

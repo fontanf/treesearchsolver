@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
         batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance);
         auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path);
 
         if (vm.count("print-solution")) {
             batchschedulingtotalweightedtardiness::Time current_batch_end
@@ -186,6 +187,28 @@ int main(int argc, char *argv[])
                     << std::endl;
                 if (node_tmp->new_batch)
                     current_batch_end = node_tmp->father->current_batch_end;
+            }
+        }
+    } else if (problem == "permutationflowshopschedulingtct") {
+        permutationflowshopschedulingtct::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+
+        auto parameters = read_permutationflowshopschedulingtct_args(branching_scheme_argv);
+        permutationflowshopschedulingtct::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+
+        if (vm.count("print-solution")) {
+            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
+                    node_tmp = node_tmp->father) {
+                std::cout << "node_tmp"
+                    << " n " << node_tmp->job_number
+                    << " c " << node_tmp->times[instance.machine_number() - 1]
+                    << " tct " << node_tmp->total_completion_time
+                    << " bnd " << node_tmp->bound
+                    << " j " << node_tmp->j
+                    << std::endl;
             }
         }
     } else if (problem == "simpleassemblylinebalancing1") {
