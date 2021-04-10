@@ -1,8 +1,15 @@
+#include "examples/knapsackwithconflicts.hpp"
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
 #include "examples/thieforienteering.hpp"
 #include "examples/orderacceptanceandscheduling.hpp"
 #include "examples/batchschedulingtotalweightedtardiness.hpp"
+#include "examples/permutationflowshopschedulingmakespan.hpp"
+#include "examples/permutationflowshopschedulingtct.hpp"
+#include "examples/simpleassemblylinebalancing1.hpp"
+#include "examples/ushapedassemblylinebalancing1.hpp"
+
+#include "optimizationtools/indexed_set.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -27,6 +34,7 @@ int main(int argc, char *argv[])
         ("input,i", po::value<std::string>(&instance_path)->required(), "set input path (required)")
         ("certificate,c", po::value<std::string>(&certificate_path), "set certificate path")
         ("format,f", po::value<std::string>(&format), "set input file format (default: orlibrary)")
+        ("print-instance", "")
         ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -41,45 +49,66 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::ifstream file(certificate_path);
-    if (!file.good()) {
-        std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
-        return 1;
-    }
+    if (problem == "knapsackwithconflicts") {
+        knapsackwithconflicts::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
 
-    if (problem == "travellingsalesman") {
+    } else if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
+        //if (vm.count("print-instance"))
+        //    std::cout << instance << std::endl;
+        //instance.check(certificate_path); TODO
+
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
+        //if (vm.count("print-instance"))
+        //    std::cout << instance << std::endl;
+        //instance.check(certificate_path); TODO
+
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
-        thieforienteering::Time t = 0;
-        thieforienteering::Profit p = 0;
-        thieforienteering::Weight w = 0;
-        thieforienteering::VertexId j = 0;
-        thieforienteering::ItemId i = -1;
-        while (file >> i) {
-            //i--;
-            thieforienteering::VertexId j_next = instance.item(i).location;
-            t += instance.duration(j, j_next, w);
-            p += instance.item(i).profit;
-            w += instance.item(i).weight;
-            std::cout << "Item: " << i
-                << "; Vertex: " << j_next
-                << "; Duration: " << t << " / " << instance.time_limit()
-                << "; Weight: " << w << " / " << instance.capacity()
-                << "; Profit: " << p << std::endl;
-            j = j_next;
-        }
-        t += instance.duration(j, instance.vertex_number() - 1, w);
-        std::cout << "---" << std::endl;
-        std::cout << "Duration:  " << t << " / " << instance.time_limit() << std::endl;
-        std::cout << "Weight:    " << w << " / " << instance.capacity() << std::endl;
-        std::cout << "Profit:    " << p << std::endl;
+        //if (vm.count("print-instance"))
+        //    std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
+        //if (vm.count("print-instance"))
+        //    std::cout << instance << std::endl;
+        //instance.check(certificate_path); TODO
+
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
+        //if (vm.count("print-instance"))
+        //    std::cout << instance << std::endl;
+        //instance.check(certificate_path); TODO
+
+    } else if (problem == "permutationflowshopschedulingmakespan") {
+        permutationflowshopschedulingmakespan::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
+    } else if (problem == "permutationflowshopschedulingtct") {
+        permutationflowshopschedulingtct::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
+    } else if (problem == "simpleassemblylinebalancing1") {
+        simpleassemblylinebalancing1::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
+    } else if (problem == "ushapedassemblylinebalancing1") {
+        ushapedassemblylinebalancing1::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown problem: '" << problem << "'.\033[0m" << std::endl;
         return 1;

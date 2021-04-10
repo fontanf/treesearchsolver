@@ -379,6 +379,29 @@ public:
         return false;
     }
 
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            os << "node_tmp"
+                << " n " << node_tmp->job_number
+                << " t " << node_tmp->time
+                << " p " << node_tmp->profit
+                << " w " << node_tmp->weight
+                << " j " << node_tmp->j
+                << " rj " << instance_.job(node_tmp->j).release_date
+                << " dj " << instance_.job(node_tmp->j).due_date
+                << " dj " << instance_.job(node_tmp->j).deadline
+                << " pj " << instance_.job(node_tmp->j).processing_time
+                << " vj " << instance_.job(node_tmp->j).profit
+                << " wj " << instance_.job(node_tmp->j).weight
+                << " sij " << instance_.setup_time(node_tmp->father->j, node_tmp->j)
+                << std::endl;
+        return os;
+    }
+
     inline void write(
             const std::shared_ptr<Node>& node,
             std::string filepath) const

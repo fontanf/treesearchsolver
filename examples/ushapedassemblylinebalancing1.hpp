@@ -2,6 +2,7 @@
 
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * U-shaped Assembly Line Balancing Problem of Type 1.
@@ -92,6 +93,73 @@ public:
     inline Time cycle_time() const { return cycle_time_; }
     inline Time processing_time_sum() const { return processing_time_sum_; }
 
+    std::pair<bool, Time> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        JobId n = job_number();
+        JobPos s = -1;
+        optimizationtools::IndexedSet jobs(n);
+        JobPos duplicates = 0;
+        JobPos precedence_violation_number = 0;
+        StationId overloaded_station_number = 0;
+        StationId station_number = 0;
+        while (file >> s) {
+            JobId j = -1;
+            Time t = 0;
+            station_number++;
+            std::cout << "Station: " << station_number - 1 << "; Jobs";
+            for (JobPos j_pos = 0; j_pos < s; ++j_pos) {
+                file >> j;
+                // Check duplicates.
+                if (jobs.contains(j)) {
+                    duplicates++;
+                    std::cout << std::endl << "Job " << j << " already scheduled." << std::endl;
+                }
+                // Check predecessors.
+                for (JobId j_pred: job(j).predecessors) {
+                    if (!jobs.contains(j_pred)) {
+                        for (JobId j_succ: job(j).successors) {
+                            if (!jobs.contains(j_succ)) {
+                                precedence_violation_number++;
+                                std::cout << std::endl << "Job " << j << " violates precedence constraints." << std::endl;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                std::cout << " " << j;
+                jobs.add(j);
+                t += job(j).processing_time;
+            }
+            std::cout << "; Cycle time: " << t << " / " << cycle_time() << std::endl;
+            if (t > cycle_time()) {
+                overloaded_station_number++;
+                std::cout << "Station " << station_number - 1 << " is overloaded." << std::endl;
+            }
+        }
+        bool feasible
+            = (jobs.size() == n)
+            && (duplicates == 0)
+            && (precedence_violation_number == 0)
+            && (overloaded_station_number == 0);
+
+        std::cout << "---" << std::endl;
+        std::cout << "Job number:                   " << jobs.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:                   " << duplicates << std::endl;
+        std::cout << "Precedence violation number:  " << precedence_violation_number << std::endl;
+        std::cout << "Overloaded station number:    " << overloaded_station_number << std::endl;
+        std::cout << "Feasible:                     " << feasible << std::endl;
+        std::cout << "Station number:               " << station_number << std::endl;
+        return {feasible, station_number};
+    }
+
 private:
 
     void read_scholl1993(std::ifstream& file)
@@ -164,7 +232,7 @@ private:
 
 };
 
-static std::ostream& operator<<(
+std::ostream& operator<<(
         std::ostream &os, const Instance& instance)
 {
     os << "cycle time " << instance.cycle_time() << std::endl;
@@ -390,6 +458,53 @@ public:
                 && node_1->current_station_time <= node_2->current_station_time)
             return true;
         return false;
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        StationId m = node->station_number;
+        std::vector<std::vector<JobId>> stations(m);
+        std::vector<Time> times(m, 0);
+        for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father) {
+            stations[node_tmp->station_number - 1].push_back(node_tmp->j);
+            times[node_tmp->station_number - 1] += instance_.job(node_tmp->j).processing_time;
+        }
+        for (ushapedassemblylinebalancing1::StationId i = 0; i < m; ++i) {
+            os << "Station " << i << " " << times[i] << "/" << instance_.cycle_time() << ":";
+            std::reverse(stations[i].begin(), stations[i].end());
+            for (ushapedassemblylinebalancing1::JobId j: stations[i])
+                os << " " << j;
+            os << std::endl;
+        }
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        StationId m = node->station_number;
+        std::vector<std::vector<JobId>> stations(m);
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            stations[node_tmp->station_number - 1].push_back(node_tmp->j);
+        for (StationId i = 0; i < m; ++i) {
+            std::reverse(stations[i].begin(), stations[i].end());
+            cert << stations[i].size();
+            for (JobId j: stations[i])
+                cert << " " << j;
+            cert << std::endl;
+        }
     }
 
 private:

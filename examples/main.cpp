@@ -100,169 +100,110 @@ int main(int argc, char *argv[])
         knapsackwithconflicts::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-
         auto parameters = read_knapsackwithconflicts_args(branching_scheme_argv);
         knapsackwithconflicts::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father)
-                std::cout << "j " << node_tmp->j
-                    << " wj " << instance.item(node_tmp->j).weight
-                    << " pj " << instance.item(node_tmp->j).profit
-                    << std::endl;
-        }
     } else if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
+        //if (vm.count("print-instance")) TODO
+        //    std::cout << instance << std::endl;
         auto parameters = read_travellingsalesman_args(branching_scheme_argv);
         travellingsalesman::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
+
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
+        //if (vm.count("print-instance")) TODO
+        //    std::cout << instance << std::endl;
         auto parameters = read_sequentialordering_args(branching_scheme_argv);
         sequentialordering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
+        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
+        //if (vm.count("print-solution")) TODO
+        //    branching_scheme.print(std::cout, solution_pool.best());
+
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
+        //if (vm.count("print-instance")) TODO
+        //    std::cout << instance << std::endl;
         auto parameters = read_thieforienteering_args(branching_scheme_argv);
         thieforienteering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
+        //if (vm.count("print-solution")) TODO
+        //    branching_scheme.print(std::cout, solution_pool.best());
+
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
+        //if (vm.count("print-instance")) TODO
+        //    std::cout << instance << std::endl;
         auto parameters = read_orderacceptanceandscheduling_args(branching_scheme_argv);
         orderacceptanceandscheduling::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        branching_scheme.write(solution_pool.best(), certificate_path);
+        branching_scheme.write(solution_pool.best(), certificate_path); // TODO
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
-                    node_tmp = node_tmp->father)
-                std::cout << "node_tmp"
-                    << " n " << node_tmp->job_number
-                    << " t " << node_tmp->time
-                    << " p " << node_tmp->profit
-                    << " w " << node_tmp->weight
-                    << " j " << node_tmp->j
-                    << " rj " << instance.job(node_tmp->j).release_date
-                    << " dj " << instance.job(node_tmp->j).due_date
-                    << " dj " << instance.job(node_tmp->j).deadline
-                    << " pj " << instance.job(node_tmp->j).processing_time
-                    << " vj " << instance.job(node_tmp->j).profit
-                    << " wj " << instance.job(node_tmp->j).weight
-                    << " sij " << instance.setup_time(node_tmp->father->j, node_tmp->j)
-                    << std::endl;
-        }
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
-        batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance);
+        //if (vm.count("print-instance")) TODO
+        //    std::cout << instance << std::endl;
+        auto parameters = read_batchschedulingtotalweightedtardiness_args(branching_scheme_argv);
+        batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path);
+        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            batchschedulingtotalweightedtardiness::Time current_batch_end
-                = solution_pool.best()->current_batch_end;
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
-                    node_tmp = node_tmp->father) {
-                batchschedulingtotalweightedtardiness::Weight wtj
-                    = (current_batch_end <= instance.job(node_tmp->j).due_date)? 0:
-                    instance.job(node_tmp->j).weight * (current_batch_end - instance.job(node_tmp->j).due_date);
-                std::cout << "node_tmp"
-                    << " n " << node_tmp->job_number
-                    << " bs " << node_tmp->current_batch_start
-                    << " be " << node_tmp->current_batch_end
-                    << " rbe " << current_batch_end
-                    << " s " << node_tmp->current_batch_size
-                    << " twt " << node_tmp->total_weighted_tardiness
-                    << " bnd " << node_tmp->bound
-                    << " j " << node_tmp->j
-                    << " nb " << node_tmp->new_batch
-                    << " pj " << instance.job(node_tmp->j).processing_time
-                    << " sj " << instance.job(node_tmp->j).size
-                    << " rj " << instance.job(node_tmp->j).release_date
-                    << " dj " << instance.job(node_tmp->j).due_date
-                    << " wj " << instance.job(node_tmp->j).weight
-                    << " wtj " << wtj
-                    << std::endl;
-                if (node_tmp->new_batch)
-                    current_batch_end = node_tmp->father->current_batch_end;
-            }
-        }
+    } else if (problem == "permutationflowshopschedulingmakespan") {
+        permutationflowshopschedulingmakespan::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        auto parameters = read_permutationflowshopschedulingmakespan_args(branching_scheme_argv);
+        permutationflowshopschedulingmakespan::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
+
     } else if (problem == "permutationflowshopschedulingtct") {
         permutationflowshopschedulingtct::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-
         auto parameters = read_permutationflowshopschedulingtct_args(branching_scheme_argv);
         permutationflowshopschedulingtct::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr;
-                    node_tmp = node_tmp->father) {
-                std::cout << "node_tmp"
-                    << " n " << node_tmp->job_number
-                    << " c " << node_tmp->times[instance.machine_number() - 1]
-                    << " tct " << node_tmp->total_completion_time
-                    << " bnd " << node_tmp->bound
-                    << " j " << node_tmp->j
-                    << std::endl;
-            }
-        }
     } else if (problem == "simpleassemblylinebalancing1") {
         simpleassemblylinebalancing1::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-
         auto parameters = read_simpleassemblylinebalancing1_args(branching_scheme_argv);
         simpleassemblylinebalancing1::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            simpleassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
-            std::vector<std::vector<simpleassemblylinebalancing1::JobId>> stations(m);
-            std::vector<simpleassemblylinebalancing1::Time> times(m, 0);
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father) {
-                stations[node_tmp->station_number - 1].push_back(node_tmp->j);
-                times[node_tmp->station_number - 1] += instance.job(node_tmp->j).processing_time;
-            }
-            for (simpleassemblylinebalancing1::StationId i = 0; i < m; ++i) {
-                std::cout << "Station " << i << " " << times[i] << "/" << instance.cycle_time() << ":";
-                std::reverse(stations[i].begin(), stations[i].end());
-                for (simpleassemblylinebalancing1::JobId j: stations[i])
-                    std::cout << " " << j;
-                std::cout << std::endl;
-            }
-        }
     } else if (problem == "ushapedassemblylinebalancing1") {
         ushapedassemblylinebalancing1::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-
         auto parameters = read_ushapedassemblylinebalancing1_args(branching_scheme_argv);
         ushapedassemblylinebalancing1::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
-        if (vm.count("print-solution")) {
-            ushapedassemblylinebalancing1::StationId m = solution_pool.best()->station_number;
-            std::vector<std::vector<ushapedassemblylinebalancing1::JobId>> stations(m);
-            std::vector<ushapedassemblylinebalancing1::Time> times(m, 0);
-            for (auto node_tmp = solution_pool.best(); node_tmp->father != nullptr; node_tmp = node_tmp->father) {
-                stations[node_tmp->station_number - 1].push_back(node_tmp->j);
-                times[node_tmp->station_number - 1] += instance.job(node_tmp->j).processing_time;
-            }
-            for (ushapedassemblylinebalancing1::StationId i = 0; i < m; ++i) {
-                std::cout << "Station " << i << " " << times[i] << "/" << instance.cycle_time() << ":";
-                std::reverse(stations[i].begin(), stations[i].end());
-                for (ushapedassemblylinebalancing1::JobId j: stations[i])
-                    std::cout << " " << j;
-                std::cout << std::endl;
-            }
-        }
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown problem: '" << problem << "'.\033[0m" << std::endl;
         return 1;

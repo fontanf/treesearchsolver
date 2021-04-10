@@ -97,6 +97,7 @@ typedef int64_t Time;
 typedef int64_t Weight;
 typedef int64_t Size;
 typedef int64_t Area;
+typedef int64_t GuideId;
 
 struct Job
 {
@@ -194,8 +195,14 @@ public:
         Time earliest_end_date = -1;
     };
 
-    BranchingScheme(const Instance& instance):
+    struct Parameters
+    {
+        GuideId guide_id = 0;
+    };
+
+    BranchingScheme(const Instance& instance, Parameters parameters):
         instance_(instance),
+        parameters_(parameters),
         sorted_jobs_(instance.job_number())
     {
         // Initialize sorted_jobs_.
@@ -427,9 +434,44 @@ public:
         return true;
     }
 
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        batchschedulingtotalweightedtardiness::Time current_batch_end
+            = node->current_batch_end;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            batchschedulingtotalweightedtardiness::Weight wtj
+                = (current_batch_end <= instance_.job(node_tmp->j).due_date)? 0:
+                instance_.job(node_tmp->j).weight * (current_batch_end - instance_.job(node_tmp->j).due_date);
+            os << "node_tmp"
+                << " n " << node_tmp->job_number
+                << " bs " << node_tmp->current_batch_start
+                << " be " << node_tmp->current_batch_end
+                << " rbe " << current_batch_end
+                << " s " << node_tmp->current_batch_size
+                << " twt " << node_tmp->total_weighted_tardiness
+                << " bnd " << node_tmp->bound
+                << " j " << node_tmp->j
+                << " nb " << node_tmp->new_batch
+                << " pj " << instance_.job(node_tmp->j).processing_time
+                << " sj " << instance_.job(node_tmp->j).size
+                << " rj " << instance_.job(node_tmp->j).release_date
+                << " dj " << instance_.job(node_tmp->j).due_date
+                << " wj " << instance_.job(node_tmp->j).weight
+                << " wtj " << wtj
+                << std::endl;
+            if (node_tmp->new_batch)
+                current_batch_end = node_tmp->father->current_batch_end;
+        }
+        return os;
+    }
+
 private:
 
     const Instance& instance_;
+    Parameters parameters_;
 
     mutable std::vector<JobId> sorted_jobs_;
 

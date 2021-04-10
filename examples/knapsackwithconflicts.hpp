@@ -2,6 +2,7 @@
 
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * Knapsack Problem with Conflicts.
@@ -88,6 +89,55 @@ public:
     inline const Item& item(ItemId j) const { return items_[j]; }
     inline Weight capacity() const { return capacity_; }
 
+    std::pair<bool, Profit> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        ItemId n = item_number();
+        Weight weight = 0;
+        Profit profit = 0;
+        ItemId j = 0;
+        optimizationtools::IndexedSet items(n);
+        ItemPos duplicates = 0;
+        ItemPos conflict_violation_number = 0;
+        while (file >> j) {
+            if (items.contains(j)) {
+                duplicates++;
+                std::cout << "Job " << j << " already scheduled." << std::endl;
+            }
+            for (ItemId j_con: item(j).neighbors) {
+                if (items.contains(j_con)) {
+                    conflict_violation_number++;
+                    std::cout << "Job " << j << " is in conflict with job " << j_con << "." << std::endl;
+                }
+            }
+            items.add(j);
+            weight += item(j).weight;
+            profit += item(j).profit;
+            std::cout << "Job: " << j
+                << "; Weight: " << weight
+                << "; Profit: " << profit
+                << std::endl;
+        }
+        bool feasible
+            = (duplicates == 0)
+            && (weight <= capacity())
+            && (conflict_violation_number == 0);
+        std::cout << "---" << std::endl;
+        std::cout << "Item number:                " << items.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:                 " << duplicates << std::endl;
+        std::cout << "Conflict violation number:  " << conflict_violation_number << std::endl;
+        std::cout << "Weight:                     " << weight << " / " << capacity() << std::endl;
+        std::cout << "Feasible:                   " << feasible << std::endl;
+        std::cout << "Profit:                     " << profit << std::endl;
+        return {feasible, profit};
+    }
+
 private:
 
     void read_default(std::ifstream& file)
@@ -125,7 +175,7 @@ private:
 
 };
 
-static std::ostream& operator<<(
+std::ostream& operator<<(
         std::ostream &os, const Instance& instance)
 {
     os << "capacity " << instance.capacity() << std::endl;
@@ -352,6 +402,39 @@ public:
                 && node_1->weight <= node_2->weight)
             return true;
         return false;
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father)
+            os << "j " << node_tmp->j
+                << " wj " << instance_.item(node_tmp->j).weight
+                << " pj " << instance_.item(node_tmp->j).profit
+                << std::endl;
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        std::vector<ItemId> items;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            items.push_back(node_tmp->j);
+        std::reverse(items.begin(), items.end());
+        for (ItemId j: items)
+            cert << j << " ";
     }
 
 private:

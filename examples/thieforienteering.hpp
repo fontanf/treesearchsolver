@@ -2,6 +2,7 @@
 
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
+#include "optimizationtools/indexed_set.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
 
 /**
@@ -135,6 +136,54 @@ public:
     inline const Item& item(ItemId i) const { return items_[i]; }
     inline const std::vector<ItemId>& items(VertexId j) const { return locations_[j].items; }
     inline Weight capacity() const { return capacity_; }
+
+    std::pair<bool, Time> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        Time t = 0;
+        Profit p = 0;
+        Weight w = 0;
+        VertexId j = 0;
+        ItemId i = -1;
+        optimizationtools::IndexedSet items(item_number());
+        ItemPos duplicates = 0;
+        while (file >> i) {
+            //i--;
+            if (items.contains(i)) {
+                duplicates++;
+                std::cout << "Item " << i << " already selected." << std::endl;
+            }
+            thieforienteering::VertexId j_next = item(i).location;
+            t += duration(j, j_next, w);
+            p += item(i).profit;
+            w += item(i).weight;
+            std::cout << "Item: " << i
+                << "; Vertex: " << j_next
+                << "; Duration: " << t << " / " << time_limit()
+                << "; Weight: " << w << " / " << capacity()
+                << "; Profit: " << p << std::endl;
+            j = j_next;
+        }
+        t += duration(j, vertex_number() - 1, w);
+
+        bool feasible = (duplicates == 0)
+            && (t <= time_limit())
+            && (w <= capacity());
+
+        std::cout << "---" << std::endl;
+        std::cout << "Duration:  " << t << " / " << time_limit() << std::endl;
+        std::cout << "Weight:    " << w << " / " << capacity() << std::endl;
+        std::cout << "Feasible:  " << feasible << std::endl;
+        std::cout << "Profit:    " << p << std::endl;
+        return {feasible, p};
+    }
+
 
 private:
 

@@ -7,6 +7,7 @@
 #include "examples/thieforienteering.hpp"
 #include "examples/batchschedulingtotalweightedtardiness.hpp"
 #include "examples/permutationflowshopschedulingtct.hpp"
+#include "examples/permutationflowshopschedulingmakespan.hpp"
 #include "examples/simpleassemblylinebalancing1.hpp"
 #include "examples/ushapedassemblylinebalancing1.hpp"
 
@@ -17,25 +18,6 @@ namespace treesearchsolver
 
 typedef int64_t GuideId;
 typedef int64_t Counter;
-
-inline GuideId read_guide(
-        const std::vector<char*> argv)
-{
-    GuideId guide_id = 0;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("guide,g", boost::program_options::value<GuideId>(&guide_id), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return guide_id;
-}
 
 inline knapsackwithconflicts::BranchingScheme::Parameters read_knapsackwithconflicts_args(
         const std::vector<char*> argv)
@@ -94,13 +76,16 @@ inline sequentialordering::BranchingScheme::Parameters read_sequentialordering_a
     return parameters;
 }
 
-inline orderacceptanceandscheduling::BranchingScheme::Parameters read_orderacceptanceandscheduling_args(
+inline thieforienteering::BranchingScheme::Parameters read_thieforienteering_args(
         const std::vector<char*> argv)
 {
-    orderacceptanceandscheduling::BranchingScheme::Parameters parameters;
+    thieforienteering::BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        //("bound,b", boost::program_options::value<GuideId>(&parameters.bound_id), "")
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ("exponent-time,t", boost::program_options::value<double>(&parameters.exponent_time), "")
+        ("exponent-weight,w", boost::program_options::value<double>(&parameters.exponent_weight), "")
+        ("exponent-profit,p", boost::program_options::value<double>(&parameters.exponent_profit), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -113,16 +98,52 @@ inline orderacceptanceandscheduling::BranchingScheme::Parameters read_orderaccep
     return parameters;
 }
 
-inline thieforienteering::BranchingScheme::Parameters read_thieforienteering_args(
+inline orderacceptanceandscheduling::BranchingScheme::Parameters read_orderacceptanceandscheduling_args(
         const std::vector<char*> argv)
 {
-    thieforienteering::BranchingScheme::Parameters parameters;
+    orderacceptanceandscheduling::BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
+        //("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline batchschedulingtotalweightedtardiness::BranchingScheme::Parameters read_batchschedulingtotalweightedtardiness_args(
+        const std::vector<char*> argv)
+{
+    batchschedulingtotalweightedtardiness::BranchingScheme::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        //("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline permutationflowshopschedulingmakespan::BranchingScheme::Parameters read_permutationflowshopschedulingmakespan_args(
+        const std::vector<char*> argv)
+{
+    permutationflowshopschedulingmakespan::BranchingScheme::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("bidirectional,b", boost::program_options::value<bool>(&parameters.bidirectional), "")
         ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
-        ("exponent-time,t", boost::program_options::value<double>(&parameters.exponent_time), "")
-        ("exponent-weight,w", boost::program_options::value<double>(&parameters.exponent_weight), "")
-        ("exponent-profit,p", boost::program_options::value<double>(&parameters.exponent_profit), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -160,7 +181,7 @@ inline simpleassemblylinebalancing1::BranchingScheme::Parameters read_simpleasse
     simpleassemblylinebalancing1::BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        //("bound,b", boost::program_options::value<GuideId>(&parameters.bound_id), "")
+        //("guide,g", boost::program_options::value<GuideId>(&parameters.guide), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -179,7 +200,7 @@ inline ushapedassemblylinebalancing1::BranchingScheme::Parameters read_ushapedas
     ushapedassemblylinebalancing1::BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        //("bound,b", boost::program_options::value<GuideId>(&parameters.bound_id), "")
+        //("guide,g", boost::program_options::value<GuideId>(&parameters.guide), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
