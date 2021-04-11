@@ -179,6 +179,10 @@ Algorithms:
   * "Beam-ACO for Simple Assembly Line Balancing" (Blum, 2008) [DOI](https://doi.org/10.1287/ijoc.1080.0271)
   * "A Branch, Bound, and Remember Algorithm for the Simple Assembly Line Balancing Problem" (Sewell et Jacobson, 2011) [DOI](https://doi.org/10.1287/ijoc.1110.0462)
   * "An application of the branch, bound, and remember algorithm to a new simple assembly line balancing dataset" (Morrison et al., 2014) [DOI](https://doi.org/10.1016/j.ejor.2013.11.033)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_small'" -l simpleassemblylinebalancing1 -a "iterativebeamsearch" -t 10`
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_medium'" -l simpleassemblylinebalancing1 -a "iterativebeamsearch" -t 10`
@@ -188,6 +192,9 @@ Algorithms:
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_medium'" -l simpleassemblylinebalancing1 -b heuristiclong -t 11`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_large'" -l simpleassemblylinebalancing1 -b heuristiclong -t 11`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../treesearchdata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_verylarge'" -l simpleassemblylinebalancing1 -b heuristiclong -t 11`
+
+</p>
+</details>
 
 [U-shaped Assembly Line Balancing Problem of Type 1 (UALBP-1)](examples/ushapedassemblylinebalancing1.hpp)
 * Literature
