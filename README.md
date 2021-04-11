@@ -71,7 +71,7 @@ Algorithms:
 [Single machine scheduling problem with sequence-dependent setup times, Total weighted Tardiness](examples/schedulingwithsdsttotaltardiness.hpp)
 * Three field classification: `1 | sᵢⱼ | ∑wⱼTⱼ`
 
-* <details><summary>Literature</summary>
+<details><summary>Literature</summary>
 <p>
 
 * Literature:
