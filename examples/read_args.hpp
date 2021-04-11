@@ -3,11 +3,13 @@
 #include "examples/knapsackwithconflicts.hpp"
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
-#include "examples/orderacceptanceandscheduling.hpp"
 #include "examples/thieforienteering.hpp"
+#include "examples/schedulingwithsdsttwt.hpp"
+#include "examples/orderacceptanceandscheduling.hpp"
 #include "examples/batchschedulingtotalweightedtardiness.hpp"
-#include "examples/permutationflowshopschedulingtct.hpp"
 #include "examples/permutationflowshopschedulingmakespan.hpp"
+#include "examples/permutationflowshopschedulingtct.hpp"
+#include "examples/permutationflowshopschedulingtt.hpp"
 #include "examples/simpleassemblylinebalancing1.hpp"
 #include "examples/ushapedassemblylinebalancing1.hpp"
 
@@ -98,6 +100,25 @@ inline thieforienteering::BranchingScheme::Parameters read_thieforienteering_arg
     return parameters;
 }
 
+inline schedulingwithsdsttwt::BranchingScheme::Parameters read_schedulingwithsdsttwt_args(
+        const std::vector<char*> argv)
+{
+    schedulingwithsdsttwt::BranchingScheme::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
 inline orderacceptanceandscheduling::BranchingScheme::Parameters read_orderacceptanceandscheduling_args(
         const std::vector<char*> argv)
 {
@@ -160,6 +181,25 @@ inline permutationflowshopschedulingtct::BranchingScheme::Parameters read_permut
         const std::vector<char*> argv)
 {
     permutationflowshopschedulingtct::BranchingScheme::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline permutationflowshopschedulingtt::BranchingScheme::Parameters read_permutationflowshopschedulingtt_args(
+        const std::vector<char*> argv)
+{
+    permutationflowshopschedulingtt::BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")

@@ -6,8 +6,12 @@
  * Single machine batch scheduling problem, Total weighted tardiness.
  *
  * Input:
- * - n jobs with processing time pⱼ, size sⱼ, release date rⱼ, due date dⱼ and
- *   weight wⱼ (j = 1..n)
+ * - n jobs with (j = 1..n)
+ *   - a processing time pⱼ
+ *   - a size sⱼ
+ *   - a release date rⱼ
+ *   - a due date dⱼ
+ *   - a weight wⱼ
  * - a batch capacity Q
  * Problem:
  * - partition the jobs into batches and sequence the batches such that:

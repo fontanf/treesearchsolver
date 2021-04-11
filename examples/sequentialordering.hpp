@@ -175,6 +175,26 @@ private:
 
 };
 
+std::ostream& operator<<(
+        std::ostream &os, const Instance& instance)
+{
+    os << "vertex number " << instance.vertex_number() << std::endl;
+    for (VertexId j = 0; j < instance.vertex_number(); ++j) {
+        os << "vertex " << j
+            << "; predecessors:";
+        for (VertexId j_pred: instance.predecessors(j))
+            os << " " << j_pred;
+        os << std::endl;
+    }
+    for (VertexId j1 = 0; j1 < instance.vertex_number(); ++j1) {
+        os << "vertex " << j1 << ":";
+        for (VertexId j2 = 0; j2 < instance.vertex_number(); ++j2)
+            os << " " << instance.distance(j1, j2);
+        os << std::endl;
+    }
+    return os;
+}
+
 class BranchingScheme
 {
 
@@ -347,9 +367,13 @@ public:
         return false;
     }
 
-    Distance display(const std::shared_ptr<Node>& node) const
+    std::string display(const std::shared_ptr<Node>& node) const
     {
-        return node->length;
+        if (node->vertex_number != instance_.vertex_number())
+            return "";
+        std::stringstream ss;
+        ss << node->length;
+        return ss.str();
     }
 
     /**
@@ -393,9 +417,46 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->length > node_2->length)
-            return false;
-        return true;
+        if (node_1->length <= node_2->length)
+            return true;
+        return false;
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            os << "node_tmp"
+                << " n " << node_tmp->vertex_number
+                << " l " << node_tmp->length
+                << " bnd " << node_tmp->bound
+                << " j " << node_tmp->j
+                << std::endl;
+        }
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        std::vector<VertexId> vertices;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            vertices.push_back(node_tmp->j);
+        std::reverse(vertices.begin(), vertices.end());
+        for (VertexId j: vertices)
+            cert << j << " ";
     }
 
 private:

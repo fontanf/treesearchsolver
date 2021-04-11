@@ -5,7 +5,7 @@
 #include "optimizationtools/indexed_set.hpp"
 
 /**
- * Permutation flow shop scheduling problem, Total completion time.
+ * Permutation flow shop scheduling problem, Total tardiness.
  *
  * Input:
  * - m machines
@@ -18,21 +18,16 @@
  *     the end of operation (j, i)
  *   - the job sequence is the same on all machines
  * Objective:
- * - Minimize the total completion time of the jobs
+ * - Minimize the total tardiness of the jobs
  *
  * Tree search:
  * - Forward branching
- * - Guide:
- *   - 0: total completion time
- *   - 1: idle time
- *   - 2: weighted idle time
- *   - 3: total completion time and weighted idle time
  */
 
 namespace treesearchsolver
 {
 
-namespace permutationflowshopschedulingtct
+namespace permutationflowshopschedulingtt
 {
 
 typedef int64_t JobId;
@@ -41,19 +36,30 @@ typedef int64_t MachineId;
 typedef int64_t Time;
 typedef int64_t GuideId;
 
+struct Job
+{
+    std::vector<Time> processing_times;
+    Time due_date;
+};
+
 class Instance
 {
 
 public:
 
     Instance(MachineId m, JobId n):
-        processing_times_(n, std::vector<Time>(m, 0)) { }
+        jobs_(n) 
+    {
+        for (JobId j = 0; j < n; ++j)
+            jobs_[j].processing_times.resize(m);
+    }
+    void set_due_date(JobId j, Time due_date) { jobs_[j].due_date = due_date; }
     void set_processing_time(
             JobId j,
             MachineId i,
             Time processing_time)
     {
-        processing_times_[j][i] = processing_time;
+        jobs_[j].processing_times[i] = processing_time;
     }
 
     Instance(std::string instance_path, std::string format = "")
@@ -64,8 +70,8 @@ public:
             assert(false);
             return;
         }
-        if (format == "" || format == "default") {
-            read_default(file);
+        if (format == "" || format == "vallada2008") {
+            read_vallada2008(file);
         } else {
             std::cerr << "\033[31m" << "ERROR, unknown instance format \"" << format << "\"" << "\033[0m" << std::endl;
         }
@@ -74,9 +80,9 @@ public:
 
     virtual ~Instance() { }
 
-    inline JobId job_number() const { return processing_times_.size(); }
-    inline MachineId machine_number() const { return processing_times_[0].size(); }
-    inline Time processing_time(JobId j, MachineId i) const { return processing_times_[j][i]; }
+    inline JobId job_number() const { return jobs_.size(); }
+    inline MachineId machine_number() const { return jobs_[0].processing_times.size(); }
+    inline const Job& job(JobId j) const { return jobs_[j]; }
 
     std::pair<bool, Time> check(std::string certificate_path)
     {
@@ -90,28 +96,29 @@ public:
         MachineId m = machine_number();
         JobId n = job_number();
         std::vector<Time> times(m, 0);
-        JobId j = -1;
+        JobId j = 0;
         optimizationtools::IndexedSet jobs(n);
         JobPos duplicates = 0;
-        Time total_completion_time = 0;
+        Time total_tardiness = 0;
         while (file >> j) {
             if (jobs.contains(j)) {
                 duplicates++;
-                std::cout << "Job " << j << " is already scheduled." << std::endl;
+                std::cout << "Job " << j << " already scheduled." << std::endl;
             }
             jobs.add(j);
-            times[0] = times[0] + processing_time(j, 0);
+            times[0] = times[0] + job(j).processing_times[0];
             for (MachineId i = 1; i < m; ++i) {
                 if (times[i - 1] > times[i]) {
-                    times[i] = times[i - 1] + processing_time(j, i);
+                    times[i] = times[i - 1] + job(j).processing_times[i];
                 } else {
-                    times[i] = times[i] + processing_time(j, i);
+                    times[i] = times[i] + job(j).processing_times[i];
                 }
             }
-            total_completion_time += times[m - 1];
+            if (times[m - 1] > job(j).due_date)
+                total_tardiness += (times[m - 1] - job(j).due_date);
             std::cout << "Job: " << j
                 << "; Time: " << times[m - 1]
-                << "; Total completion time: " << total_completion_time
+                << "; Total tardiness: " << total_tardiness
                 << std::endl;
         }
         bool feasible
@@ -122,32 +129,39 @@ public:
         std::cout << "Job number:             " << jobs.size() << " / " << n  << std::endl;
         std::cout << "Duplicates:             " << duplicates << std::endl;
         std::cout << "Feasible:               " << feasible << std::endl;
-        std::cout << "Total completion time:  " << total_completion_time << std::endl;
-        return {feasible, total_completion_time};
+        std::cout << "Total tardiness:        " << total_tardiness << std::endl;
+        return {feasible, total_tardiness};
     }
 
 private:
 
-    void read_default(std::ifstream& file)
+    void read_vallada2008(std::ifstream& file)
     {
         JobId n;
         MachineId m;
-        file >> n;
-        file >> m;
-        processing_times_ = std::vector<std::vector<Time>>(n, std::vector<Time>(m, 0));
+        file >> n >> m;
+        jobs_ = std::vector<Job>(n);
+        for (JobId j = 0; j < n; ++j)
+            jobs_[j].processing_times.resize(m);
 
         for (MachineId i = 0; i < m; i++) {
-            Time p;
+            Time p = -1;
+            MachineId i_tmp = -1;
             for (JobId j = 0; j < n; j++) {
-                file >> p;
+                file >> i_tmp >> p;
                 set_processing_time(j, i, p);
             }
         }
+        std::string tmp;
+        file >> tmp;
+        for (JobId j = 0; j < n; ++j) {
+            Time d = -1;
+            file >> tmp >> d >> tmp >> tmp;
+            set_due_date(j, d);
+        }
     }
 
-    std::vector<std::vector<Time>> processing_times_;
-    Time machine_total_processing_time_max = 0;
-    Time job_total_processing_time_max = 0;
+    std::vector<Job> jobs_;
 
 };
 
@@ -157,9 +171,9 @@ std::ostream& operator<<(
     os << "machine number " << instance.machine_number() << std::endl;
     os << "job number " << instance.job_number() << std::endl;
     for (JobId j = 0; j < instance.job_number(); ++j) {
-        os << "job " << j << ":";
+        os << "job " << j << "; due date " << instance.job(j).due_date << "; processing times:";
         for (MachineId i = 0; i < instance.machine_number(); ++i)
-            os << " " << instance.processing_time(j, i);
+            os << " " << instance.job(j).processing_times[i];
         os << std::endl;
     }
     return os;
@@ -177,7 +191,8 @@ public:
         JobId j = -1;
         JobId job_number = 0;
         std::vector<Time> times;
-        Time total_completion_time = 0;
+        Time total_tardiness = 0;
+        Time total_earliness = 0;
         Time idle_time = 0;
         double weighted_idle_time = 0;
         Time bound = 0;
@@ -204,8 +219,6 @@ public:
         r->available_jobs.resize(n, true);
         r->times.resize(m, 0);
         r->bound = 0;
-        for (JobId j = 0; j < n; ++j)
-            r->bound += instance_.processing_time(j, m - 1);
         return r;
     }
 
@@ -218,14 +231,14 @@ public:
         node->available_jobs[node->j] = false;
         node->times = father->times;
         node->times[0] = father->times[0]
-            + instance_.processing_time(node->j, 0);
+            + instance_.job(node->j).processing_times[0];
         for (MachineId i = 1; i < m; ++i) {
             if (node->times[i - 1] > father->times[i]) {
                 node->times[i] = node->times[i - 1]
-                    + instance_.processing_time(node->j, i);
+                    + instance_.job(node->j).processing_times[i];
             } else {
                 node->times[i] = father->times[i]
-                    + instance_.processing_time(node->j, i);
+                    + instance_.job(node->j).processing_times[i];
             }
         }
     }
@@ -267,26 +280,27 @@ public:
         child->idle_time = father->idle_time;
         child->weighted_idle_time = father->weighted_idle_time;
         Time t_prec = father->times[0]
-            + instance_.processing_time(j_next, 0);
+            + instance_.job(j_next).processing_times[0];
         Time t = 0;
         for (MachineId i = 1; i < m; ++i) {
             if (t_prec > father->times[i]) {
                 Time idle_time = t_prec - father->times[i];
                 t = t_prec
-                    + instance_.processing_time(j_next, i);
+                    + instance_.job(j_next).processing_times[i];
                 child->idle_time += idle_time;
                 child->weighted_idle_time += ((double)father->job_number / n + 1) * (m - i) * idle_time;
             } else {
                 t = father->times[i]
-                    + instance_.processing_time(j_next, i);
+                    + instance_.job(j_next).processing_times[i];
             }
             t_prec = t;
         }
-        child->total_completion_time = father->total_completion_time + t;
+        child->total_tardiness = father->total_tardiness
+            + std::max((Time)0, t - instance_.job(j_next).due_date);
+        child->total_earliness = father->total_earliness
+            + std::max((Time)0, instance_.job(j_next).due_date - t);
         // Compute bound.
-        child->bound = father->bound
-            + (n - father->job_number) * (t - father->times[m - 1])
-            - instance_.processing_time(j_next, m - 1);
+        child->bound = child->total_tardiness;
         // Compute guide.
         double alpha = (double)child->job_number / instance_.job_number();
         switch (parameters_.guide_id) {
@@ -297,13 +311,11 @@ public:
             child->guide = child->idle_time;
             break;
         } case 2: {
-            child->guide = alpha * child->total_completion_time
+            child->guide = alpha * child->total_tardiness
                 + (1.0 - alpha) * child->idle_time * child->job_number / m;
             break;
         } case 3: {
-            //child->guide = alpha * child->total_completion_time
-            //    + (1.0 - alpha) * (child->weighted_idle_time + m * child->idle_time) / 2;
-            child->guide = alpha * child->total_completion_time
+            child->guide = alpha * (child->total_tardiness + child->total_earliness / 10)
                 + (1.0 - alpha) * (child->weighted_idle_time / m + child->idle_time) / 2 * child->job_number / m;
             break;
         } default: {
@@ -344,7 +356,7 @@ public:
     {
         if (node_2->job_number != instance_.job_number())
             return false;
-        if (node_1->bound >= node_2->total_completion_time)
+        if (node_1->bound >= node_2->total_tardiness)
             return true;
         return false;
     }
@@ -357,7 +369,7 @@ public:
             return false;
         if (node_2->job_number != instance_.job_number())
             return true;
-        return node_1->total_completion_time < node_2->total_completion_time;
+        return node_1->total_tardiness < node_2->total_tardiness;
     }
 
     bool equals(
@@ -374,7 +386,10 @@ public:
         if (node->job_number != instance_.job_number())
             return "";
         std::stringstream ss;
-        ss << node->total_completion_time;
+        ss << node->total_tardiness
+            << " (e" << node->total_earliness
+            << " i" << node->idle_time
+            << ")";
         return ss.str();
     }
 
@@ -422,7 +437,7 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->total_completion_time <= node_2->total_completion_time) {
+        if (node_1->total_tardiness <= node_2->total_tardiness) {
             bool dominates = true;
             for (MachineId i = 0; i < instance_.machine_number(); ++i) {
                 if (node_1->times[i] > node_2->times[i]) {
@@ -448,9 +463,12 @@ public:
             os << "node_tmp"
                 << " n " << node_tmp->job_number
                 << " c " << node_tmp->times[instance_.machine_number() - 1]
-                << " tct " << node_tmp->total_completion_time
+                << " tt " << node_tmp->total_tardiness
+                << " te " << node_tmp->total_earliness
+                << " it " << node_tmp->idle_time
                 << " bnd " << node_tmp->bound
                 << " j " << node_tmp->j
+                << " d " << instance_.job(node_tmp->j).due_date
                 << std::endl;
         }
         return os;

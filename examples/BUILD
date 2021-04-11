@@ -27,6 +27,13 @@ cc_library(
 )
 
 cc_library(
+        name = "schedulingwithsdsttwt",
+        hdrs = ["schedulingwithsdsttwt.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
+cc_library(
         name = "orderacceptanceandscheduling",
         hdrs = ["orderacceptanceandscheduling.hpp"],
         deps = ["//treesearchsolver:treesearchsolver"],
@@ -55,6 +62,13 @@ cc_library(
 )
 
 cc_library(
+        name = "permutationflowshopschedulingtt",
+        hdrs = ["permutationflowshopschedulingtt.hpp"],
+        deps = ["//treesearchsolver:treesearchsolver"],
+        visibility = ["//visibility:public"],
+)
+
+cc_library(
         name = "simpleassemblylinebalancing1",
         hdrs = ["simpleassemblylinebalancing1.hpp"],
         deps = ["//treesearchsolver:treesearchsolver"],
@@ -76,10 +90,12 @@ cc_binary(
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":schedulingwithsdsttwt",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
                 ":permutationflowshopschedulingmakespan",
                 ":permutationflowshopschedulingtct",
+                ":permutationflowshopschedulingtt",
                 ":simpleassemblylinebalancing1",
                 ":ushapedassemblylinebalancing1",
                 "//treesearchsolver:read_args",
@@ -95,10 +111,12 @@ cc_binary(
                 ":travellingsalesman",
                 ":sequentialordering",
                 ":thieforienteering",
+                ":schedulingwithsdsttwt",
                 ":orderacceptanceandscheduling",
                 ":batchschedulingtotalweightedtardiness",
                 ":permutationflowshopschedulingmakespan",
                 ":permutationflowshopschedulingtct",
+                ":permutationflowshopschedulingtt",
                 ":simpleassemblylinebalancing1",
                 ":ushapedassemblylinebalancing1",
                 "//treesearchsolver:read_args",

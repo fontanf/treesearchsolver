@@ -2,10 +2,12 @@
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
 #include "examples/thieforienteering.hpp"
+#include "examples/schedulingwithsdsttwt.hpp"
 #include "examples/orderacceptanceandscheduling.hpp"
 #include "examples/batchschedulingtotalweightedtardiness.hpp"
 #include "examples/permutationflowshopschedulingmakespan.hpp"
 #include "examples/permutationflowshopschedulingtct.hpp"
+#include "examples/permutationflowshopschedulingtt.hpp"
 #include "examples/simpleassemblylinebalancing1.hpp"
 #include "examples/ushapedassemblylinebalancing1.hpp"
 
@@ -73,6 +75,12 @@ int main(int argc, char *argv[])
         //    std::cout << instance << std::endl;
         instance.check(certificate_path);
 
+    } else if (problem == "schedulingwithsdsttwt") {
+        schedulingwithsdsttwt::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
         //if (vm.count("print-instance"))
@@ -93,6 +101,12 @@ int main(int argc, char *argv[])
 
     } else if (problem == "permutationflowshopschedulingtct") {
         permutationflowshopschedulingtct::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
+
+    } else if (problem == "permutationflowshopschedulingtt") {
+        permutationflowshopschedulingtt::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
         instance.check(certificate_path);

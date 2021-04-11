@@ -109,23 +109,25 @@ int main(int argc, char *argv[])
 
     } else if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
-        //if (vm.count("print-instance")) TODO
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         auto parameters = read_travellingsalesman_args(branching_scheme_argv);
         travellingsalesman::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
-        //if (vm.count("print-instance")) TODO
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         auto parameters = read_sequentialordering_args(branching_scheme_argv);
         sequentialordering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
-        //if (vm.count("print-solution")) TODO
-        //    branching_scheme.print(std::cout, solution_pool.best());
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
@@ -137,6 +139,17 @@ int main(int argc, char *argv[])
         branching_scheme.write(solution_pool.best(), certificate_path);
         //if (vm.count("print-solution")) TODO
         //    branching_scheme.print(std::cout, solution_pool.best());
+
+    } else if (problem == "schedulingwithsdsttwt") {
+        schedulingwithsdsttwt::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        auto parameters = read_schedulingwithsdsttwt_args(branching_scheme_argv);
+        schedulingwithsdsttwt::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
@@ -177,6 +190,17 @@ int main(int argc, char *argv[])
             std::cout << instance << std::endl;
         auto parameters = read_permutationflowshopschedulingtct_args(branching_scheme_argv);
         permutationflowshopschedulingtct::BranchingScheme branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
+
+    } else if (problem == "permutationflowshopschedulingtt") {
+        permutationflowshopschedulingtt::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        auto parameters = read_permutationflowshopschedulingtt_args(branching_scheme_argv);
+        permutationflowshopschedulingtt::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
         if (vm.count("print-solution"))

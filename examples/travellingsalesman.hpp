@@ -3,6 +3,7 @@
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * Travelling Salesman Problem.
@@ -88,6 +89,46 @@ public:
     inline double y(VertexId j) const { return locations_[j].y; }
     inline Distance distance(VertexId j1, VertexId j2) const { return distances_[j1][j2]; }
     inline Distance maximum_distance() const { return distance_max_; }
+
+    std::pair<bool, Distance> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        VertexId n = vertex_number();
+        VertexId j_prec = 0;
+        VertexId j = -1;
+        optimizationtools::IndexedSet vertices(n);
+        VertexPos duplicates = 0;
+        Distance total_distance = 0;
+        while (file >> j) {
+            if (vertices.contains(j)) {
+                duplicates++;
+                std::cout << "Vertex " << j << " has already been visited." << std::endl;
+            }
+            vertices.add(j);
+            total_distance += distance(j_prec, j);
+            j_prec = j;
+            std::cout << "Job: " << j
+                << "; Distance: " << distance(j_prec, j)
+                << "; Total distance: " << total_distance
+                << std::endl;
+        }
+        bool feasible
+            = (vertices.size() == n)
+            && (duplicates == 0);
+
+        std::cout << "---" << std::endl;
+        std::cout << "Vertices number:        " << vertices.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:             " << duplicates << std::endl;
+        std::cout << "Feasible:               " << feasible << std::endl;
+        std::cout << "Total distance:         " << total_distance << std::endl;
+        return {feasible, total_distance};
+    }
 
 private:
 
@@ -255,6 +296,19 @@ private:
     Distance distance_max_ = 0;
 
 };
+
+std::ostream& operator<<(
+        std::ostream &os, const Instance& instance)
+{
+    os << "vertex number " << instance.vertex_number() << std::endl;
+    for (VertexId j1 = 0; j1 < instance.vertex_number(); ++j1) {
+        os << "vertex " << j1 << ":";
+        for (VertexId j2 = 0; j2 < instance.vertex_number(); ++j2)
+            os << " " << instance.distance(j1, j2);
+        os << std::endl;
+    }
+    return os;
+}
 
 class BranchingScheme
 {
@@ -440,7 +494,9 @@ public:
     {
         if (node->vertex_number != instance_.vertex_number())
             return "";
-        return std::to_string(node->length + instance_.distance(node->j, 0));
+        std::stringstream ss;
+        ss << node->length + instance_.distance(node->j, 0);
+        return ss.str();
     }
 
     /**
@@ -483,9 +539,46 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->length > node_2->length)
-            return false;
-        return true;
+        if (node_1->length <= node_2->length)
+            return true;
+        return false;
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            os << "node_tmp"
+                << " n " << node_tmp->vertex_number
+                << " l " << node_tmp->length
+                << " bnd " << node_tmp->bound
+                << " j " << node_tmp->j
+                << std::endl;
+        }
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        std::vector<VertexId> vertices;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            vertices.push_back(node_tmp->j);
+        std::reverse(vertices.begin(), vertices.end());
+        for (VertexId j: vertices)
+            cert << j << " ";
     }
 
 private:
