@@ -1,6 +1,7 @@
 #pragma once
 
 #include "optimizationtools/info.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * Single machine batch scheduling problem, Total weighted tardiness.
@@ -154,6 +155,75 @@ public:
     inline const Job& job(JobId j) const { return jobs_[j]; }
     inline Size capacity() const { return capacity_; }
 
+    std::pair<bool, Time> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        JobId n = job_number();
+        JobPos s = -1;
+        optimizationtools::IndexedSet jobs(n);
+        JobPos batch_number = 0;
+        JobPos duplicates = 0;
+        JobPos overloaded_batch_number = 0;
+        Time total_weighted_tardiness = 0;
+        Time current_batch_start = 0;
+        Time current_batch_end = 0;
+
+        while (file >> s) {
+            JobId j = -1;
+            Size size = 0;
+            batch_number++;
+            std::cout << "batch: " << batch_number - 1 << "; Jobs";
+            std::vector<JobId> batch_jobs;
+            for (JobPos j_pos = 0; j_pos < s; ++j_pos) {
+                file >> j;
+                // Check duplicates.
+                if (jobs.contains(j)) {
+                    duplicates++;
+                    std::cout << std::endl << "Job " << j << " has already benn scheduled." << std::endl;
+                }
+                std::cout << " " << j;
+                jobs.add(j);
+                batch_jobs.push_back(j);
+                size += job(j).size;
+            }
+            current_batch_start = current_batch_end;
+            for (JobId j: batch_jobs)
+                if (current_batch_start < job(j).release_date)
+                    current_batch_start = job(j).release_date;
+            for (JobId j: batch_jobs)
+                if (current_batch_end < current_batch_start + job(j).processing_time)
+                    current_batch_end = current_batch_start + job(j).processing_time;
+            for (JobId j: batch_jobs)
+                if (current_batch_end > job(j).due_date)
+                    total_weighted_tardiness += job(j).weight * (current_batch_end - job(j).due_date);
+            std::cout << "; Size: " << size << " / " << capacity() << std::endl;
+            if (size > capacity()) {
+                overloaded_batch_number++;
+                std::cout << "Batch " << batch_number - 1 << " is overloaded." << std::endl;
+            }
+            current_batch_start = current_batch_end;
+        }
+        bool feasible
+            = (jobs.size() == n)
+            && (duplicates == 0)
+            && (overloaded_batch_number == 0);
+
+        std::cout << "---" << std::endl;
+        std::cout << "Job number:                   " << jobs.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:                   " << duplicates << std::endl;
+        std::cout << "Overloaded batch number:      " << overloaded_batch_number << std::endl;
+        std::cout << "Feasible:                     " << feasible << std::endl;
+        std::cout << "Batch number:                 " << batch_number << std::endl;
+        std::cout << "Total weighted tardiness:     " << total_weighted_tardiness << std::endl;
+        return {feasible, total_weighted_tardiness};
+    }
+
 private:
 
     void read_queiroga2020(std::ifstream& file)
@@ -176,6 +246,22 @@ private:
     Size capacity_ = 0;
 
 };
+
+std::ostream& operator<<(
+        std::ostream &os, const Instance& instance)
+{
+    os << "job number: " << instance.job_number() << std::endl;
+    os << "capacity: " << instance.capacity() << std::endl;
+    for (JobId j = 0; j < instance.job_number(); ++j)
+        os << "job: " << j
+            << "; processing time: " << instance.job(j).processing_time
+            << "; release date: " << instance.job(j).release_date
+            << "; due date: " << instance.job(j).due_date
+            << "; size: " << instance.job(j).size
+            << "; weight: " << instance.job(j).weight
+            << std::endl;
+    return os;
+}
 
 class BranchingScheme
 {
@@ -381,14 +467,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        return std::to_string(node->total_weighted_tardiness);
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -438,6 +517,17 @@ public:
         return true;
     }
 
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        return std::to_string(node->total_weighted_tardiness);
+    }
+
     std::ostream& print(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
@@ -470,6 +560,35 @@ public:
                 current_batch_end = node_tmp->father->current_batch_end;
         }
         return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        std::vector<std::vector<JobId>> batches;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            if (node_tmp->new_batch)
+                batches.push_back({});
+            batches.back().push_back(node_tmp->j);
+        }
+        std::reverse(batches.begin(), batches.end());
+        for (auto& batch: batches) {
+            std::reverse(batch.begin(), batch.end());
+            cert << batch.size();
+            for (JobId j: batch)
+                cert << " " << j;
+            cert << std::endl;
+        }
     }
 
 private:

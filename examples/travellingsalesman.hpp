@@ -17,9 +17,13 @@
  * Objective:
  * - minimize the total length of the tour
  *
- * Tree search:
+ * Tree search 1:
  * - forward branching
  * - guide: current length + distance to the closest next child
+ *
+ * Tree search 2:
+ * - insertion branching
+ * - guide: current length
  *
  */
 
@@ -32,7 +36,6 @@ namespace travellingsalesman
 typedef int64_t VertexId;
 typedef int64_t VertexPos;
 typedef int64_t Distance;
-typedef int64_t GuideId;
 
 struct Location
 {
@@ -103,6 +106,7 @@ public:
         VertexId j_prec = 0;
         VertexId j = -1;
         optimizationtools::IndexedSet vertices(n);
+        vertices.add(0);
         VertexPos duplicates = 0;
         Distance total_distance = 0;
         while (file >> j) {
@@ -112,12 +116,13 @@ public:
             }
             vertices.add(j);
             total_distance += distance(j_prec, j);
-            j_prec = j;
             std::cout << "Job: " << j
                 << "; Distance: " << distance(j_prec, j)
                 << "; Total distance: " << total_distance
                 << std::endl;
+            j_prec = j;
         }
+        total_distance += distance(j_prec, 0);
         bool feasible
             = (vertices.size() == n)
             && (duplicates == 0);
@@ -310,14 +315,16 @@ std::ostream& operator<<(
     return os;
 }
 
-class BranchingScheme
+typedef int64_t GuideId;
+
+class BranchingSchemeForward
 {
 
 public:
 
     struct Parameters
     {
-        GuideId bound_id = 0;
+        GuideId bound_id = 1;
     };
 
     struct Node
@@ -333,7 +340,7 @@ public:
         VertexPos next_child_pos = 0;
     };
 
-    BranchingScheme(const Instance& instance, const Parameters& parameters):
+    BranchingSchemeForward(const Instance& instance, const Parameters& parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_vertices_(instance.vertex_number()),
@@ -352,26 +359,12 @@ public:
         return sorted_vertices_[j].get(pos, generator_);
     }
 
-    inline VertexId closest_unvisited_neighbor(
-            const std::shared_ptr<Node>& node,
-            VertexId j) const
-    {
-        for (VertexPos j2_pos = 0; j2_pos < instance_.vertex_number(); ++j2_pos) {
-            VertexId j2 = neighbor(j, j2_pos);
-            if (j2 == 0 || (!node->visited[j2] && j2 != node->j))
-                return j2;
-        }
-        assert(false);
-        return -1;
-    }
-
     inline void compute_bound(
             const std::shared_ptr<Node>& node) const
     {
         switch (parameters_.bound_id) {
         case 0: { // prefix
-            node->bound = node->length
-                + instance_.distance(node->j, neighbor(node->j, 0));
+            node->bound = node->length;
             break;
         } case 1: { // outgoing
             if (node->j == 0) { // root
@@ -385,15 +378,14 @@ public:
             node->bound = node->length + node->bound_outgoing;
             break;
         } default: {
-            node->bound = node->length
-                + instance_.distance(node->j, neighbor(node->j, 0));
+            node->bound = node->length;
         }
         }
     }
 
     inline const std::shared_ptr<Node> root() const
     {
-        auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        auto r = std::shared_ptr<Node>(new BranchingSchemeForward::Node());
         r->visited.resize(instance_.vertex_number(), false);
         compute_bound(r);
         r->guide = r->bound;
@@ -423,7 +415,7 @@ public:
             return nullptr;
 
         // Compute new child.
-        auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        auto child = std::shared_ptr<Node>(new BranchingSchemeForward::Node());
         child->father = father;
         child->visited = father->visited;
         child->visited[father->j] = true;
@@ -490,16 +482,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->vertex_number != instance_.vertex_number())
-            return "";
-        std::stringstream ss;
-        ss << node->length + instance_.distance(node->j, 0);
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -542,6 +525,19 @@ public:
         if (node_1->length <= node_2->length)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->vertex_number != instance_.vertex_number())
+            return "";
+        std::stringstream ss;
+        ss << node->length + instance_.distance(node->j, 0);
+        return ss.str();
     }
 
     std::ostream& print(
@@ -588,6 +584,264 @@ private:
 
     mutable std::vector<optimizationtools::SortedOnDemandArray> sorted_vertices_;
     mutable std::mt19937_64 generator_;
+
+};
+
+class BranchingSchemeInsertion
+{
+
+public:
+
+    struct Parameters
+    {
+        GuideId guide_id = 0;
+        GuideId sort_criterion_id = 0;
+    };
+
+    struct Node
+    {
+        std::shared_ptr<Node> father = nullptr;
+        std::vector<VertexId> vertices;
+        VertexPos pos = 0;
+        VertexId vertex_number = 1;
+        Distance length = 0;
+        Distance guide = 0;
+        VertexPos next_child_pos = 0;
+    };
+
+    BranchingSchemeInsertion(const Instance& instance, const Parameters& parameters):
+        instance_(instance),
+        parameters_(parameters),
+        sorted_vertices_(instance.vertex_number() - 1)
+    {
+        // Initialize sorted_vertices_.
+        std::iota(sorted_vertices_.begin(), sorted_vertices_.end(), 1);
+        switch (parameters_.sort_criterion_id) {
+        case 0: {
+            std::sort(sorted_vertices_.begin(), sorted_vertices_.end(),
+                    [&instance](VertexId j1, VertexId j2) -> bool
+                    {
+                        return instance.distance(0, j1) > instance.distance(0, j2);
+                    });
+            break;
+        } case 1: {
+            std::sort(sorted_vertices_.begin(), sorted_vertices_.end(),
+                    [&instance](VertexId j1, VertexId j2) -> bool
+                    {
+                        return instance.distance(0, j1) < instance.distance(0, j2);
+                    });
+            break;
+        } case 2: {
+            std::random_shuffle(sorted_vertices_.begin(), sorted_vertices_.end());
+            break;
+        } default: {
+            assert(false);
+            break;
+        }
+        }
+    }
+
+    inline void compute_structures(
+            const std::shared_ptr<Node>& node) const
+    {
+        auto father = node->father;
+        node->vertices.insert(
+                node->vertices.end(),
+                father->vertices.begin(),
+                father->vertices.begin() + node->pos + 1);
+        node->vertices.push_back(sorted_vertices_[node->vertex_number - 2]);
+        node->vertices.insert(
+                node->vertices.end(),
+                father->vertices.begin() + node->pos + 1,
+                father->vertices.end());
+    }
+
+    inline const std::shared_ptr<Node> root() const
+    {
+        auto r = std::shared_ptr<Node>(new BranchingSchemeInsertion::Node());
+        r->vertices = {0, 0};
+        return r;
+    }
+
+    inline std::shared_ptr<Node> next_child(
+            const std::shared_ptr<Node>& father) const
+    {
+        assert(!infertile(father));
+        assert(!leaf(father));
+
+        // Compute father's structures.
+        if (father->vertices.empty())
+            compute_structures(father);
+
+        VertexId j_next = sorted_vertices_[father->vertex_number - 1];
+        VertexPos pos = father->next_child_pos;
+        VertexId j_bef = father->vertices[pos];
+        VertexId j_aft = father->vertices[pos + 1];
+        // Update father
+        father->next_child_pos++;
+        if (father->vertex_number == 2) // Remove for asymmetric
+            father->next_child_pos++;
+
+        // Compute new child.
+        auto child = std::shared_ptr<Node>(new BranchingSchemeInsertion::Node());
+        child->pos = pos;
+        child->father = father;
+        if (j_bef != j_aft) {
+            child->length = father->length
+                - instance_.distance(j_bef, j_aft)
+                + instance_.distance(j_bef, j_next)
+                + instance_.distance(j_next, j_aft);
+        } else {
+            child->length = father->length
+                + instance_.distance(j_bef, j_next)
+                + instance_.distance(j_next, j_aft);
+        }
+        child->vertex_number = father->vertex_number + 1;
+        child->guide = child->length;
+        return child;
+    }
+
+    inline bool infertile(
+            const std::shared_ptr<Node>& node) const
+    {
+        assert(node != nullptr);
+        return (node->next_child_pos == node->vertex_number);
+    }
+
+    inline bool operator()(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        assert(!infertile(node_1));
+        assert(!infertile(node_2));
+        if (node_1->vertex_number != node_2->vertex_number)
+            return node_1->vertex_number < node_2->vertex_number;
+        if (node_1->guide != node_2->guide)
+            return node_1->guide < node_2->guide;
+        return node_1.get() < node_2.get();
+    }
+
+    inline bool leaf(
+            const std::shared_ptr<Node>& node) const
+    {
+        return node->vertex_number == instance_.vertex_number();
+    }
+
+    bool bound(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        if (node_2->vertex_number != instance_.vertex_number())
+            return false;
+        return node_1->length >= node_2->length;
+    }
+
+    bool better(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        if (node_1->vertex_number < instance_.vertex_number())
+            return false;
+        if (node_2->vertex_number < instance_.vertex_number())
+            return true;
+        return node_1->length < node_2->length;
+    }
+
+    bool equals(
+            const std::shared_ptr<Node>&,
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    /*
+     * Dominances.
+     */
+
+    inline bool comparable(
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    struct NodeHasher
+    {
+        inline bool operator()(
+                const std::shared_ptr<Node>&,
+                const std::shared_ptr<Node>&) const
+        {
+            return false;
+        }
+
+        inline std::size_t operator()(
+                const std::shared_ptr<Node>&) const
+        {
+            return 0;
+        }
+    };
+
+    inline NodeHasher node_hasher() const { return NodeHasher(); }
+
+    inline bool dominates(
+            const std::shared_ptr<Node>&,
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->vertex_number != instance_.vertex_number())
+            return "";
+        std::stringstream ss;
+        ss << node->length;
+        return ss.str();
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            os << "node_tmp"
+                << " pos " << node_tmp->pos
+                << " n " << node_tmp->vertex_number
+                << " l " << node_tmp->length
+                << std::endl;
+        }
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        if (node->vertices.empty())
+            compute_structures(node);
+        for (VertexId j: node->vertices)
+            if (j != 0)
+                cert << j << " ";
+    }
+
+private:
+
+    const Instance& instance_;
+    Parameters parameters_;
+
+    mutable std::vector<VertexId> sorted_vertices_;
 
 };
 

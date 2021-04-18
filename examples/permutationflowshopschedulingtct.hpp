@@ -369,16 +369,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        std::stringstream ss;
-        ss << node->total_completion_time;
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -435,6 +426,19 @@ public:
         }
 
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        std::stringstream ss;
+        ss << node->total_completion_time;
+        return ss.str();
     }
 
     std::ostream& print(

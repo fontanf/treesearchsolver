@@ -40,13 +40,33 @@ inline knapsackwithconflicts::BranchingScheme::Parameters read_knapsackwithconfl
     return parameters;
 }
 
-inline travellingsalesman::BranchingScheme::Parameters read_travellingsalesman_args(
+inline travellingsalesman::BranchingSchemeForward::Parameters read_travellingsalesman_forward_args(
         const std::vector<char*> argv)
 {
-    travellingsalesman::BranchingScheme::Parameters parameters;
+    travellingsalesman::BranchingSchemeForward::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("bound,b", boost::program_options::value<GuideId>(&parameters.bound_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline travellingsalesman::BranchingSchemeInsertion::Parameters read_travellingsalesman_insertion_args(
+        const std::vector<char*> argv)
+{
+    travellingsalesman::BranchingSchemeInsertion::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ("sort,s", boost::program_options::value<GuideId>(&parameters.sort_criterion_id), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);

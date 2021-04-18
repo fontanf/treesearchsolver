@@ -59,20 +59,20 @@ int main(int argc, char *argv[])
 
     } else if (problem == "travellingsalesman") {
         travellingsalesman::Instance instance(instance_path, format);
-        //if (vm.count("print-instance"))
-        //    std::cout << instance << std::endl;
-        //instance.check(certificate_path); TODO
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
 
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
-        //if (vm.count("print-instance"))
-        //    std::cout << instance << std::endl;
-        //instance.check(certificate_path); TODO
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
 
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
-        //if (vm.count("print-instance"))
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         instance.check(certificate_path);
 
     } else if (problem == "schedulingwithsdsttwt") {
@@ -83,15 +83,15 @@ int main(int argc, char *argv[])
 
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
-        //if (vm.count("print-instance"))
-        //    std::cout << instance << std::endl;
-        //instance.check(certificate_path); TODO
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
 
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
-        //if (vm.count("print-instance"))
-        //    std::cout << instance << std::endl;
-        //instance.check(certificate_path); TODO
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        instance.check(certificate_path);
 
     } else if (problem == "permutationflowshopschedulingmakespan") {
         permutationflowshopschedulingmakespan::Instance instance(instance_path, format);

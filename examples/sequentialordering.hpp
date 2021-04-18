@@ -3,6 +3,7 @@
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * Sequential Ordering Problem.
@@ -89,6 +90,59 @@ public:
     inline Distance distance(VertexId j1, VertexId j2) const { return distances_[j1][j2]; }
     inline const std::vector<VertexId>& predecessors(VertexId j) const { return locations_[j].predecessors; }
     inline Distance maximum_distance() const { return distance_max_; }
+
+    std::pair<bool, Distance> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        VertexId n = vertex_number();
+        VertexId j_prec = 0;
+        VertexId j = -1;
+        optimizationtools::IndexedSet vertices(n);
+        vertices.add(0);
+        VertexPos duplicates = 0;
+        VertexPos precedence_violation_number = 0;
+        Distance total_distance = 0;
+        while (file >> j) {
+            if (vertices.contains(j)) {
+                duplicates++;
+                std::cout << "Vertex " << j << " has already been visited." << std::endl;
+            }
+            // Check predecessors.
+            for (VertexId j_pred: predecessors(j)) {
+                if (!vertices.contains(j_pred)) {
+                    precedence_violation_number++;
+                    std::cout << std::endl << "Vertex " << j << " depends on vertex "
+                        << j_pred << " which has not been visited yet."
+                        << std::endl;
+                }
+            }
+            vertices.add(j);
+            total_distance += distance(j_prec, j);
+            std::cout << "Job: " << j
+                << "; Distance: " << distance(j_prec, j)
+                << "; Total distance: " << total_distance
+                << std::endl;
+            j_prec = j;
+        }
+        bool feasible
+            = (vertices.size() == n)
+            && (duplicates == 0)
+            && (precedence_violation_number == 0);
+
+        std::cout << "---" << std::endl;
+        std::cout << "Vertices number:              " << vertices.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:                   " << duplicates << std::endl;
+        std::cout << "Precedence violation number:  " << precedence_violation_number << std::endl;
+        std::cout << "Feasible:                     " << feasible << std::endl;
+        std::cout << "Total distance:               " << total_distance << std::endl;
+        return {feasible, total_distance};
+    }
 
 private:
 
@@ -178,9 +232,9 @@ private:
 std::ostream& operator<<(
         std::ostream &os, const Instance& instance)
 {
-    os << "vertex number " << instance.vertex_number() << std::endl;
+    os << "vertex number: " << instance.vertex_number() << std::endl;
     for (VertexId j = 0; j < instance.vertex_number(); ++j) {
-        os << "vertex " << j
+        os << "vertex: " << j
             << "; predecessors:";
         for (VertexId j_pred: instance.predecessors(j))
             os << " " << j_pred;
@@ -367,16 +421,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->vertex_number != instance_.vertex_number())
-            return "";
-        std::stringstream ss;
-        ss << node->length;
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -420,6 +465,19 @@ public:
         if (node_1->length <= node_2->length)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->vertex_number != instance_.vertex_number())
+            return "";
+        std::stringstream ss;
+        ss << node->length;
+        return ss.str();
     }
 
     std::ostream& print(

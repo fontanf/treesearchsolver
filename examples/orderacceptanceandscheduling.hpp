@@ -3,6 +3,7 @@
 #include "optimizationtools/info.hpp"
 #include "optimizationtools/utils.hpp"
 #include "optimizationtools/sorted_on_demand_array.hpp"
+#include "optimizationtools/indexed_set.hpp"
 
 /**
  * Single machine order acceptance and scheduling problem with
@@ -111,6 +112,61 @@ public:
     inline const Job& job(JobId j) const { return jobs_[j]; }
     inline Time setup_time(JobId j1, JobId j2) const { return setup_times_[j1][j2]; }
 
+    std::pair<bool, Time> check(std::string certificate_path)
+    {
+        std::ifstream file(certificate_path);
+        if (!file.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << certificate_path << "\"" << "\033[0m" << std::endl;
+            assert(false);
+            return {false, 0};
+        }
+
+        JobId n = job_number();
+        JobId j = -1;
+        JobId j_prec = 0;
+        optimizationtools::IndexedSet jobs(n);
+        JobPos duplicates = 0;
+        JobPos deadline_violation_number = 0;
+        Time current_time = 0;
+        Profit profit = 0;
+        Weight total_weighted_tardiness = 0;
+        while (file >> j) {
+            if (jobs.contains(j)) {
+                duplicates++;
+                std::cout << "Job " << j << " is already scheduled." << std::endl;
+            }
+            jobs.add(j);
+            current_time = std::max(current_time, job(j).release_date)
+                + setup_time(j_prec, j) + job(j).processing_time;
+            profit += job(j).profit;
+            if (current_time > job(j).due_date)
+                total_weighted_tardiness += (current_time - job(j).due_date);
+            if (current_time > job(j).deadline) {
+                deadline_violation_number++;
+                std::cout << "Job " << j << " ends after its deadline: "
+                    << current_time << " / " << job(j).deadline << "." << std::endl;
+            }
+            std::cout << "Job: " << j
+                << "; Time: " << current_time
+                << "; Profit: " << profit
+                << "; Total weighted tardiness: " << total_weighted_tardiness
+                << std::endl;
+        }
+        bool feasible
+            = (duplicates == 0)
+            && (deadline_violation_number == 0);
+
+        std::cout << "---" << std::endl;
+        std::cout << "Job number:                 " << jobs.size() << " / " << n  << std::endl;
+        std::cout << "Duplicates:                 " << duplicates << std::endl;
+        std::cout << "Deadline violation number:  " << duplicates << std::endl;
+        std::cout << "Feasible:                   " << feasible << std::endl;
+        std::cout << "Profit:                     " << profit << std::endl;
+        std::cout << "Total weighted tardiness:   " << total_weighted_tardiness << std::endl;
+        std::cout << "Objective:                  " << profit - total_weighted_tardiness << std::endl;
+        return {feasible, profit - total_weighted_tardiness};
+    }
+
 private:
 
     void read_cesaret2012(std::ifstream& file)
@@ -158,6 +214,28 @@ private:
 
 };
 
+std::ostream& operator<<(
+        std::ostream &os, const Instance& instance)
+{
+    os << "job number: " << instance.job_number() << std::endl;
+    for (JobId j = 0; j < instance.job_number(); ++j)
+        os << "job: " << j
+            << "; processing time: " << instance.job(j).processing_time
+            << "; release date: " << instance.job(j).release_date
+            << "; due date: " << instance.job(j).due_date
+            << "; deadline: " << instance.job(j).deadline
+            << "; weight: " << instance.job(j).weight
+            << "; profit: " << instance.job(j).profit
+            << std::endl;
+    for (JobId j1 = 0; j1 <= instance.job_number(); ++j1) {
+        os << "job " << j1 << ":";
+        for (JobId j2 = 0; j2 < instance.job_number(); ++j2)
+            os << " " << instance.setup_time(j1, j2);
+        os << std::endl;
+    }
+    return os;
+}
+
 class BranchingScheme
 {
 
@@ -171,7 +249,7 @@ public:
         JobId job_number = 0;
         Time time = 0;
         Profit profit = 0;
-        Weight weight = 0;
+        Weight weighted_tardiness = 0;
         double guide = 0;
         JobPos next_child_pos = 0;
     };
@@ -219,6 +297,7 @@ public:
         assert(!leaf(father));
 
         JobId j_next = neighbor(father->j, father->next_child_pos);
+
         //std::cout << "father "
         //    << " j " << father->j
         //    << " t " << father->time
@@ -229,6 +308,7 @@ public:
         //    << " r " << instance_.job(j_next).release_date
         //    << " d " << instance_.job(j_next).deadline
         //    << std::endl;
+
         // Update father
         father->next_child_pos++;
         // Check job availibility.
@@ -249,11 +329,11 @@ public:
         child->job_number = father->job_number + 1;
         child->time = start + p;
         child->profit = father->profit + instance_.job(j_next).profit;
-        child->weight = father->weight;
+        child->weighted_tardiness = father->weighted_tardiness;
         Time d = instance_.job(j_next).due_date;
         if (child->time > d)
-            child->weight += instance_.job(j_next).weight * (child->time - d);
-        child->guide = (double)child->time / (child->profit - child->weight);
+            child->weighted_tardiness += instance_.job(j_next).weight * (child->time - d);
+        child->guide = (double)child->time / (child->profit - child->weighted_tardiness);
         for (JobId j = 0; j < instance_.job_number(); ++j) {
             if (!child->available_jobs[j])
                 continue;
@@ -301,8 +381,8 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        return node_1->profit - node_1->weight
-            > node_2->profit - node_2->weight;
+        return node_1->profit - node_1->weighted_tardiness
+            > node_2->profit - node_2->weighted_tardiness;
     }
 
     bool equals(
@@ -314,18 +394,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        std::stringstream ss;
-        ss << node->profit - node->weight
-            << " (n" << node->job_number
-            << " p" << node->profit
-            << " w" << node->weight
-            << ")";
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -374,9 +443,24 @@ public:
             const std::shared_ptr<Node>& node_2) const
     {
         if (node_1->time <= node_2->time
-                && node_1->profit - node_1->weight >= node_2->profit - node_2->weight)
+                && node_1->profit - node_1->weighted_tardiness >= node_2->profit - node_2->weighted_tardiness)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        std::stringstream ss;
+        ss << node->profit - node->weighted_tardiness
+            << " (n" << node->job_number
+            << " p" << node->profit
+            << " w" << node->weighted_tardiness
+            << ")";
+        return ss.str();
     }
 
     std::ostream& print(
@@ -389,7 +473,7 @@ public:
                 << " n " << node_tmp->job_number
                 << " t " << node_tmp->time
                 << " p " << node_tmp->profit
-                << " w " << node_tmp->weight
+                << " w " << node_tmp->weighted_tardiness
                 << " j " << node_tmp->j
                 << " rj " << instance_.job(node_tmp->j).release_date
                 << " dj " << instance_.job(node_tmp->j).due_date
@@ -413,7 +497,14 @@ public:
             std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
             return;
         }
-        (void)node; // TODO
+
+        std::vector<JobId> jobs;
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father)
+            jobs.push_back(node_tmp->j);
+        std::reverse(jobs.begin(), jobs.end());
+        for (JobId j: jobs)
+            cert << j << " ";
     }
 
 

@@ -558,15 +558,6 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        std::stringstream ss;
-        ss << node->bound;
-        return ss.str();
-    }
-
     /**
      * Dominances.
      */
@@ -616,6 +607,19 @@ public:
         return false;
     }
 
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        std::stringstream ss;
+        ss << node->bound;
+        return ss.str();
+    }
+
     std::ostream& print(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
@@ -662,6 +666,7 @@ public:
             }
         }
         std::reverse(jobs_forward.begin(), jobs_forward.end());
+        jobs_forward.insert(jobs_forward.end(), jobs_backward.begin(), jobs_backward.end());
         for (JobId j: jobs_forward)
             cert << j << " ";
     }

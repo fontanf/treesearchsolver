@@ -209,9 +209,9 @@ private:
 std::ostream& operator<<(
         std::ostream &os, const Instance& instance)
 {
-    os << "job number " << instance.job_number() << std::endl;
+    os << "job number: " << instance.job_number() << std::endl;
     for (JobId j = 0; j < instance.job_number(); ++j)
-        os << "job " << j
+        os << "job: " << j
             << "; processing time: " << instance.job(j).processing_time
             << "; due date: " << instance.job(j).due_date
             << "; weight: " << instance.job(j).weight
@@ -356,15 +356,6 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        std::stringstream ss;
-        ss << node->total_weighted_tardiness;
-        return ss.str();
-    }
-
     /**
      * Dominances.
      */
@@ -409,6 +400,19 @@ public:
                 && node_1->total_weighted_tardiness <= node_2->total_weighted_tardiness)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        std::stringstream ss;
+        ss << node->total_weighted_tardiness;
+        return ss.str();
     }
 
     std::ostream& print(

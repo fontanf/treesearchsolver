@@ -111,12 +111,21 @@ int main(int argc, char *argv[])
         travellingsalesman::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-        auto parameters = read_travellingsalesman_args(branching_scheme_argv);
-        travellingsalesman::BranchingScheme branching_scheme(instance, parameters);
-        auto solution_pool = run(algorithm, branching_scheme, info);
-        branching_scheme.write(solution_pool.best(), certificate_path);
-        if (vm.count("print-solution"))
-            branching_scheme.print(std::cout, solution_pool.best());
+        if (branching_scheme_args[0] == "forward") {
+            auto parameters = read_travellingsalesman_forward_args(branching_scheme_argv);
+            travellingsalesman::BranchingSchemeForward branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        } else {
+            auto parameters = read_travellingsalesman_insertion_args(branching_scheme_argv);
+            travellingsalesman::BranchingSchemeInsertion branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        }
 
     } else if (problem == "sequentialordering") {
         sequentialordering::Instance instance(instance_path, format);
@@ -131,14 +140,14 @@ int main(int argc, char *argv[])
 
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
-        //if (vm.count("print-instance")) TODO
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         auto parameters = read_thieforienteering_args(branching_scheme_argv);
         thieforienteering::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
         branching_scheme.write(solution_pool.best(), certificate_path);
-        //if (vm.count("print-solution")) TODO
-        //    branching_scheme.print(std::cout, solution_pool.best());
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
 
     } else if (problem == "schedulingwithsdsttwt") {
         schedulingwithsdsttwt::Instance instance(instance_path, format);
@@ -153,23 +162,23 @@ int main(int argc, char *argv[])
 
     } else if (problem == "orderacceptanceandscheduling") {
         orderacceptanceandscheduling::Instance instance(instance_path, format);
-        //if (vm.count("print-instance")) TODO
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         auto parameters = read_orderacceptanceandscheduling_args(branching_scheme_argv);
         orderacceptanceandscheduling::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        branching_scheme.write(solution_pool.best(), certificate_path); // TODO
+        branching_scheme.write(solution_pool.best(), certificate_path);
         if (vm.count("print-solution"))
             branching_scheme.print(std::cout, solution_pool.best());
 
     } else if (problem == "batchschedulingtotalweightedtardiness") {
         batchschedulingtotalweightedtardiness::Instance instance(instance_path, format);
-        //if (vm.count("print-instance")) TODO
-        //    std::cout << instance << std::endl;
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
         auto parameters = read_batchschedulingtotalweightedtardiness_args(branching_scheme_argv);
         batchschedulingtotalweightedtardiness::BranchingScheme branching_scheme(instance, parameters);
         auto solution_pool = run(algorithm, branching_scheme, info);
-        //branching_scheme.write(solution_pool.best(), certificate_path); TODO
+        branching_scheme.write(solution_pool.best(), certificate_path);
         if (vm.count("print-solution"))
             branching_scheme.print(std::cout, solution_pool.best());
 

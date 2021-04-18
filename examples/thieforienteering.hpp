@@ -39,7 +39,7 @@ namespace treesearchsolver
 namespace thieforienteering
 {
 
-typedef int64_t VertexId;
+typedef int64_t LocationId;
 typedef int64_t Distance;
 typedef double Time;
 typedef int64_t ItemId;
@@ -52,7 +52,7 @@ struct Item
 {
     Profit profit;
     Weight weight;
-    VertexId location;
+    LocationId location;
 };
 
 struct Location
@@ -68,30 +68,30 @@ class Instance
 
 public:
 
-    Instance(VertexId n):
+    Instance(LocationId n):
         locations_(n),
         distances_(n, std::vector<Distance>(n, -1))
     {
-        for (VertexId j = 0; j < n; ++j)
+        for (LocationId j = 0; j < n; ++j)
             distances_[j][j] = 0;
     }
     void set_time_limit(Time time_limit)
     {
         time_limit_ = time_limit;
     }
-    void set_xy(VertexId j, double x, double y, double z = -1)
+    void set_xy(LocationId j, double x, double y, double z = -1)
     {
         locations_[j].x = x;
         locations_[j].y = y;
         locations_[j].z = z;
     }
-    void set_distance(VertexId j1, VertexId j2, Distance d)
+    void set_distance(LocationId j1, LocationId j2, Distance d)
     {
         distances_[j1][j2] = d;
         distances_[j2][j1] = d;
         distance_max_ = std::max(distance_max_, d);
     }
-    void add_item(VertexId j, Profit profit, Weight weight)
+    void add_item(LocationId j, Profit profit, Weight weight)
     {
         ItemId i = items_.size();
         locations_[j].items.push_back(i);
@@ -120,13 +120,13 @@ public:
 
     virtual ~Instance() { }
 
-    inline VertexId vertex_number() const { return locations_.size(); }
-    inline double x(VertexId j) const { return locations_[j].x; }
-    inline double y(VertexId j) const { return locations_[j].y; }
-    inline Distance distance(VertexId j1, VertexId j2) const { return distances_[j1][j2]; }
+    inline LocationId location_number() const { return locations_.size(); }
+    inline double x(LocationId j) const { return locations_[j].x; }
+    inline double y(LocationId j) const { return locations_[j].y; }
+    inline Distance distance(LocationId j1, LocationId j2) const { return distances_[j1][j2]; }
     inline Distance maximum_distance() const { return distance_max_; }
     inline Time time_limit() const { return time_limit_; }
-    inline Time duration(VertexId j1, VertexId j2, Weight weight) const
+    inline Time duration(LocationId j1, LocationId j2, Weight weight) const
     {
         double speed = speed_max_ - (double)(weight * (speed_max_ - speed_min_)) / capacity();
         return (double)distance(j1, j2) / speed;
@@ -134,7 +134,7 @@ public:
 
     inline ItemId item_number() const { return items_.size(); }
     inline const Item& item(ItemId i) const { return items_[i]; }
-    inline const std::vector<ItemId>& items(VertexId j) const { return locations_[j].items; }
+    inline const Location& location(LocationId j) const { return locations_[j]; }
     inline Weight capacity() const { return capacity_; }
 
     std::pair<bool, Time> check(std::string certificate_path)
@@ -149,7 +149,7 @@ public:
         Time t = 0;
         Profit p = 0;
         Weight w = 0;
-        VertexId j = 0;
+        LocationId j = 0;
         ItemId i = -1;
         optimizationtools::IndexedSet items(item_number());
         ItemPos duplicates = 0;
@@ -159,18 +159,18 @@ public:
                 duplicates++;
                 std::cout << "Item " << i << " already selected." << std::endl;
             }
-            thieforienteering::VertexId j_next = item(i).location;
+            thieforienteering::LocationId j_next = item(i).location;
             t += duration(j, j_next, w);
             p += item(i).profit;
             w += item(i).weight;
             std::cout << "Item: " << i
-                << "; Vertex: " << j_next
+                << "; Location: " << j_next
                 << "; Duration: " << t << " / " << time_limit()
                 << "; Weight: " << w << " / " << capacity()
                 << "; Profit: " << p << std::endl;
             j = j_next;
         }
-        t += duration(j, vertex_number() - 1, w);
+        t += duration(j, location_number() - 1, w);
 
         bool feasible = (duplicates == 0)
             && (t <= time_limit())
@@ -191,7 +191,7 @@ private:
     {
         std::string tmp;
         std::vector<std::string> line;
-        VertexId n = -1;
+        LocationId n = -1;
         ItemId n_items = -1;
         std::string edge_weight_type;
         std::string edge_weight_format;
@@ -228,40 +228,40 @@ private:
             } else if (tmp.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
                 if (edge_weight_format == "UPPER_ROW") {
                     Distance d;
-                    for (VertexId j1 = 0; j1 < n - 1; ++j1) {
-                        for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
+                    for (LocationId j1 = 0; j1 < n - 1; ++j1) {
+                        for (LocationId j2 = j1 + 1; j2 < n; ++j2) {
                             file >> d;
                             set_distance(j1, j2, d);
                         }
                     }
                 } else if (edge_weight_format == "LOWER_ROW") {
                     Distance d;
-                    for (VertexId j1 = 1; j1 < n; ++j1) {
-                        for (VertexId j2 = 0; j2 < j1; ++j2) {
+                    for (LocationId j1 = 1; j1 < n; ++j1) {
+                        for (LocationId j2 = 0; j2 < j1; ++j2) {
                             file >> d;
                             set_distance(j1, j2, d);
                         }
                     }
                 } else if (edge_weight_format == "UPPER_DIAG_ROW") {
                     Distance d;
-                    for (VertexId j1 = 0; j1 < n; ++j1) {
-                        for (VertexId j2 = j1; j2 < n; ++j2) {
+                    for (LocationId j1 = 0; j1 < n; ++j1) {
+                        for (LocationId j2 = j1; j2 < n; ++j2) {
                             file >> d;
                             set_distance(j1, j2, d);
                         }
                     }
                 } else if (edge_weight_format == "LOWER_DIAG_ROW") {
                     Distance d;
-                    for (VertexId j1 = 0; j1 < n; ++j1) {
-                        for (VertexId j2 = 0; j2 <= j1; ++j2) {
+                    for (LocationId j1 = 0; j1 < n; ++j1) {
+                        for (LocationId j2 = 0; j2 <= j1; ++j2) {
                             file >> d;
                             set_distance(j1, j2, d);
                         }
                     }
                 } else if (edge_weight_format == "FULL_MATRIX") {
                     Distance d;
-                    for (VertexId j1 = 0; j1 < n; ++j1) {
-                        for (VertexId j2 = 0; j2 < n; ++j2) {
+                    for (LocationId j1 = 0; j1 < n; ++j1) {
+                        for (LocationId j2 = 0; j2 < n; ++j2) {
                             file >> d;
                             set_distance(j1, j2, d);
                         }
@@ -271,24 +271,24 @@ private:
                 }
             } else if (tmp.rfind("NODE_COORD_SECTION", 0) == 0) {
                 if (node_coord_type == "TWOD_COORDS") {
-                    VertexId tmp;
+                    LocationId tmp;
                     double x, y;
-                    for (VertexId j = 0; j < n; ++j) {
+                    for (LocationId j = 0; j < n; ++j) {
                         file >> tmp >> x >> y;
                         set_xy(j, x, y);
                     }
                 } else if (node_coord_type == "THREED_COORDS") {
-                    VertexId tmp;
+                    LocationId tmp;
                     double x, y, z;
-                    for (VertexId j = 0; j < n; ++j) {
+                    for (LocationId j = 0; j < n; ++j) {
                         file >> tmp >> x >> y >> z;
                         set_xy(j, x, y, z);
                     }
                 }
             } else if (tmp.rfind("DISPLAY_DATA_SECTION", 0) == 0) {
-                VertexId tmp;
+                LocationId tmp;
                 double x, y;
-                for (VertexId j = 0; j < n; ++j) {
+                for (LocationId j = 0; j < n; ++j) {
                     file >> tmp >> x >> y;
                     set_xy(j, x, y);
                 }
@@ -296,7 +296,7 @@ private:
                 ItemId tmp = -1;
                 Profit profit = -1;
                 Weight weight = -1;
-                VertexId location = -1;
+                LocationId location = -1;
                 for (ItemId i = 0; i < n_items; ++i) {
                     file >> tmp >> profit >> weight >> location;
                     add_item(location - 1, profit, weight);
@@ -310,8 +310,8 @@ private:
 
         // Compute distances.
         if (edge_weight_type == "EUC_2D") {
-            for (VertexId j1 = 0; j1 < n; ++j1) {
-                for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
+            for (LocationId j1 = 0; j1 < n; ++j1) {
+                for (LocationId j2 = j1 + 1; j2 < n; ++j2) {
                     Distance xd = x(j2) - x(j1);
                     Distance yd = y(j2) - y(j1);
                     Distance d = std::round(std::sqrt(xd * xd + yd * yd));
@@ -319,8 +319,8 @@ private:
                 }
             }
         } else if (edge_weight_type == "CEIL_2D") {
-            for (VertexId j1 = 0; j1 < n; ++j1) {
-                for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
+            for (LocationId j1 = 0; j1 < n; ++j1) {
+                for (LocationId j2 = j1 + 1; j2 < n; ++j2) {
                     Distance xd = x(j2) - x(j1);
                     Distance yd = y(j2) - y(j1);
                     Distance d = std::ceil(std::sqrt(xd * xd + yd * yd));
@@ -330,7 +330,7 @@ private:
         } else if (edge_weight_type == "GEO") {
             std::vector<double> latitudes(n, 0);
             std::vector<double> longitudes(n, 0);
-            for (VertexId j = 0; j < n; ++j) {
+            for (LocationId j = 0; j < n; ++j) {
                 double pi = 3.141592;
                 int deg_x = std::round(x(j));
                 double min_x = x(j) - deg_x;
@@ -340,8 +340,8 @@ private:
                 longitudes[j] = pi * (deg_y + 5.0 * min_y / 3.0) / 180.0;
             }
             double rrr = 6378.388;
-            for (VertexId j1 = 0; j1 < n; ++j1) {
-                for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
+            for (LocationId j1 = 0; j1 < n; ++j1) {
+                for (LocationId j2 = j1 + 1; j2 < n; ++j2) {
                     double q1 = cos(longitudes[j1] - longitudes[j2]);
                     double q2 = cos(latitudes[j1] - latitudes[j2]);
                     double q3 = cos(latitudes[j1] + latitudes[j2]);
@@ -350,8 +350,8 @@ private:
                 }
             }
         } else if (edge_weight_type == "ATT") {
-            for (VertexId j1 = 0; j1 < n; ++j1) {
-                for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
+            for (LocationId j1 = 0; j1 < n; ++j1) {
+                for (LocationId j2 = j1 + 1; j2 < n; ++j2) {
                     double xd = x(j1) - x(j2);
                     double yd = y(j1) - y(j2);
                     double rij = sqrt((xd * xd + yd * yd) / 10.0);
@@ -364,7 +364,7 @@ private:
         } else {
             std::cerr << "\033[31m" << "ERROR, EDGE_WEIGHT_TYPE \"" << edge_weight_type << "\" not implemented." << "\033[0m" << std::endl;
         }
-        for (VertexId j = 0; j < n; ++j)
+        for (LocationId j = 0; j < n; ++j)
             distances_[j][j] = 0;
     }
 
@@ -380,6 +380,33 @@ private:
 
 };
 
+std::ostream& operator<<(
+        std::ostream &os, const Instance& instance)
+{
+    os << "location number: " << instance.location_number() << std::endl;
+    os << "item number: " << instance.item_number() << std::endl;
+    for (ItemId i = 0; i < instance.item_number(); ++i)
+        os << "item: " << i
+            << "; location: " << instance.item(i).location
+            << "; weight: " << instance.item(i).weight
+            << "; profit: " << instance.item(i).profit
+            << std::endl;
+    for (LocationId j = 0; j < instance.location_number(); ++j) {
+        os << "location: " << j
+            << "; items:";
+        for (ItemId i: instance.location(j).items)
+            os << " " << i;
+        os << std::endl;
+    }
+    for (LocationId j1 = 0; j1 < instance.location_number(); ++j1) {
+        os << "location " << j1 << ":";
+        for (LocationId j2 = 0; j2 < instance.location_number(); ++j2)
+            os << " " << instance.distance(j1, j2);
+        os << std::endl;
+    }
+    return os;
+}
+
 class BranchingScheme
 {
 
@@ -391,7 +418,7 @@ public:
         std::vector<bool> available_items;
         ItemId i = -1; // Last added item.
         ItemId item_number = 0;
-        VertexId vertex_number = 0;
+        LocationId location_number = 0;
         Time time = 0;
         Profit profit = 0;
         Weight weight = 0;
@@ -416,10 +443,10 @@ public:
         // Initialize sorted_items_.
         for (ItemId i = 0; i < instance_.item_number() + 1; ++i) {
             sorted_items_[i].reset(instance.item_number());
-            VertexId j = (i == instance_.item_number())?
+            LocationId j = (i == instance_.item_number())?
                 0: instance_.item(i).location;
-            for (VertexId i2 = 0; i2 < instance_.item_number(); ++i2) {
-                VertexId j2 = instance_.item(i2).location;
+            for (LocationId i2 = 0; i2 < instance_.item_number(); ++i2) {
+                LocationId j2 = instance_.item(i2).location;
                 double c;
                 switch (parameters.guide_id) {
                 case 0: {
@@ -440,7 +467,7 @@ public:
         }
     }
 
-    inline VertexId neighbor(ItemId i, ItemPos pos) const
+    inline LocationId neighbor(ItemId i, ItemPos pos) const
     {
         assert(i < instance_.item_number() + 1);
         assert(pos < instance_.item_number());
@@ -472,11 +499,11 @@ public:
         if (father->weight + instance_.item(i_next).weight > instance_.capacity())
             return nullptr;
         // Check time limit.
-        VertexId j = (father->father == nullptr)?
+        LocationId j = (father->father == nullptr)?
             0: instance_.item(father->i).location;
-        VertexId j_next = instance_.item(i_next).location;
+        LocationId j_next = instance_.item(i_next).location;
         Time t = instance_.duration(j, j_next, father->weight);
-        Time t_end = instance_.duration(j_next, instance_.vertex_number() - 1,
+        Time t_end = instance_.duration(j_next, instance_.location_number() - 1,
                 father->weight + instance_.item(i_next).weight);
         if (father->time + t + t_end > instance_.time_limit())
             return nullptr;
@@ -488,11 +515,11 @@ public:
         child->available_items[i_next] = false;
         child->i = i_next;
         child->item_number = father->item_number + 1;
-        child->vertex_number = father->vertex_number;
+        child->location_number = father->location_number;
         if (j_next != j) {
-            for (ItemId i_tmp: instance_.items(j))
+            for (ItemId i_tmp: instance_.location(j).items)
                 child->available_items[i_tmp] = false;
-            child->vertex_number++;
+            child->location_number++;
         }
         child->time = father->time + t;
         child->profit = father->profit + instance_.item(i_next).profit;
@@ -558,20 +585,7 @@ public:
         return node_1->available_items == node_2->available_items;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        VertexId j = instance_.item(node->i).location;
-        std::stringstream ss;
-        ss << node->profit
-            << " (n" << node->vertex_number
-            << " m" << node->item_number
-            << " w" << std::round(100 * (double)node->weight / instance_.capacity()) / 100
-            << " t" << std::round(100 * (node->time + instance_.duration(j, instance_.vertex_number() - 1, node->weight)) / instance_.time_limit()) / 100
-            << ")";
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -587,7 +601,7 @@ public:
     struct NodeHasher
     {
         const BranchingScheme& branching_scheme_;
-        std::hash<VertexId> hasher_1;
+        std::hash<LocationId> hasher_1;
         std::hash<std::vector<bool>> hasher_2;
 
         NodeHasher(const BranchingScheme& branching_scheme):
@@ -625,6 +639,42 @@ public:
                 && node_1->weight <= node_2->weight)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        LocationId j = instance_.item(node->i).location;
+        std::stringstream ss;
+        ss << node->profit
+            << " (n" << node->location_number
+            << " m" << node->item_number
+            << " w" << std::round(100 * (double)node->weight / instance_.capacity()) / 100
+            << " t" << std::round(100 * (node->time + instance_.duration(j, instance_.location_number() - 1, node->weight)) / instance_.time_limit()) / 100
+            << ")";
+        return ss.str();
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            os << "node_tmp"
+                << " n " << node_tmp->location_number
+                << " m " << node_tmp->item_number
+                << " t " << node_tmp->time
+                << " w " << node_tmp->weight
+                << " p " << node_tmp->profit
+                << " guide " << node_tmp->guide
+                << " i " << node_tmp->i
+                << std::endl;
+        }
+        return os;
     }
 
     inline void write(

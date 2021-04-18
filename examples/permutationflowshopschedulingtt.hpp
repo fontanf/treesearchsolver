@@ -202,7 +202,7 @@ public:
 
     struct Parameters
     {
-        GuideId guide_id = 2;
+        GuideId guide_id = 0;
     };
 
     BranchingScheme(const Instance& instance, Parameters parameters):
@@ -305,18 +305,10 @@ public:
         double alpha = (double)child->job_number / instance_.job_number();
         switch (parameters_.guide_id) {
         case 0: {
-            child->guide = child->bound;
-            break;
-        } case 1: {
-            child->guide = child->idle_time;
-            break;
-        } case 2: {
-            child->guide = alpha * child->total_tardiness
-                + (1.0 - alpha) * child->idle_time * child->job_number / m;
-            break;
-        } case 3: {
-            child->guide = alpha * (child->total_tardiness + child->total_earliness / 10)
-                + (1.0 - alpha) * (child->weighted_idle_time / m + child->idle_time) / 2 * child->job_number / m;
+            child->guide
+                = (0.5 + alpha / 2) * child->total_tardiness
+                + (1.0 - alpha / 2) * child->total_earliness
+                + (1.0 - alpha) * child->weighted_idle_time;
             break;
         } default: {
         }
@@ -381,19 +373,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        std::stringstream ss;
-        ss << node->total_tardiness
-            << " (e" << node->total_earliness
-            << " i" << node->idle_time
-            << ")";
-        return ss.str();
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -452,6 +432,22 @@ public:
         return false;
     }
 
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        std::stringstream ss;
+        ss << node->total_tardiness
+            << " (e" << node->total_earliness
+            << " i" << node->idle_time
+            << ")";
+        return ss.str();
+    }
+
     std::ostream& print(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
@@ -466,9 +462,10 @@ public:
                 << " tt " << node_tmp->total_tardiness
                 << " te " << node_tmp->total_earliness
                 << " it " << node_tmp->idle_time
+                << " wit " << node_tmp->weighted_idle_time
                 << " bnd " << node_tmp->bound
                 << " j " << node_tmp->j
-                << " d " << instance_.job(node_tmp->j).due_date
+                << " dj " << instance_.job(node_tmp->j).due_date
                 << std::endl;
         }
         return os;

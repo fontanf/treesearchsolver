@@ -409,14 +409,7 @@ public:
         return false;
     }
 
-    std::string display(const std::shared_ptr<Node>& node) const
-    {
-        if (node->job_number != instance_.job_number())
-            return "";
-        return std::to_string(node->station_number);
-    }
-
-    /**
+    /*
      * Dominances.
      */
 
@@ -458,6 +451,17 @@ public:
                 && node_1->current_station_time <= node_2->current_station_time)
             return true;
         return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        return std::to_string(node->station_number);
     }
 
     std::ostream& print(
