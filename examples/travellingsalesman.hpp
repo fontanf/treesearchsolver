@@ -621,14 +621,14 @@ public:
             std::sort(sorted_vertices_.begin(), sorted_vertices_.end(),
                     [&instance](VertexId j1, VertexId j2) -> bool
                     {
-                        return instance.distance(0, j1) > instance.distance(0, j2);
+                        return instance.distance(0, j1) < instance.distance(0, j2);
                     });
             break;
         } case 1: {
             std::sort(sorted_vertices_.begin(), sorted_vertices_.end(),
                     [&instance](VertexId j1, VertexId j2) -> bool
                     {
-                        return instance.distance(0, j1) < instance.distance(0, j2);
+                        return instance.distance(0, j1) > instance.distance(0, j2);
                     });
             break;
         } case 2: {
@@ -649,7 +649,7 @@ public:
                 node->vertices.end(),
                 father->vertices.begin(),
                 father->vertices.begin() + node->pos + 1);
-        node->vertices.push_back(sorted_vertices_[node->vertex_number - 2]);
+        node->vertices.push_back(sorted_vertices_[instance_.vertex_number() - node->vertex_number]);
         node->vertices.insert(
                 node->vertices.end(),
                 father->vertices.begin() + node->pos + 1,
@@ -673,7 +673,7 @@ public:
         if (father->vertices.empty())
             compute_structures(father);
 
-        VertexId j_next = sorted_vertices_[father->vertex_number - 1];
+        VertexId j_next = sorted_vertices_[instance_.vertex_number() - father->vertex_number - 1];
         VertexPos pos = father->next_child_pos;
         VertexId j_bef = father->vertices[pos];
         VertexId j_aft = father->vertices[pos + 1];

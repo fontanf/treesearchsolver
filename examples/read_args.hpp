@@ -177,13 +177,32 @@ inline batchschedulingtotalweightedtardiness::BranchingScheme::Parameters read_b
     return parameters;
 }
 
-inline permutationflowshopschedulingmakespan::BranchingScheme::Parameters read_permutationflowshopschedulingmakespan_args(
+inline permutationflowshopschedulingmakespan::BranchingSchemeBidirectional::Parameters read_permutationflowshopschedulingmakespan_bidirectional_args(
         const std::vector<char*> argv)
 {
-    permutationflowshopschedulingmakespan::BranchingScheme::Parameters parameters;
+    permutationflowshopschedulingmakespan::BranchingSchemeBidirectional::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("bidirectional,b", boost::program_options::value<bool>(&parameters.bidirectional), "")
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline permutationflowshopschedulingmakespan::BranchingSchemeInsertion::Parameters read_permutationflowshopschedulingmakespan_insertion_args(
+        const std::vector<char*> argv)
+{
+    permutationflowshopschedulingmakespan::BranchingSchemeInsertion::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
         ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
         ;
     boost::program_options::variables_map vm;
@@ -216,10 +235,29 @@ inline permutationflowshopschedulingtct::BranchingScheme::Parameters read_permut
     return parameters;
 }
 
-inline permutationflowshopschedulingtt::BranchingScheme::Parameters read_permutationflowshopschedulingtt_args(
+inline permutationflowshopschedulingtt::BranchingSchemeForward::Parameters read_permutationflowshopschedulingtt_forward_args(
         const std::vector<char*> argv)
 {
-    permutationflowshopschedulingtt::BranchingScheme::Parameters parameters;
+    permutationflowshopschedulingtt::BranchingSchemeForward::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline permutationflowshopschedulingtt::BranchingSchemeInsertion::Parameters read_permutationflowshopschedulingtt_insertion_args(
+        const std::vector<char*> argv)
+{
+    permutationflowshopschedulingtt::BranchingSchemeInsertion::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")

@@ -117,7 +117,7 @@ public:
             && (duplicates == 0);
 
         std::cout << "---" << std::endl;
-        std::cout << "Job number:  " << jobs.size() << " / " << n  << std::endl;
+        std::cout << "Job number:  " << jobs.size() << " / " << n << std::endl;
         std::cout << "Duplicates:  " << duplicates << std::endl;
         std::cout << "Feasible:    " << feasible << std::endl;
         std::cout << "Makespan:    " << times[m - 1] << std::endl;
@@ -163,7 +163,7 @@ std::ostream& operator<<(
     return os;
 }
 
-class BranchingScheme
+class BranchingSchemeBidirectional
 {
 
 public:
@@ -198,7 +198,7 @@ public:
         GuideId guide_id = 3;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingSchemeBidirectional(const Instance& instance, Parameters parameters):
         instance_(instance),
         parameters_(parameters)
     {
@@ -208,7 +208,7 @@ public:
     {
         MachineId m = instance_.machine_number();
         JobId n = instance_.job_number();
-        auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        auto r = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         r->available_jobs.resize(n, true);
         r->machines.resize(m);
         for (JobId j = 0; j < n; ++j)
@@ -383,7 +383,7 @@ public:
         // Compute new child.
         MachineId m = instance_.machine_number();
         JobId n = instance_.job_number();
-        auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        auto child = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         child->father = father;
         child->j = j_next;
         child->job_number = father->job_number + 1;
@@ -558,7 +558,7 @@ public:
         return false;
     }
 
-    /**
+    /*
      * Dominances.
      */
 
@@ -573,10 +573,10 @@ public:
 
     struct NodeHasher
     {
-        const BranchingScheme& branching_scheme_;
+        const BranchingSchemeBidirectional& branching_scheme_;
         std::hash<std::vector<bool>> hasher;
 
-        NodeHasher(const BranchingScheme& branching_scheme):
+        NodeHasher(const BranchingSchemeBidirectional& branching_scheme):
             branching_scheme_(branching_scheme) { }
 
         inline bool operator()(
@@ -677,6 +677,317 @@ private:
     const Instance& instance_;
     Parameters parameters_;
     mutable std::shared_ptr<Node> best_node_;
+
+};
+
+class BranchingSchemeInsertion
+{
+
+public:
+
+    struct Node
+    {
+        std::shared_ptr<Node> father = nullptr;
+        std::vector<JobId> jobs;
+        JobPos pos = 0;
+        JobId job_number = 0;
+        Time makespan = 0;
+        double guide = 0;
+        JobId next_child_pos = 0;
+    };
+
+    struct Parameters
+    {
+        GuideId guide_id = 0;
+        GuideId sort_criterion_id = 1;
+    };
+
+    BranchingSchemeInsertion(const Instance& instance, Parameters parameters):
+        instance_(instance),
+        parameters_(parameters),
+        sorted_jobs_(instance.job_number()),
+        processing_time_sums_(instance.job_number(), 0),
+        heads_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0)),
+        tails_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0)),
+        completion_times_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0))
+    {
+        // Compute processing_time_sums_;
+        for (JobId j = 0; j < instance.job_number(); ++j)
+            for (MachineId i = 0; i < instance.machine_number(); ++i)
+                processing_time_sums_[j] += instance.processing_time(j, i);
+
+        // Initialize sorted_jobs_.
+        std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
+        switch (parameters_.sort_criterion_id) {
+        case 0: {
+            std::random_shuffle(sorted_jobs_.begin(), sorted_jobs_.end());
+            break;
+        } case 1: {
+            std::sort(sorted_jobs_.begin(), sorted_jobs_.end(),
+                    [this](JobId j1, JobId j2) -> bool
+                    {
+                        return processing_time_sums_[j1] < processing_time_sums_[j2];
+                    });
+            break;
+        } default: {
+            assert(false);
+            break;
+        }
+        }
+    }
+
+    inline const std::shared_ptr<Node> root() const
+    {
+        auto r = std::shared_ptr<Node>(new BranchingSchemeInsertion::Node());
+        return r;
+    }
+
+    inline void compute_structures(
+            const std::shared_ptr<Node>& node) const
+    {
+        auto father = node->father;
+        node->jobs.insert(
+                node->jobs.end(),
+                father->jobs.begin(),
+                father->jobs.begin() + node->pos);
+        node->jobs.push_back(sorted_jobs_[instance_.job_number() - node->job_number]);
+        node->jobs.insert(
+                node->jobs.end(),
+                father->jobs.begin() + node->pos,
+                father->jobs.end());
+    }
+
+    inline std::shared_ptr<Node> next_child(
+            const std::shared_ptr<Node>& father) const
+    {
+        assert(!infertile(father));
+        assert(!leaf(father));
+        MachineId m = instance_.machine_number();
+
+        // Compute father's structures.
+        if (father->father != nullptr && father->jobs.empty())
+            compute_structures(father);
+
+        JobId j_next = sorted_jobs_[instance_.job_number() - father->job_number - 1];
+        JobPos pos = father->next_child_pos;
+        // Update father
+        father->next_child_pos++;
+
+        if (pos == 0) {
+            // Compute heads_.
+            for (JobPos j_pos = 0; j_pos < (JobPos)father->jobs.size(); ++j_pos) {
+                JobId j = father->jobs[j_pos];
+                heads_[j_pos + 1][0] = heads_[j_pos][0]
+                    + instance_.processing_time(j, 0);
+                for (MachineId i = 1; i < m; ++i) {
+                    if (heads_[j_pos + 1][i - 1] > heads_[j_pos][i]) {
+                        heads_[j_pos + 1][i] = heads_[j_pos + 1][i - 1]
+                            + instance_.processing_time(j, i);
+                    } else {
+                        heads_[j_pos + 1][i] = heads_[j_pos][i]
+                            + instance_.processing_time(j, i);
+                    }
+                }
+            }
+            // Compute completion_times_.
+            for (JobPos j_pos = 0; j_pos <= (JobPos)father->jobs.size(); ++j_pos) {
+                completion_times_[j_pos][0] = heads_[j_pos][0]
+                    + instance_.processing_time(j_next, 0);
+                for (MachineId i = 1; i < m; ++i) {
+                    if (heads_[j_pos][i] > completion_times_[j_pos][i - 1]) {
+                        completion_times_[j_pos][i] = heads_[j_pos][i]
+                            + instance_.processing_time(j_next, i);
+                    } else {
+                        completion_times_[j_pos][i] = completion_times_[j_pos][i - 1]
+                            + instance_.processing_time(j_next, i);
+                    }
+                }
+            }
+            // Update tails_.
+            for (MachineId i = m - 1; i >= 0; --i)
+                tails_[father->jobs.size()][i] = 0;
+            for (JobPos j_pos = (JobPos)father->jobs.size() - 1; j_pos >= 0; --j_pos) {
+                JobId j = father->jobs[j_pos];
+                tails_[j_pos][m - 1] = tails_[j_pos + 1][m - 1]
+                    + instance_.processing_time(j, m - 1);
+                for (MachineId i = m - 2; i >= 0; --i) {
+                    if (tails_[j_pos][i + 1] > tails_[j_pos + 1][i]) {
+                        tails_[j_pos][i] = tails_[j_pos][i + 1]
+                            + instance_.processing_time(j, i);
+                    } else {
+                        tails_[j_pos][i] = tails_[j_pos + 1][i]
+                            + instance_.processing_time(j, i);
+                    }
+                }
+            }
+        }
+
+        auto child = std::shared_ptr<Node>(new BranchingSchemeInsertion::Node());
+        child->father = father;
+        child->pos = pos;
+        child->job_number = father->job_number + 1;
+        for (MachineId i = 0; i < m; ++i)
+            child->makespan = std::max(child->makespan,
+                    completion_times_[pos][i] + tails_[pos][i]);
+        if (father->job_number == 0)
+            child->makespan = 0;
+        child->guide = child->makespan;
+        return child;
+    }
+
+    inline bool infertile(
+            const std::shared_ptr<Node>& node) const
+    {
+        assert(node != nullptr);
+        return (node->next_child_pos == node->job_number + 1);
+    }
+
+    inline bool operator()(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        assert(!infertile(node_1));
+        assert(!infertile(node_2));
+        if (node_1->job_number != node_2->job_number)
+            return node_1->job_number < node_2->job_number;
+        if (node_1->guide != node_2->guide)
+            return node_1->guide < node_2->guide;
+        return node_1.get() < node_2.get();
+    }
+
+    inline bool leaf(
+            const std::shared_ptr<Node>& node) const
+    {
+        return node->job_number == instance_.job_number();
+    }
+
+    bool bound(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        if (node_2->job_number != instance_.job_number())
+            return false;
+        if (node_1->makespan >= node_2->makespan)
+            return true;
+        return false;
+    }
+
+    bool better(
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
+    {
+        if (node_1->job_number != instance_.job_number())
+            return false;
+        if (node_2->job_number != instance_.job_number())
+            return true;
+        return node_1->makespan < node_2->makespan;
+    }
+
+    bool equals(
+            const std::shared_ptr<Node>&,
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    /*
+     * Dominances.
+     */
+
+    inline bool comparable(
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    const Instance& instance() const { return instance_; }
+
+    struct NodeHasher
+    {
+        const BranchingSchemeInsertion& branching_scheme_;
+
+        NodeHasher(const BranchingSchemeInsertion& branching_scheme):
+            branching_scheme_(branching_scheme) { }
+
+        inline bool operator()(
+                const std::shared_ptr<Node>&,
+                const std::shared_ptr<Node>&) const
+        {
+            return false;
+        }
+
+        inline std::size_t operator()(
+                const std::shared_ptr<Node>&) const
+        {
+            return 0;
+        }
+    };
+
+    inline NodeHasher node_hasher() const { return NodeHasher(*this); }
+
+    inline bool dominates(
+            const std::shared_ptr<Node>&,
+            const std::shared_ptr<Node>&) const
+    {
+        return false;
+    }
+
+    /*
+     * Outputs.
+     */
+
+    std::string display(const std::shared_ptr<Node>& node) const
+    {
+        if (node->job_number != instance_.job_number())
+            return "";
+        std::stringstream ss;
+        ss << node->makespan;
+        return ss.str();
+    }
+
+    std::ostream& print(
+            std::ostream &os,
+            const std::shared_ptr<Node>& node)
+    {
+        for (auto node_tmp = node; node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            os << "node_tmp"
+                << " n " << node_tmp->job_number
+                << " c " << node_tmp->makespan
+                << " pos " << node_tmp->pos
+                << std::endl;
+        }
+        return os;
+    }
+
+    inline void write(
+            const std::shared_ptr<Node>& node,
+            std::string filepath) const
+    {
+        if (filepath.empty())
+            return;
+        std::ofstream cert(filepath);
+        if (!cert.good()) {
+            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
+            return;
+        }
+
+        if (node->father != nullptr && node->jobs.empty())
+            compute_structures(node);
+        for (JobId j: node->jobs)
+            cert << j << " ";
+    }
+
+private:
+
+    const Instance& instance_;
+    Parameters parameters_;
+    mutable std::vector<JobId> sorted_jobs_;
+
+    std::vector<Time> processing_time_sums_;
+    mutable std::vector<std::vector<Time>> heads_;
+    mutable std::vector<std::vector<Time>> tails_;
+    mutable std::vector<std::vector<Time>> completion_times_;
 
 };
 

@@ -111,6 +111,8 @@ int main(int argc, char *argv[])
         travellingsalesman::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
+        if (branching_scheme_args.empty())
+            branching_scheme_args.push_back("insertion");
         if (branching_scheme_args[0] == "forward") {
             auto parameters = read_travellingsalesman_forward_args(branching_scheme_argv);
             travellingsalesman::BranchingSchemeForward branching_scheme(instance, parameters);
@@ -186,12 +188,23 @@ int main(int argc, char *argv[])
         permutationflowshopschedulingmakespan::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-        auto parameters = read_permutationflowshopschedulingmakespan_args(branching_scheme_argv);
-        permutationflowshopschedulingmakespan::BranchingScheme branching_scheme(instance, parameters);
-        auto solution_pool = run(algorithm, branching_scheme, info);
-        branching_scheme.write(solution_pool.best(), certificate_path);
-        if (vm.count("print-solution"))
-            branching_scheme.print(std::cout, solution_pool.best());
+        if (branching_scheme_args.empty())
+            branching_scheme_args.push_back("bidirectional");
+        if (branching_scheme_args[0] == "bidirectional") {
+            auto parameters = read_permutationflowshopschedulingmakespan_bidirectional_args(branching_scheme_argv);
+            permutationflowshopschedulingmakespan::BranchingSchemeBidirectional branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        } else {
+            auto parameters = read_permutationflowshopschedulingmakespan_insertion_args(branching_scheme_argv);
+            permutationflowshopschedulingmakespan::BranchingSchemeInsertion branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        }
 
     } else if (problem == "permutationflowshopschedulingtct") {
         permutationflowshopschedulingtct::Instance instance(instance_path, format);
@@ -208,12 +221,23 @@ int main(int argc, char *argv[])
         permutationflowshopschedulingtt::Instance instance(instance_path, format);
         if (vm.count("print-instance"))
             std::cout << instance << std::endl;
-        auto parameters = read_permutationflowshopschedulingtt_args(branching_scheme_argv);
-        permutationflowshopschedulingtt::BranchingScheme branching_scheme(instance, parameters);
-        auto solution_pool = run(algorithm, branching_scheme, info);
-        branching_scheme.write(solution_pool.best(), certificate_path);
-        if (vm.count("print-solution"))
-            branching_scheme.print(std::cout, solution_pool.best());
+        if (branching_scheme_args.empty())
+            branching_scheme_args.push_back("forward");
+        if (branching_scheme_args[0] == "forward") {
+            auto parameters = read_permutationflowshopschedulingtt_forward_args(branching_scheme_argv);
+            permutationflowshopschedulingtt::BranchingSchemeForward branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        } else {
+            auto parameters = read_permutationflowshopschedulingtt_insertion_args(branching_scheme_argv);
+            permutationflowshopschedulingtt::BranchingSchemeInsertion branching_scheme(instance, parameters);
+            auto solution_pool = run(algorithm, branching_scheme, info);
+            branching_scheme.write(solution_pool.best(), certificate_path);
+            if (vm.count("print-solution"))
+                branching_scheme.print(std::cout, solution_pool.best());
+        }
 
     } else if (problem == "simpleassemblylinebalancing1") {
         simpleassemblylinebalancing1::Instance instance(instance_path, format);
