@@ -120,12 +120,20 @@ public:
             }
             jobs.add(j);
             current_time += setup_time(j_prec, j);
+            current_time += job(j).processing_time;
             if (current_time > job(j).due_date)
-                total_weighted_tardiness += (current_time - job(j).due_date);
+                total_weighted_tardiness
+                    += job(j).weight
+                    * (current_time - job(j).due_date);
             std::cout << "Job: " << j
+                << "; Due date: " << job(j).due_date
+                << "; Weight: " << job(j).weight
+                << "; Setup time: " << setup_time(j_prec, j)
+                << "; Processing time: " << job(j).processing_time
                 << "; Time: " << current_time
                 << "; Total weighted tardiness: " << total_weighted_tardiness
                 << std::endl;
+            j_prec = j;
         }
         bool feasible
             = (jobs.size() == n)

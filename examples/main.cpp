@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     std::string output_path = "";
     std::string certificate_path = "";
     std::string format = "";
-    std::string algorithm = "astar";
+    std::string algorithm = "iterativebeamsearch";
     std::string branching_scheme_parameters = "";
     double time_limit = std::numeric_limits<double>::infinity();
 

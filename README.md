@@ -68,7 +68,7 @@ Algorithms:
 
 #### Single machine scheduling
 
-[Single machine scheduling problem with sequence-dependent setup times, Total weighted Tardiness](examples/schedulingwithsdsttotaltardiness.hpp)
+[Single machine scheduling problem with sequence-dependent setup times, Total weighted Tardiness](examples/schedulingwithsdsttwt.hpp)
 * Three field classification: `1 | sᵢⱼ | ∑wⱼTⱼ`
 
 <details><summary>Literature</summary>
