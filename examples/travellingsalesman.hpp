@@ -116,7 +116,7 @@ public:
             }
             vertices.add(j);
             total_distance += distance(j_prec, j);
-            std::cout << "Job: " << j
+            std::cout << "Vertex: " << j
                 << "; Distance: " << distance(j_prec, j)
                 << "; Total distance: " << total_distance
                 << std::endl;
@@ -240,8 +240,8 @@ private:
         if (edge_weight_type == "EUC_2D") {
             for (VertexId j1 = 0; j1 < n; ++j1) {
                 for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
-                    Distance xd = x(j2) - x(j1);
-                    Distance yd = y(j2) - y(j1);
+                    double xd = x(j2) - x(j1);
+                    double yd = y(j2) - y(j1);
                     Distance d = std::round(std::sqrt(xd * xd + yd * yd));
                     set_distance(j1, j2, d);
                 }
@@ -249,8 +249,8 @@ private:
         } else if (edge_weight_type == "CEIL_2D") {
             for (VertexId j1 = 0; j1 < n; ++j1) {
                 for (VertexId j2 = j1 + 1; j2 < n; ++j2) {
-                    Distance xd = x(j2) - x(j1);
-                    Distance yd = y(j2) - y(j1);
+                    double xd = x(j2) - x(j1);
+                    double yd = y(j2) - y(j1);
                     Distance d = std::ceil(std::sqrt(xd * xd + yd * yd));
                     set_distance(j1, j2, d);
                 }
