@@ -140,6 +140,17 @@ int main(int argc, char *argv[])
         if (vm.count("print-solution"))
             branching_scheme.print(std::cout, solution_pool.best());
 
+    } else if (problem == "travellingrepairman") {
+        travellingrepairman::Instance instance(instance_path, format);
+        if (vm.count("print-instance"))
+            std::cout << instance << std::endl;
+        auto parameters = read_travellingrepairman_forward_args(branching_scheme_argv);
+        travellingrepairman::BranchingSchemeForward branching_scheme(instance, parameters);
+        auto solution_pool = run(algorithm, branching_scheme, info);
+        branching_scheme.write(solution_pool.best(), certificate_path);
+        if (vm.count("print-solution"))
+            branching_scheme.print(std::cout, solution_pool.best());
+
     } else if (problem == "thieforienteering") {
         thieforienteering::Instance instance(instance_path, format);
         if (vm.count("print-instance"))

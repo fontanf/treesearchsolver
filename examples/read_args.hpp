@@ -3,6 +3,7 @@
 #include "examples/knapsackwithconflicts.hpp"
 #include "examples/travellingsalesman.hpp"
 #include "examples/sequentialordering.hpp"
+#include "examples/travellingrepairman.hpp"
 #include "examples/thieforienteering.hpp"
 #include "examples/schedulingwithsdsttwt.hpp"
 #include "examples/orderacceptanceandscheduling.hpp"
@@ -67,6 +68,25 @@ inline travellingsalesman::BranchingSchemeInsertion::Parameters read_travellings
     desc.add_options()
         ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
         ("sort,s", boost::program_options::value<GuideId>(&parameters.sort_criterion_id), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+inline travellingrepairman::BranchingSchemeForward::Parameters read_travellingrepairman_forward_args(
+        const std::vector<char*> argv)
+{
+    travellingrepairman::BranchingSchemeForward::Parameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);

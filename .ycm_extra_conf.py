@@ -9,5 +9,7 @@ def Settings(**kwargs):
                 '-I', './bazel-treesearchsolver/external/boost/',
                 '-I', './bazel-treesearchsolver/external/optimizationtools/',
                 # '-I', './../optimizationtools/',
+                '-I', './bazel-treesearchsolver/external/orproblems/',
+                # '-I', './../orproblems/',
                 ],
             }

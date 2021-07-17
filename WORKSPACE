@@ -43,3 +43,10 @@ local_repository(
     path = "../optimizationtools/",
 )
 
+git_repository(
+    name = "orproblems",
+    remote = "https://github.com/fontanf/orproblems.git",
+    commit = "1b9f6b40f51b67531fbdfd2761d40f450f10d3fc",
+    shallow_since = "1626518189 +0200",
+)
+
