@@ -24,6 +24,8 @@ namespace knapsackwithconflicts
 
 using namespace orproblems::knapsackwithconflicts;
 
+typedef int64_t GuideId;
+
 class BranchingScheme
 {
 

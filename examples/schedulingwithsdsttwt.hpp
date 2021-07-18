@@ -25,9 +25,9 @@ namespace treesearchsolver
 namespace schedulingwithsdsttwt
 {
 
-typedef int64_t GuideId;
-
 using namespace orproblems::schedulingwithsdsttwt;
+
+typedef int64_t GuideId;
 
 class BranchingScheme
 {

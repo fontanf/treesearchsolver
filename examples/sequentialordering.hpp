@@ -4,7 +4,7 @@
  * Sequential Ordering Problem.
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/sequantialordering.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/orproblems/sequentialordering.hpp
  *
  * Tree search:
  * - forward branching
