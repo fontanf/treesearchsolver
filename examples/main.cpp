@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
 
     optimizationtools::Info info = optimizationtools::Info()
         .set_verbose(vm.count("verbose"))
-        .set_timelimit(time_limit)
-        .set_outputfile(output_path)
-        //.set_onlywriteattheend(vm.count("only-write-at-the-end"))
-        .set_onlywriteattheend(true)
+        .set_time_limit(time_limit)
+        .set_json_output_path(output_path)
+        //.set_only_write_at_the_end(vm.count("only-write-at-the-end"))
+        .set_only_write_at_the_end(true)
         ;
 
     // Run algorithm

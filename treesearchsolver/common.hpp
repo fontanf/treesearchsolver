@@ -74,14 +74,14 @@ public:
         // Add new solution to solution pool.
         auto res = solutions_.insert(node);
         if (d) {
-            info.output->sol_number++;
+            info.output->number_of_solutions++;
             double t = info.elapsed_time();
-            std::string sol_str = "Solution" + std::to_string(info.output->sol_number);
+            std::string sol_str = "Solution" + std::to_string(info.output->number_of_solutions);
             PUT(info, sol_str, "Value", branching_scheme_.display(node));
             PUT(info, sol_str, "Time", t);
             PUT(info, sol_str, "Comment", ss.str());
-            if (!info.output->onlywriteattheend) {
-                info.write_ini();
+            if (!info.output->only_write_at_the_end) {
+                info.write_json_output();
                 //write(info);
             }
         }
@@ -120,7 +120,7 @@ public:
         PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
         VER(info, "Time: " << t << std::endl);
         VER(info, "Value: " << branching_scheme_.display(*solutions_.begin()) << std::endl);
-        info.write_ini();
+        info.write_json_output();
         //write(info);
     }
 
