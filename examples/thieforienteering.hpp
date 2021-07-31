@@ -39,8 +39,8 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_items;
         ItemId i = -1; // Last added item.
-        ItemId item_number = 0;
-        LocationId location_number = 0;
+        ItemId number_of_items = 0;
+        LocationId number_of_locations = 0;
         Time time = 0;
         Profit profit = 0;
         Weight weight = 0;
@@ -59,15 +59,15 @@ public:
     BranchingScheme(const Instance& instance, Parameters parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_items_(instance.item_number() + 1),
+        sorted_items_(instance.number_of_items() + 1),
         generator_(0)
     {
         // Initialize sorted_items_.
-        for (ItemId i = 0; i < instance_.item_number() + 1; ++i) {
-            sorted_items_[i].reset(instance.item_number());
-            LocationId j = (i == instance_.item_number())?
+        for (ItemId i = 0; i < instance_.number_of_items() + 1; ++i) {
+            sorted_items_[i].reset(instance.number_of_items());
+            LocationId j = (i == instance_.number_of_items())?
                 0: instance_.item(i).location;
-            for (LocationId i2 = 0; i2 < instance_.item_number(); ++i2) {
+            for (LocationId i2 = 0; i2 < instance_.number_of_items(); ++i2) {
                 LocationId j2 = instance_.item(i2).location;
                 double c;
                 switch (parameters.guide_id) {
@@ -91,16 +91,16 @@ public:
 
     inline LocationId neighbor(ItemId i, ItemPos pos) const
     {
-        assert(i < instance_.item_number() + 1);
-        assert(pos < instance_.item_number());
+        assert(i < instance_.number_of_items() + 1);
+        assert(pos < instance_.number_of_items());
         return sorted_items_[i].get(pos, generator_);
     }
 
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->available_items.resize(instance_.item_number(), true);
-        r->i = instance_.item_number();
+        r->available_items.resize(instance_.number_of_items(), true);
+        r->i = instance_.number_of_items();
         r->guide = 0;
         return r;
     }
@@ -125,7 +125,7 @@ public:
             0: instance_.item(father->i).location;
         LocationId j_next = instance_.item(i_next).location;
         Time t = instance_.duration(j, j_next, father->weight);
-        Time t_end = instance_.duration(j_next, instance_.location_number() - 1,
+        Time t_end = instance_.duration(j_next, instance_.number_of_locations() - 1,
                 father->weight + instance_.item(i_next).weight);
         if (father->time + t + t_end > instance_.time_limit())
             return nullptr;
@@ -136,12 +136,12 @@ public:
         child->available_items = father->available_items;
         child->available_items[i_next] = false;
         child->i = i_next;
-        child->item_number = father->item_number + 1;
-        child->location_number = father->location_number;
+        child->number_of_items = father->number_of_items + 1;
+        child->number_of_locations = father->number_of_locations;
         if (j_next != j) {
             for (ItemId i_tmp: instance_.location(j).items)
                 child->available_items[i_tmp] = false;
-            child->location_number++;
+            child->number_of_locations++;
         }
         child->time = father->time + t;
         child->profit = father->profit + instance_.item(i_next).profit;
@@ -162,7 +162,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.item_number() - 1);
+        return (node->next_child_pos == instance_.number_of_items() - 1);
     }
 
     inline bool operator()(
@@ -171,8 +171,8 @@ public:
     {
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        //if (node_1->item_number != node_2->item_number)
-        //    return node_1->item_number < node_2->item_number;
+        //if (node_1->number_of_items != node_2->number_of_items)
+        //    return node_1->number_of_items < node_2->number_of_items;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -181,7 +181,7 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->item_number == instance_.item_number();
+        return node->number_of_items == instance_.number_of_items();
     }
 
     bool bound(
@@ -272,10 +272,10 @@ public:
         LocationId j = instance_.item(node->i).location;
         std::stringstream ss;
         ss << node->profit
-            << " (n" << node->location_number
-            << " m" << node->item_number
+            << " (n" << node->number_of_locations
+            << " m" << node->number_of_items
             << " w" << std::round(100 * (double)node->weight / instance_.capacity()) / 100
-            << " t" << std::round(100 * (node->time + instance_.duration(j, instance_.location_number() - 1, node->weight)) / instance_.time_limit()) / 100
+            << " t" << std::round(100 * (node->time + instance_.duration(j, instance_.number_of_locations() - 1, node->weight)) / instance_.time_limit()) / 100
             << ")";
         return ss.str();
     }
@@ -287,8 +287,8 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->location_number
-                << " m " << node_tmp->item_number
+                << " n " << node_tmp->number_of_locations
+                << " m " << node_tmp->number_of_items
                 << " t " << node_tmp->time
                 << " w " << node_tmp->weight
                 << " p " << node_tmp->profit

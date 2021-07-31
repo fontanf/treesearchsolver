@@ -97,7 +97,7 @@ public:
         std::vector<bool> jobs;
         JobId j = -1;
         bool new_batch = false;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         Time current_batch_start = 0;
         Time current_batch_end = 0;
         Size current_batch_size = 0;
@@ -116,7 +116,7 @@ public:
     BranchingScheme(const Instance& instance, Parameters parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_jobs_(instance.job_number())
+        sorted_jobs_(instance.number_of_jobs())
     {
         // Initialize sorted_jobs_.
         std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
@@ -130,8 +130,8 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->jobs.resize(instance_.job_number(), false);
-        r->next_child_pos = instance_.job_number();
+        r->jobs.resize(instance_.number_of_jobs(), false);
+        r->next_child_pos = instance_.number_of_jobs();
         return r;
     }
 
@@ -141,8 +141,8 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        JobId j_next = sorted_jobs_[father->next_child_pos % instance_.job_number()];
-        bool new_batch = (father->next_child_pos >= instance_.job_number());
+        JobId j_next = sorted_jobs_[father->next_child_pos % instance_.number_of_jobs()];
+        bool new_batch = (father->next_child_pos >= instance_.number_of_jobs());
         bool x = (father->new_batch && father->current_batch_start > father->father->current_batch_end);
         // Update father
         father->next_child_pos++;
@@ -172,7 +172,7 @@ public:
         child->father = father;
         child->j = j_next;
         child->new_batch = new_batch;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         child->jobs = father->jobs;
         child->jobs[j_next] = true;
         if (!new_batch) {
@@ -209,7 +209,7 @@ public:
         // Compute bound.
         bool x_child = (child->new_batch && child->current_batch_start > child->father->current_batch_end);
         child->bound = child->total_weighted_tardiness;
-        for (JobId j = 0; j < instance_.job_number(); ++j) {
+        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
             if (!child->jobs[j]) {
                 Time e = -1;
                 if (child->current_batch_size + instance_.job(j).size <= instance_.capacity()
@@ -236,7 +236,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == 2 * instance_.job_number());
+        return (node->next_child_pos == 2 * instance_.number_of_jobs());
     }
 
     inline bool operator()(
@@ -247,8 +247,8 @@ public:
         assert(node_2 != nullptr);
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        if (node_1->job_number != node_2->job_number)
-            return node_1->job_number < node_2->job_number;
+        if (node_1->number_of_jobs != node_2->number_of_jobs)
+            return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -257,14 +257,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return false;
         return node_1->bound >= node_2->total_weighted_tardiness;
     }
@@ -273,9 +273,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->job_number < instance_.job_number())
+        if (node_1->number_of_jobs < instance_.number_of_jobs())
             return false;
-        if (node_2->job_number < instance_.job_number())
+        if (node_2->number_of_jobs < instance_.number_of_jobs())
             return true;
         return node_1->total_weighted_tardiness
             < node_2->total_weighted_tardiness;
@@ -346,7 +346,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->job_number != instance_.job_number())
+        if (node->number_of_jobs != instance_.number_of_jobs())
             return "";
         return std::to_string(node->total_weighted_tardiness);
     }
@@ -363,7 +363,7 @@ public:
                 = (current_batch_end <= instance_.job(node_tmp->j).due_date)? 0:
                 instance_.job(node_tmp->j).weight * (current_batch_end - instance_.job(node_tmp->j).due_date);
             os << "node_tmp"
-                << " n " << node_tmp->job_number
+                << " n " << node_tmp->number_of_jobs
                 << " bs " << node_tmp->current_batch_start
                 << " be " << node_tmp->current_batch_end
                 << " rbe " << current_batch_end

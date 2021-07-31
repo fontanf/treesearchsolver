@@ -13,7 +13,7 @@ inline AStarOptionalParameters read_astar_args(
     AStarOptionalParameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        ("node-number-max,n", boost::program_options::value<NodeId>(&parameters.node_number_max), "")
+        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -32,10 +32,10 @@ inline IterativeBeamSearchOptionalParameters read_iterativebeamsearch_args(
     IterativeBeamSearchOptionalParameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        ("node-number-max,n", boost::program_options::value<NodeId>(&parameters.node_number_max), "")
+        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
         ("growth-factor,f", boost::program_options::value<double>(&parameters.growth_factor), "")
-        ("queue-size-min,m", boost::program_options::value<NodeId>(&parameters.queue_size_min), "")
-        ("queue-size-max,M", boost::program_options::value<NodeId>(&parameters.queue_size_max), "")
+        ("minimum-size-of-the-queue,m", boost::program_options::value<NodeId>(&parameters.minimum_size_of_the_queue), "")
+        ("maximum-size-of-the-queue,M", boost::program_options::value<NodeId>(&parameters.maximum_size_of_the_queue), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -54,10 +54,10 @@ inline IterativeMemoryBoundedAStarOptionalParameters read_iterativememorybounded
     IterativeMemoryBoundedAStarOptionalParameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        ("node-number-max,n", boost::program_options::value<NodeId>(&parameters.node_number_max), "")
+        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
         ("growth-factor,f", boost::program_options::value<double>(&parameters.growth_factor), "")
-        ("queue-size-min,m", boost::program_options::value<NodeId>(&parameters.queue_size_min), "")
-        ("queue-size-max,M", boost::program_options::value<NodeId>(&parameters.queue_size_max), "")
+        ("minimum-size-of-the-queue,m", boost::program_options::value<NodeId>(&parameters.minimum_size_of_the_queue), "")
+        ("maximum-size-of-the-queue,M", boost::program_options::value<NodeId>(&parameters.maximum_size_of_the_queue), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);

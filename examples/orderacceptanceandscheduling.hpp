@@ -39,7 +39,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
         JobId j = 0;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         Time time = 0;
         Profit profit = 0;
         Weight weighted_tardiness = 0;
@@ -55,13 +55,13 @@ public:
     BranchingScheme(const Instance& instance, Parameters parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_jobs_(instance.job_number() + 1),
+        sorted_jobs_(instance.number_of_jobs() + 1),
         generator_(0)
     {
         // Initialize sorted_jobs_.
-        for (JobId j = 0; j < instance_.job_number(); ++j) {
-            sorted_jobs_[j].reset(instance.job_number());
-            for (JobId j2 = 0; j2 < instance_.job_number(); ++j2) {
+        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
+            sorted_jobs_[j].reset(instance.number_of_jobs());
+            for (JobId j2 = 0; j2 < instance_.number_of_jobs(); ++j2) {
                 double c = (double)instance_.setup_time(j, j2) / instance_.job(j2).profit;
                 sorted_jobs_[j].set_cost(j2, c);
             }
@@ -70,15 +70,15 @@ public:
 
     inline JobId neighbor(JobId j, JobPos pos) const
     {
-        assert(j < instance_.job_number());
-        assert(pos < instance_.job_number());
+        assert(j < instance_.number_of_jobs());
+        assert(pos < instance_.number_of_jobs());
         return sorted_jobs_[j].get(pos, generator_);
     }
 
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->available_jobs.resize(instance_.job_number(), true);
+        r->available_jobs.resize(instance_.number_of_jobs(), true);
         r->available_jobs[0] = false;
         return r;
     }
@@ -119,7 +119,7 @@ public:
         child->available_jobs = father->available_jobs;
         child->available_jobs[j_next] = false;
         child->j = j_next;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         child->time = start + p;
         child->profit = father->profit + instance_.job(j_next).profit;
         child->weighted_tardiness = father->weighted_tardiness;
@@ -127,7 +127,7 @@ public:
         if (child->time > d)
             child->weighted_tardiness += instance_.job(j_next).weight * (child->time - d);
         child->guide = (double)child->time / (child->profit - child->weighted_tardiness);
-        for (JobId j = 0; j < instance_.job_number(); ++j) {
+        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
             if (!child->available_jobs[j])
                 continue;
             if (child->time + instance_.setup_time(j_next, j)
@@ -141,7 +141,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.job_number() - 1);
+        return (node->next_child_pos == instance_.number_of_jobs() - 1);
     }
 
     inline bool operator()(
@@ -158,7 +158,7 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
@@ -249,7 +249,7 @@ public:
     {
         std::stringstream ss;
         ss << node->profit - node->weighted_tardiness
-            << " (n" << node->job_number
+            << " (n" << node->number_of_jobs
             << " p" << node->profit
             << " w" << node->weighted_tardiness
             << ")";
@@ -263,7 +263,7 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father)
             os << "node_tmp"
-                << " n " << node_tmp->job_number
+                << " n " << node_tmp->number_of_jobs
                 << " t " << node_tmp->time
                 << " p " << node_tmp->profit
                 << " w " << node_tmp->weighted_tardiness

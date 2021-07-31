@@ -52,7 +52,7 @@ public:
         std::vector<bool> available_jobs;
         bool forward = true;
         JobId j = -1;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         std::vector<NodeMachine> machines;
         Time idle_time = 0;
         double weighted_idle_time = 0;
@@ -75,8 +75,8 @@ public:
 
     inline const std::shared_ptr<Node> root() const
     {
-        MachineId m = instance_.machine_number();
-        JobId n = instance_.job_number();
+        MachineId m = instance_.number_of_machines();
+        JobId n = instance_.number_of_jobs();
         auto r = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         r->available_jobs.resize(n, true);
         r->machines.resize(m);
@@ -94,7 +94,7 @@ public:
     inline void compute_structures(
             const std::shared_ptr<Node>& node) const
     {
-        MachineId m = instance_.machine_number();
+        MachineId m = instance_.number_of_machines();
         auto father = node->father;
         node->available_jobs = father->available_jobs;
         node->available_jobs[node->j] = false;
@@ -143,7 +143,7 @@ public:
         //if (father->next_child_pos == 0)
         //    std::cout << "father"
         //        << " j " << father->j
-        //        << " n " << father->job_number
+        //        << " n " << father->number_of_jobs
         //        << " ct " << father->total_completion_time
         //        << " it " << father->idle_time
         //        << " wit " << father->weighted_idle_time
@@ -159,8 +159,8 @@ public:
         } else if (father->father->father == nullptr) {
             father->forward = false;
         } else {
-            MachineId m = instance_.machine_number();
-            JobId n = instance_.job_number();
+            MachineId m = instance_.number_of_machines();
+            JobId n = instance_.number_of_jobs();
             JobPos n_forward = 0;
             JobPos n_backward = 0;
             Time bound_forward = 0;
@@ -193,7 +193,7 @@ public:
                             + father->machines[i].time_backward);
                     t_prec = t;
                 }
-                if (best_node_->job_number != n
+                if (best_node_->number_of_jobs != n
                         || bf < best_node_->bound) {
                     n_forward++;
                     bound_forward += bf;
@@ -223,7 +223,7 @@ public:
                             + t);
                     t_prec = t;
                 }
-                if (best_node_->job_number != n
+                if (best_node_->number_of_jobs != n
                         || bb < best_node_->bound) {
                     n_backward++;
                     bound_backward += bb;
@@ -250,12 +250,12 @@ public:
             return nullptr;
 
         // Compute new child.
-        MachineId m = instance_.machine_number();
-        JobId n = instance_.job_number();
+        MachineId m = instance_.number_of_machines();
+        JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         child->father = father;
         child->j = j_next;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         // Update machines and idle_time.
         child->idle_time = father->idle_time;
         Time t = 0;
@@ -336,7 +336,7 @@ public:
             }
         }
         // Compute guide.
-        double alpha = (double)child->job_number / n;
+        double alpha = (double)child->number_of_jobs / n;
         switch (parameters_.guide_id) {
         case 0: {
             child->guide = child->bound;
@@ -346,17 +346,17 @@ public:
             break;
         } case 2: {
             child->guide = alpha * child->bound
-                + (1.0 - alpha) * child->idle_time * child->job_number / m;
+                + (1.0 - alpha) * child->idle_time * child->number_of_jobs / m;
             break;
         } case 3: {
             child->guide = alpha * child->bound
                 + (1.0 - alpha) * child->weighted_idle_time * child->bound;
             break;
         } case 4: {
-            double a1 = (best_node_->job_number == instance_.job_number())?
+            double a1 = (best_node_->number_of_jobs == instance_.number_of_jobs())?
                 (double)(best_node_->bound) / (best_node_->bound - child->bound):
                 1 - alpha;
-            double a2 = (best_node_->job_number == instance_.job_number())?
+            double a2 = (best_node_->number_of_jobs == instance_.number_of_jobs())?
                 (double)(best_node_->bound - child->bound) / best_node_->bound:
                 alpha;
             child->guide = a1 * child->bound
@@ -374,7 +374,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.job_number());
+        return (node->next_child_pos == instance_.number_of_jobs());
     }
 
     inline bool operator()(
@@ -383,8 +383,8 @@ public:
     {
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        if (node_1->job_number != node_2->job_number)
-            return node_1->job_number < node_2->job_number;
+        if (node_1->number_of_jobs != node_2->number_of_jobs)
+            return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -393,14 +393,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return false;
         if (node_1->bound >= node_2->bound)
             return true;
@@ -411,9 +411,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->job_number != instance_.job_number())
+        if (node_1->number_of_jobs != instance_.number_of_jobs())
             return false;
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return true;
         return node_1->bound < node_2->bound;
     }
@@ -482,7 +482,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->job_number != instance_.job_number())
+        if (node->number_of_jobs != instance_.number_of_jobs())
             return "";
         std::stringstream ss;
         ss << node->bound;
@@ -493,13 +493,13 @@ public:
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {
-        MachineId m = instance_.machine_number();
+        MachineId m = instance_.number_of_machines();
         if (node->machines.empty())
             compute_structures(node);
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->job_number
+                << " n " << node_tmp->number_of_jobs
                 << " f " << node_tmp->forward
                 << " cf0 " << node_tmp->machines[0].time_forward
                 << " cfm " << node_tmp->machines[m - 1].time_forward
@@ -559,7 +559,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<JobId> jobs;
         JobPos pos = 0;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         Time makespan = 0;
         double guide = 0;
         JobId next_child_pos = 0;
@@ -574,15 +574,15 @@ public:
     BranchingSchemeInsertion(const Instance& instance, Parameters parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_jobs_(instance.job_number()),
-        processing_time_sums_(instance.job_number(), 0),
-        heads_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0)),
-        tails_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0)),
-        completion_times_(instance.job_number(), std::vector<Time>(instance.machine_number() + 1, 0))
+        sorted_jobs_(instance.number_of_jobs()),
+        processing_time_sums_(instance.number_of_jobs(), 0),
+        heads_(instance.number_of_jobs(), std::vector<Time>(instance.number_of_machines() + 1, 0)),
+        tails_(instance.number_of_jobs(), std::vector<Time>(instance.number_of_machines() + 1, 0)),
+        completion_times_(instance.number_of_jobs(), std::vector<Time>(instance.number_of_machines() + 1, 0))
     {
         // Compute processing_time_sums_;
-        for (JobId j = 0; j < instance.job_number(); ++j)
-            for (MachineId i = 0; i < instance.machine_number(); ++i)
+        for (JobId j = 0; j < instance.number_of_jobs(); ++j)
+            for (MachineId i = 0; i < instance.number_of_machines(); ++i)
                 processing_time_sums_[j] += instance.processing_time(j, i);
 
         // Initialize sorted_jobs_.
@@ -619,7 +619,7 @@ public:
                 node->jobs.end(),
                 father->jobs.begin(),
                 father->jobs.begin() + node->pos);
-        node->jobs.push_back(sorted_jobs_[instance_.job_number() - node->job_number]);
+        node->jobs.push_back(sorted_jobs_[instance_.number_of_jobs() - node->number_of_jobs]);
         node->jobs.insert(
                 node->jobs.end(),
                 father->jobs.begin() + node->pos,
@@ -631,13 +631,13 @@ public:
     {
         assert(!infertile(father));
         assert(!leaf(father));
-        MachineId m = instance_.machine_number();
+        MachineId m = instance_.number_of_machines();
 
         // Compute father's structures.
         if (father->father != nullptr && father->jobs.empty())
             compute_structures(father);
 
-        JobId j_next = sorted_jobs_[instance_.job_number() - father->job_number - 1];
+        JobId j_next = sorted_jobs_[instance_.number_of_jobs() - father->number_of_jobs - 1];
         JobPos pos = father->next_child_pos;
         // Update father
         father->next_child_pos++;
@@ -694,11 +694,11 @@ public:
         auto child = std::shared_ptr<Node>(new BranchingSchemeInsertion::Node());
         child->father = father;
         child->pos = pos;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         for (MachineId i = 0; i < m; ++i)
             child->makespan = std::max(child->makespan,
                     completion_times_[pos][i] + tails_[pos][i]);
-        if (father->job_number == 0)
+        if (father->number_of_jobs == 0)
             child->makespan = 0;
         child->guide = child->makespan;
         return child;
@@ -708,7 +708,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == node->job_number + 1);
+        return (node->next_child_pos == node->number_of_jobs + 1);
     }
 
     inline bool operator()(
@@ -717,8 +717,8 @@ public:
     {
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        if (node_1->job_number != node_2->job_number)
-            return node_1->job_number < node_2->job_number;
+        if (node_1->number_of_jobs != node_2->number_of_jobs)
+            return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -727,14 +727,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return false;
         if (node_1->makespan >= node_2->makespan)
             return true;
@@ -745,9 +745,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->job_number != instance_.job_number())
+        if (node_1->number_of_jobs != instance_.number_of_jobs())
             return false;
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return true;
         return node_1->makespan < node_2->makespan;
     }
@@ -807,7 +807,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->job_number != instance_.job_number())
+        if (node->number_of_jobs != instance_.number_of_jobs())
             return "";
         std::stringstream ss;
         ss << node->makespan;
@@ -821,7 +821,7 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->job_number
+                << " n " << node_tmp->number_of_jobs
                 << " c " << node_tmp->makespan
                 << " pos " << node_tmp->pos
                 << std::endl;

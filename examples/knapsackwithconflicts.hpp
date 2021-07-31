@@ -43,7 +43,7 @@ public:
         std::vector<bool> available_items;
         ItemId j = -1;
         ItemPos j_pos = -1;
-        ItemId item_number = 0;
+        ItemId number_of_items = 0;
         Weight weight = 0;
         Profit profit = 0;
         Profit bound = -1;
@@ -54,7 +54,7 @@ public:
     BranchingScheme(const Instance& instance, const Parameters& parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_items_(instance.item_number())
+        sorted_items_(instance.number_of_items())
     {
         // Initialize sorted_items_.
         std::iota(sorted_items_.begin(), sorted_items_.end(), 0);
@@ -69,7 +69,7 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->available_items.resize(instance_.item_number(), true);
+        r->available_items.resize(instance_.number_of_items(), true);
         ItemId j = sorted_items_[0];
         r->bound = std::floor(instance_.item(j).profit / instance_.item(j).weight
                 * instance_.capacity());
@@ -90,7 +90,7 @@ public:
         //    << " j_pos " << father->j_pos
         //    << " w " << father->weight
         //    << " p " << father->profit
-        //    << " nc " << father->next_child_pos << "/" << instance_.item_number()
+        //    << " nc " << father->next_child_pos << "/" << instance_.number_of_items()
         //    << std::endl;
 
         if (!father->available_items[j_next])
@@ -103,7 +103,7 @@ public:
         child->father = father;
         child->j = j_next;
         child->j_pos = father->next_child_pos - 1;
-        child->item_number = father->item_number + 1;
+        child->number_of_items = father->number_of_items + 1;
         child->available_items = father->available_items;
         child->available_items[j_next] = false;
         for (ItemId j: instance_.item(j_next).neighbors)
@@ -132,7 +132,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.item_number());
+        return (node->next_child_pos == instance_.number_of_items());
     }
 
     inline bool operator()(
@@ -143,8 +143,8 @@ public:
         assert(node_2 != nullptr);
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        if (node_1->item_number != node_2->item_number)
-            return node_1->item_number < node_2->item_number;
+        if (node_1->number_of_items != node_2->number_of_items)
+            return node_1->number_of_items < node_2->number_of_items;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -153,8 +153,8 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->next_child_pos == instance_.item_number()
-           || node->item_number == instance_.item_number();
+        return node->next_child_pos == instance_.number_of_items()
+           || node->number_of_items == instance_.number_of_items();
     }
 
     bool bound(
@@ -175,9 +175,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->item_number != node_2->item_number)
+        if (node_1->number_of_items != node_2->number_of_items)
             return false;
-        std::vector<bool> v(instance_.item_number(), false);
+        std::vector<bool> v(instance_.number_of_items(), false);
         for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
             v[node_tmp->j] = true;
         for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
@@ -190,7 +190,7 @@ public:
     {
         std::stringstream ss;
         ss << node->profit
-            << " (n" << node->item_number << "/" << instance_.item_number()
+            << " (n" << node->number_of_items << "/" << instance_.number_of_items()
             << " w" << node->weight << "/" << instance_.capacity()
             << ")";
         return ss.str();

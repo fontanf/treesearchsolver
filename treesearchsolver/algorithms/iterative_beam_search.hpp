@@ -7,11 +7,11 @@ namespace treesearchsolver
 
 struct IterativeBeamSearchOptionalParameters
 {
-    NodeId solution_pool_size_max = 1;
+    NodeId maximum_size_of_the_solution_pool = 1;
     double growth_factor = 2;
-    NodeId queue_size_min = 0;
-    NodeId queue_size_max = 100000000;
-    NodeId node_number_max = -1;
+    NodeId minimum_size_of_the_queue = 0;
+    NodeId maximum_size_of_the_queue = 100000000;
+    NodeId maximum_number_of_nodes = -1;
 
     optimizationtools::Info info = optimizationtools::Info();
 };
@@ -21,13 +21,13 @@ struct IterativeBeamSearchOutput
 {
     IterativeBeamSearchOutput(
             const BranchingScheme& branching_scheme,
-            Counter solution_pool_size_max):
-        solution_pool(branching_scheme, solution_pool_size_max) { }
+            Counter maximum_size_of_the_solution_pool):
+        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
 
     SolutionPool<BranchingScheme> solution_pool;
 
-    Counter node_number = 0;
-    NodeId queue_size_max = 0;
+    Counter number_of_nodes = 0;
+    NodeId maximum_size_of_the_queue = 0;
 };
 
 template <typename BranchingScheme>
@@ -36,22 +36,22 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
         IterativeBeamSearchOptionalParameters parameters = {})
 {
     IterativeBeamSearchOutput<BranchingScheme> output(
-            branching_scheme, parameters.solution_pool_size_max);
+            branching_scheme, parameters.maximum_size_of_the_solution_pool);
     output.solution_pool.display_init(parameters.info);
     auto node_hasher = branching_scheme.node_hasher();
     NodeSet<BranchingScheme> q1(branching_scheme);
     NodeSet<BranchingScheme> q2(branching_scheme);
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
 
-    for (output.queue_size_max = parameters.queue_size_min;;
-            output.queue_size_max = output.queue_size_max * parameters.growth_factor) {
-        if (output.queue_size_max == (Counter)(output.queue_size_max * parameters.growth_factor))
-            output.queue_size_max++;
-        if (output.queue_size_max > parameters.queue_size_max)
+    for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;
+            output.maximum_size_of_the_queue = output.maximum_size_of_the_queue * parameters.growth_factor) {
+        if (output.maximum_size_of_the_queue == (Counter)(output.maximum_size_of_the_queue * parameters.growth_factor))
+            output.maximum_size_of_the_queue++;
+        if (output.maximum_size_of_the_queue > parameters.maximum_size_of_the_queue)
             break;
 
         std::stringstream ss;
-        ss << "q " << output.queue_size_max;
+        ss << "q " << output.maximum_size_of_the_queue;
         output.solution_pool.display(ss, parameters.info);
 
         // Initialize queue.
@@ -70,15 +70,15 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
 
             node_cur = nullptr;
             while (node_cur != nullptr || !q->empty()) {
-                output.node_number++;
+                output.number_of_nodes++;
 
                 // Check time.
                 if (!parameters.info.check_time())
                     goto ibsend;
 
                 // Check node limit.
-                if (parameters.node_number_max != -1
-                        && output.node_number > parameters.node_number_max)
+                if (parameters.maximum_number_of_nodes != -1
+                        && output.number_of_nodes > parameters.maximum_number_of_nodes)
                     goto ibsend;
 
                 // Get node from the queue.
@@ -93,7 +93,7 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     }
                 }
 
-                if ((Counter)q_next->size() == output.queue_size_max
+                if ((Counter)q_next->size() == output.maximum_size_of_the_queue
                         && branching_scheme(*(std::prev(q_next->end())), node_cur)) {
                     stop = false;
                     break;
@@ -106,19 +106,19 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
                         std::stringstream ss;
-                        ss << "q " << output.queue_size_max;
+                        ss << "q " << output.maximum_size_of_the_queue;
                         output.solution_pool.add(child, ss, parameters.info);
                     }
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
                             && !branching_scheme.bound(child, output.solution_pool.worst())) {
-                        if ((Counter)q_next->size() >= output.queue_size_max)
+                        if ((Counter)q_next->size() >= output.maximum_size_of_the_queue)
                             stop = false;
-                        if ((Counter)q_next->size() < output.queue_size_max
+                        if ((Counter)q_next->size() < output.maximum_size_of_the_queue
                                 || branching_scheme(child, *(std::prev(q_next->end())))) {
                             add_to_history_and_queue(branching_scheme, history, *q_next, child);
                             //q_next->insert(child);
-                            if ((Counter)q_next->size() > output.queue_size_max)
+                            if ((Counter)q_next->size() > output.maximum_size_of_the_queue)
                                 remove_from_history_and_queue(branching_scheme, history, *q_next, std::prev(q_next->end()));
                         }
                     }
@@ -145,8 +145,8 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
 ibsend:
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Node number: " << output.node_number << std::endl);
-    PUT(parameters.info, "Algorithm", "NodeNumber", output.node_number);
+    VER(parameters.info, "Node number: " << output.number_of_nodes << std::endl);
+    PUT(parameters.info, "Algorithm", "NodeNumber", output.number_of_nodes);
     return output;
 }
 

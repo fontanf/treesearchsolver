@@ -41,7 +41,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
         JobId j = -1;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         std::vector<Time> times;
         Time total_completion_time = 0;
         Time idle_time = 0;
@@ -64,8 +64,8 @@ public:
 
     inline const std::shared_ptr<Node> root() const
     {
-        MachineId m = instance_.machine_number();
-        JobId n = instance_.job_number();
+        MachineId m = instance_.number_of_machines();
+        JobId n = instance_.number_of_jobs();
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->available_jobs.resize(n, true);
         r->times.resize(m, 0);
@@ -78,7 +78,7 @@ public:
     inline void compute_structures(
             const std::shared_ptr<Node>& node) const
     {
-        MachineId m = instance_.machine_number();
+        MachineId m = instance_.number_of_machines();
         auto father = node->father;
         node->available_jobs = father->available_jobs;
         node->available_jobs[node->j] = false;
@@ -109,7 +109,7 @@ public:
         //if (father->next_child_pos == 0)
         //    std::cout << "father"
         //        << " j " << father->j
-        //        << " n " << father->job_number
+        //        << " n " << father->number_of_jobs
         //        << " ct " << father->total_completion_time
         //        << " it " << father->idle_time
         //        << " wit " << father->weighted_idle_time
@@ -124,12 +124,12 @@ public:
             return nullptr;
 
         // Compute new child.
-        MachineId m = instance_.machine_number();
-        JobId n = instance_.job_number();
+        MachineId m = instance_.number_of_machines();
+        JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
         child->j = j_next;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         child->idle_time = father->idle_time;
         child->weighted_idle_time = father->weighted_idle_time;
         Time t_prec = father->times[0]
@@ -141,7 +141,7 @@ public:
                 t = t_prec
                     + instance_.processing_time(j_next, i);
                 child->idle_time += idle_time;
-                child->weighted_idle_time += ((double)father->job_number / n + 1) * (m - i) * idle_time;
+                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - i) * idle_time;
             } else {
                 t = father->times[i]
                     + instance_.processing_time(j_next, i);
@@ -151,10 +151,10 @@ public:
         child->total_completion_time = father->total_completion_time + t;
         // Compute bound.
         child->bound = father->bound
-            + (n - father->job_number) * (t - father->times[m - 1])
+            + (n - father->number_of_jobs) * (t - father->times[m - 1])
             - instance_.processing_time(j_next, m - 1);
         // Compute guide.
-        double alpha = (double)child->job_number / instance_.job_number();
+        double alpha = (double)child->number_of_jobs / instance_.number_of_jobs();
         switch (parameters_.guide_id) {
         case 0: {
             child->guide = child->bound;
@@ -164,13 +164,13 @@ public:
             break;
         } case 2: {
             child->guide = alpha * child->total_completion_time
-                + (1.0 - alpha) * child->idle_time * child->job_number / m;
+                + (1.0 - alpha) * child->idle_time * child->number_of_jobs / m;
             break;
         } case 3: {
             //child->guide = alpha * child->total_completion_time
             //    + (1.0 - alpha) * (child->weighted_idle_time + m * child->idle_time) / 2;
             child->guide = alpha * child->total_completion_time
-                + (1.0 - alpha) * (child->weighted_idle_time / m + child->idle_time) / 2 * child->job_number / m;
+                + (1.0 - alpha) * (child->weighted_idle_time / m + child->idle_time) / 2 * child->number_of_jobs / m;
             break;
         } default: {
         }
@@ -182,7 +182,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.job_number());
+        return (node->next_child_pos == instance_.number_of_jobs());
     }
 
     inline bool operator()(
@@ -191,8 +191,8 @@ public:
     {
         assert(!infertile(node_1));
         assert(!infertile(node_2));
-        if (node_1->job_number != node_2->job_number)
-            return node_1->job_number < node_2->job_number;
+        if (node_1->number_of_jobs != node_2->number_of_jobs)
+            return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
         return node_1.get() < node_2.get();
@@ -201,14 +201,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return false;
         if (node_1->bound >= node_2->total_completion_time)
             return true;
@@ -219,9 +219,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->job_number != instance_.job_number())
+        if (node_1->number_of_jobs != instance_.number_of_jobs())
             return false;
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return true;
         return node_1->total_completion_time < node_2->total_completion_time;
     }
@@ -281,7 +281,7 @@ public:
     {
         if (node_1->total_completion_time <= node_2->total_completion_time) {
             bool dominates = true;
-            for (MachineId i = 0; i < instance_.machine_number(); ++i) {
+            for (MachineId i = 0; i < instance_.number_of_machines(); ++i) {
                 if (node_1->times[i] > node_2->times[i]) {
                     dominates = false;
                     break;
@@ -300,7 +300,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->job_number != instance_.job_number())
+        if (node->number_of_jobs != instance_.number_of_jobs())
             return "";
         std::stringstream ss;
         ss << node->total_completion_time;
@@ -316,8 +316,8 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->job_number
-                << " c " << node_tmp->times[instance_.machine_number() - 1]
+                << " n " << node_tmp->number_of_jobs
+                << " c " << node_tmp->times[instance_.number_of_machines() - 1]
                 << " tct " << node_tmp->total_completion_time
                 << " bnd " << node_tmp->bound
                 << " j " << node_tmp->j

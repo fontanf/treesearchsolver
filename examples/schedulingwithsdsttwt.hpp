@@ -44,7 +44,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> visited;
         JobId j = 0;
-        JobId job_number = 0;
+        JobId number_of_jobs = 0;
         Time current_time = 0;
         double total_weighted_earliness = 0;
         double total_weighted_tardiness = 0;
@@ -61,9 +61,9 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->visited.resize(instance_.job_number(), false);
+        r->visited.resize(instance_.number_of_jobs(), false);
         r->guide = r->bound;
-        r->j = instance_.job_number();
+        r->j = instance_.number_of_jobs();
         return r;
     }
 
@@ -79,7 +79,7 @@ public:
         if (father->visited[j_next])
             return nullptr;
         Weight wj = instance_.job(j_next).weight;
-        if (wj == 0 && father->job_number < instance_.job_number() - instance_.zero_weight_job_number())
+        if (wj == 0 && father->number_of_jobs < instance_.number_of_jobs() - instance_.number_of_zero_weight_jobs())
             return nullptr;
 
         // Compute new child.
@@ -88,7 +88,7 @@ public:
         child->visited = father->visited;
         child->visited[j_next] = true;
         child->j = j_next;
-        child->job_number = father->job_number + 1;
+        child->number_of_jobs = father->number_of_jobs + 1;
         child->current_time = father->current_time
             + instance_.setup_time(father->j, j_next)
             + instance_.job(j_next).processing_time;
@@ -111,7 +111,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.job_number());
+        return (node->next_child_pos == instance_.number_of_jobs());
     }
 
     inline bool operator()(
@@ -128,14 +128,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->job_number == instance_.job_number();
+        return node->number_of_jobs == instance_.number_of_jobs();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->job_number != instance_.job_number())
+        if (node_2->number_of_jobs != instance_.number_of_jobs())
             return false;
         return node_1->bound >= node_2->total_weighted_tardiness;
     }
@@ -144,9 +144,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->job_number < instance_.job_number())
+        if (node_1->number_of_jobs < instance_.number_of_jobs())
             return false;
-        if (node_2->job_number < instance_.job_number())
+        if (node_2->number_of_jobs < instance_.number_of_jobs())
             return true;
         return node_1->total_weighted_tardiness < node_2->total_weighted_tardiness;
     }
@@ -212,7 +212,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->job_number != instance_.job_number())
+        if (node->number_of_jobs != instance_.number_of_jobs())
             return "";
         std::stringstream ss;
         ss << node->total_weighted_tardiness;
@@ -226,7 +226,7 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->job_number
+                << " n " << node_tmp->number_of_jobs
                 << " t " << node_tmp->current_time
                 << " twt " << node_tmp->total_weighted_tardiness
                 << " twe " << node_tmp->total_weighted_earliness

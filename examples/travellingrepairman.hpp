@@ -43,7 +43,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> visited;
         LocationId j = 0;
-        LocationId location_number = 1;
+        LocationId number_of_locations = 1;
         Time current_time = 0;
         double total_completion_time = 0;
         Time bound = 0;
@@ -54,13 +54,13 @@ public:
     BranchingSchemeForward(const Instance& instance, const Parameters& parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_locations_(instance.location_number()),
+        sorted_locations_(instance.number_of_locations()),
         generator_(0)
     {
         // Initialize sorted_locations_.
-        for (LocationId j = 0; j < instance_.location_number(); ++j) {
-            sorted_locations_[j].reset(instance.location_number());
-            for (LocationId j2 = 0; j2 < instance_.location_number(); ++j2)
+        for (LocationId j = 0; j < instance_.number_of_locations(); ++j) {
+            sorted_locations_[j].reset(instance.number_of_locations());
+            for (LocationId j2 = 0; j2 < instance_.number_of_locations(); ++j2)
                 sorted_locations_[j].set_cost(j2, instance_.travel_time(j, j2));
         }
     }
@@ -73,7 +73,7 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingSchemeForward::Node());
-        r->visited.resize(instance_.location_number(), false);
+        r->visited.resize(instance_.number_of_locations(), false);
         r->visited[0] = true;
         return r;
     }
@@ -83,7 +83,7 @@ public:
     {
         assert(!infertile(father));
         assert(!leaf(father));
-        LocationId n = instance_.location_number();
+        LocationId n = instance_.number_of_locations();
 
         LocationId j_next = neighbor(father->j, father->next_child_pos);
         Time t = instance_.travel_time(father->j, j_next);
@@ -94,7 +94,7 @@ public:
                     father->j,
                     neighbor(father->j, father->next_child_pos));
             father->bound = father->bound
-                + (n - father->location_number) * (t_next - t);
+                + (n - father->number_of_locations) * (t_next - t);
             father->guide = father->bound;
         }
         if (father->visited[j_next])
@@ -106,7 +106,7 @@ public:
         child->visited = father->visited;
         child->visited[j_next] = true;
         child->j = j_next;
-        child->location_number = father->location_number + 1;
+        child->number_of_locations = father->number_of_locations + 1;
         child->current_time = father->current_time + t;
         child->total_completion_time = father->total_completion_time
             + child->current_time;
@@ -119,7 +119,7 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         assert(node != nullptr);
-        return (node->next_child_pos == instance_.location_number());
+        return (node->next_child_pos == instance_.number_of_locations());
     }
 
     inline bool operator()(
@@ -136,14 +136,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->location_number == instance_.location_number();
+        return node->number_of_locations == instance_.number_of_locations();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->location_number != instance_.location_number())
+        if (node_2->number_of_locations != instance_.number_of_locations())
             return false;
         return node_1->bound >= node_2->total_completion_time;
     }
@@ -152,9 +152,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->location_number < instance_.location_number())
+        if (node_1->number_of_locations < instance_.number_of_locations())
             return false;
-        if (node_2->location_number < instance_.location_number())
+        if (node_2->number_of_locations < instance_.number_of_locations())
             return true;
         return node_1->total_completion_time < node_2->total_completion_time;
     }
@@ -220,7 +220,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->location_number != instance_.location_number())
+        if (node->number_of_locations != instance_.number_of_locations())
             return "";
         std::stringstream ss;
         ss << node->total_completion_time;
@@ -234,7 +234,7 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->location_number
+                << " n " << node_tmp->number_of_locations
                 << " t " << node_tmp->current_time
                 << " tct " << node_tmp->total_completion_time
                 << " bnd " << node_tmp->bound

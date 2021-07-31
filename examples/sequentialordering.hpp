@@ -44,7 +44,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> visited; // All visited vertices but the last.
         VertexId j = 0; // Last visited vertex.
-        VertexId vertex_number = 1;
+        VertexId number_of_vertices = 1;
         Distance length = 0;
         Distance bound_outgoing = 0;
         Distance bound = 0;
@@ -63,7 +63,7 @@ public:
         } case 1: { // outgoing O(1)
             if (node->j == 0) { // root
                 node->bound_outgoing = 0;
-                for (VertexId j = 0; j < instance_.vertex_number(); ++j) {
+                for (VertexId j = 0; j < instance_.number_of_vertices(); ++j) {
                     Distance d = instance_.distance(j, neighbor(j, 0));
                     if (d != std::numeric_limits<Distance>::max())
                         node->bound_outgoing += instance_.distance(j, neighbor(j, 0));
@@ -84,13 +84,13 @@ public:
     BranchingScheme(const Instance& instance, const Parameters& parameters):
         instance_(instance),
         parameters_(parameters),
-        sorted_vertices_(instance.vertex_number()),
+        sorted_vertices_(instance.number_of_vertices()),
         generator_(0)
     {
         // Initialize sorted_vertices_.
-        for (VertexId j = 0; j < instance_.vertex_number(); ++j) {
-            sorted_vertices_[j].reset(instance.vertex_number());
-            for (VertexId j2 = 0; j2 < instance_.vertex_number(); ++j2)
+        for (VertexId j = 0; j < instance_.number_of_vertices(); ++j) {
+            sorted_vertices_[j].reset(instance.number_of_vertices());
+            for (VertexId j2 = 0; j2 < instance_.number_of_vertices(); ++j2)
                 sorted_vertices_[j].set_cost(j2, instance_.distance(j, j2));
         }
     }
@@ -103,7 +103,7 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->visited.resize(instance_.vertex_number(), false);
+        r->visited.resize(instance_.number_of_vertices(), false);
         compute_bound(r);
         r->guide = r->bound;
         return r;
@@ -141,7 +141,7 @@ public:
         child->visited = father->visited;
         child->visited[father->j] = true;
         child->j = j_next;
-        child->vertex_number = father->vertex_number + 1;
+        child->number_of_vertices = father->number_of_vertices + 1;
         child->length = father->length + d;
         compute_bound(child);
         child->guide = child->bound;
@@ -169,14 +169,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->vertex_number == instance_.vertex_number();
+        return node->number_of_vertices == instance_.number_of_vertices();
     }
 
     bool bound(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_2->vertex_number != instance_.vertex_number())
+        if (node_2->number_of_vertices != instance_.number_of_vertices())
             return false;
         return node_1->bound >= node_2->length;
     }
@@ -185,9 +185,9 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        if (node_1->vertex_number < instance_.vertex_number())
+        if (node_1->number_of_vertices < instance_.number_of_vertices())
             return false;
-        if (node_2->vertex_number < instance_.vertex_number())
+        if (node_2->number_of_vertices < instance_.number_of_vertices())
             return true;
         return node_1->length < node_2->length;
     }
@@ -253,7 +253,7 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        if (node->vertex_number != instance_.vertex_number())
+        if (node->number_of_vertices != instance_.number_of_vertices())
             return "";
         std::stringstream ss;
         ss << node->length;
@@ -267,7 +267,7 @@ public:
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
-                << " n " << node_tmp->vertex_number
+                << " n " << node_tmp->number_of_vertices
                 << " l " << node_tmp->length
                 << " bnd " << node_tmp->bound
                 << " j " << node_tmp->j
