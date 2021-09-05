@@ -44,7 +44,7 @@ inline AStarOutput<BranchingScheme> astar(
         output.number_of_nodes++;
 
         // Check time.
-        if (!parameters.info.check_time())
+        if (parameters.info.needs_to_end())
             break;
 
         // Check node limit.

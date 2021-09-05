@@ -63,7 +63,7 @@ inline IterativeMemoryBoundedAStarOutput<BranchingScheme> iterativememorybounded
             output.number_of_nodes++;
 
             // Check time.
-            if (!parameters.info.check_time())
+            if (parameters.info.needs_to_end())
                 goto imbastarend;
 
             // Check node limit.
