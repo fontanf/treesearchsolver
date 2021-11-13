@@ -177,6 +177,10 @@ public:
         return node_1->bound >= d2;
     }
 
+    /*
+     * Solution pool.
+     */
+
     bool better(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
@@ -451,6 +455,10 @@ public:
             return false;
         return node_1->length >= node_2->length;
     }
+
+    /*
+     * Solution pool.
+     */
 
     bool better(
             const std::shared_ptr<Node>& node_1,

@@ -269,6 +269,10 @@ public:
         return node_1->bound >= node_2->total_weighted_tardiness;
     }
 
+    /*
+     * Solution pool.
+     */
+
     bool better(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const

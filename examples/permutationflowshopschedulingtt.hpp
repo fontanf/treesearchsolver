@@ -200,6 +200,10 @@ public:
         return false;
     }
 
+    /*
+     * Solution pool.
+     */
+
     bool better(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
@@ -566,6 +570,10 @@ public:
             return true;
         return false;
     }
+
+    /*
+     * Solution pool.
+     */
 
     bool better(
             const std::shared_ptr<Node>& node_1,

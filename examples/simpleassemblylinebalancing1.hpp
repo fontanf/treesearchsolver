@@ -162,6 +162,10 @@ public:
         return node_1->bound >= node_2->number_of_stations;
     }
 
+    /*
+     * Solution pool.
+     */
+
     bool better(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const

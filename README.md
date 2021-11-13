@@ -23,64 +23,135 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 ### Packing
 
 [Knapsack Problem with Conflicts](examples/knapsackwithconflicts.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -a "iterativebeamsearch" -t 60`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -b heuristiclong -t 62`
 
+</p>
+</details>
+
 ### Routing
 
 [Travelling Salesman Problem](examples/travellingsalesman.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -a "iterativebeamsearch" -t 60`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -b heuristiclong -t 62`
 
+</p>
+</details>
+
 [Sequential Ordering Problem](examples/sequentialordering.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/sequentialordering/data.csv -l sequentialordering -f "row['Dataset'] == 'soplib'" -a "iterativebeamsearch" -t 600`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/sequentialordering/data.csv -l sequentialordering -f "row['Dataset'] == 'soplib'" -b heuristiclong -t 602`
 
+</p>
+</details>
+
 [Travelling Repairman Problem / Minimum Latency Problem](examples/travellingrepairman.hpp)
 
 [Thief Orienteering Problem](examples/thieforienteering.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/thieforienteering/data.csv -l thieforienteering -a "iterativebeamsearch" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/thieforienteering/data.csv -l thieforienteering -b heuristiclong -t 1003`
+
+</p>
+</details>
 
 ### Scheduling
 
 #### Single machine scheduling
 
 [Single machine scheduling problem with sequence-dependent setup times, Total weighted tardiness](examples/schedulingwithsdsttwt.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/schedulingwithsdsttwt/data.csv -l schedulingwithsdsttwt -a "iterativebeamsearch" -t 30`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/schedulingwithsdsttwt/data.csv -l schedulingwithsdsttwt -b heuristiclong -t 31`
 
+</p>
+</details>
+
 [Single machine order acceptance and scheduling problem with time windows and sequence-dependent setup times, Total weighted tardiness](examples/orderacceptanceandscheduling.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -a "iterativebeamsearch" -t 60`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -b heuristiclong -t 61`
 
+</p>
+</details>
+
 [Single machine batch scheduling problem, Total weighted tardiness](examples/batchschedulingtotalweightedtardiness.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/orderacceptanceandscheduling/data.csv -f "row['Dataset'] == 'cesaret2012'" -l orderacceptanceandscheduling -a "iterativebeamsearch" -t 10`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/orderacceptanceandscheduling/data.csv -f "row['Dataset'] == 'cesaret2012'" -l orderacceptanceandscheduling -b heuristiclong -t 11`
 
+</p>
+</details>
+
 #### Flow shop scheduling
 
 [Permutation flow shop scheduling problem, Makespan](examples/permutationflowshopschedulingmakespan.hpp)
+* Bidirectional branching scheme
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/permutationflowshopscheduling/data_makespan.csv -f "row['Dataset'] == 'vallada2015_large'" -l permutationflowshopschedulingmakespan -a "iterativebeamsearch" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/permutationflowshopscheduling/data_makespan.csv -f "row['Dataset'] == 'vallada2015_large' and int(row['Job number']) <= 100" -l permutationflowshopschedulingmakespan -b heuristiclong -t 500`
 
+</p>
+</details>
+
 [Permutation flow shop scheduling problem, Total completion time](examples/permutationflowshopschedulingtct.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/permutationflowshopscheduling/data_totalcompletiontime.csv -l permutationflowshopschedulingtct -a "iterativebeamsearch" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/permutationflowshopscheduling/data_totalcompletiontime.csv -l permutationflowshopschedulingtct -b heuristiclong -t 500`
 
+</p>
+</details>
+
 [Permutation flow shop scheduling problem, Total tardiness](examples/permutationflowshopschedulingtt.hpp)
+
+<details><summary>Benchmarks</summary>
+<p>
+
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -a "iterativebeamsearch" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -b heuristiclong -t 500`
+
+</p>
+</details>
 
 #### Assembly Line Balancing
 

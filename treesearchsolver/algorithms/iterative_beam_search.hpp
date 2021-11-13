@@ -61,15 +61,15 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
         NodeSet<BranchingScheme>* q = &q1;
         NodeSet<BranchingScheme>* q_next = &q2;
         NodeSet<BranchingScheme>* q_tmp = nullptr;
-        auto node_cur = branching_scheme.root();
-        q->insert(node_cur);
+        auto current_node = branching_scheme.root();
+        q->insert(current_node);
 
         for (Counter depth = 0; !q->empty(); ++depth) {
             history.clear();
             q_next->clear();
 
-            node_cur = nullptr;
-            while (node_cur != nullptr || !q->empty()) {
+            current_node = nullptr;
+            while (current_node != nullptr || !q->empty()) {
                 output.number_of_nodes++;
 
                 // Check time.
@@ -82,26 +82,25 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     goto ibsend;
 
                 // Get node from the queue.
-                if (node_cur == nullptr) {
-                    node_cur = *q->begin();
+                if (current_node == nullptr) {
+                    current_node = *q->begin();
                     q->erase(q->begin());
 
                     // Bound.
-                    if (branching_scheme.bound(node_cur, output.solution_pool.worst())) {
-                        node_cur = nullptr;
+                    if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
+                        current_node = nullptr;
                         continue;
                     }
                 }
 
                 if ((Counter)q_next->size() == output.maximum_size_of_the_queue
-                        && branching_scheme(*(std::prev(q_next->end())), node_cur)) {
+                        && branching_scheme(*(std::prev(q_next->end())), current_node)) {
                     stop = false;
                     break;
                 }
 
                 // Get next child.
-                auto child = branching_scheme.next_child(node_cur);
-                // Bound.
+                auto child = branching_scheme.next_child(current_node);
                 if (child != nullptr) {
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
@@ -124,13 +123,13 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
                     }
                 }
 
-                // If node_cur still has children, put it back to the queue.
-                if (branching_scheme.infertile(node_cur)) {
-                    node_cur = nullptr;
+                // If current_node still has children, put it back to the queue.
+                if (branching_scheme.infertile(current_node)) {
+                    current_node = nullptr;
                 } else if ((Counter)q->size() != 0
-                        && branching_scheme(*(q->begin()), node_cur)) {
-                    q->insert(node_cur);
-                    node_cur = nullptr;
+                        && branching_scheme(*(q->begin()), current_node)) {
+                    q->insert(current_node);
+                    current_node = nullptr;
                 }
 
             }
