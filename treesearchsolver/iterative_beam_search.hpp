@@ -35,6 +35,27 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
         const BranchingScheme& branching_scheme,
         IterativeBeamSearchOptionalParameters parameters = {})
 {
+    // Initial display.
+    VER(parameters.info,
+               "======================================" << std::endl
+            << "          Tree Search Solver          " << std::endl
+            << "======================================" << std::endl
+            << std::endl
+            << "Algorithm" << std::endl
+            << "---------" << std::endl
+            << "Iterative Beam Search" << std::endl
+            << std::endl
+            << "Parameters" << std::endl
+            << "----------" << std::endl
+            << "Minimum size of the queue:   " << parameters.minimum_size_of_the_queue << std::endl
+            << "Maximum size of the queue:   " << parameters.maximum_size_of_the_queue << std::endl
+            << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
+            << "Growth factor:               " << parameters.growth_factor << std::endl
+            << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
+            << "Time limit:                  " << parameters.info.time_limit << std::endl
+            << std::endl
+       );
+
     IterativeBeamSearchOutput<BranchingScheme> output(
             branching_scheme, parameters.maximum_size_of_the_solution_pool);
     output.solution_pool.display_init(parameters.info);
@@ -144,8 +165,10 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
 ibsend:
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Node number: " << output.number_of_nodes << std::endl);
-    PUT(parameters.info, "Algorithm", "NodeNumber", output.number_of_nodes);
+    VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
+    VER(parameters.info, "Maximum size of the queue:  " << output.maximum_size_of_the_queue << std::endl);
+    PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
+    PUT(parameters.info, "Algorithm", "MaximumSizeOfTheQueue", output.maximum_size_of_the_queue);
     return output;
 }
 

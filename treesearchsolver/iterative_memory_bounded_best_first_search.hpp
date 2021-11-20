@@ -35,6 +35,27 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
         const BranchingScheme& branching_scheme,
         IterativeMemoryBoundedBestFirstSearchOptionalParameters parameters = {})
 {
+    // Initial display.
+    VER(parameters.info,
+               "======================================" << std::endl
+            << "          Tree Search Solver          " << std::endl
+            << "======================================" << std::endl
+            << std::endl
+            << "Algorithm" << std::endl
+            << "---------" << std::endl
+            << "Iterative Memory Bounded Best First Search" << std::endl
+            << std::endl
+            << "Parameters" << std::endl
+            << "----------" << std::endl
+            << "Minimum size of the queue:   " << parameters.minimum_size_of_the_queue << std::endl
+            << "Maximum size of the queue:   " << parameters.maximum_size_of_the_queue << std::endl
+            << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
+            << "Growth factor:               " << parameters.growth_factor << std::endl
+            << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
+            << "Time limit:                  " << parameters.info.time_limit << std::endl
+            << std::endl
+       );
+
     IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> output(
             branching_scheme, parameters.maximum_size_of_the_solution_pool);
     output.solution_pool.display_init(parameters.info);
@@ -133,8 +154,8 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
 imbastarend:
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Node number: " << output.number_of_nodes << std::endl);
-    PUT(parameters.info, "Algorithm", "NodeNumber", output.number_of_nodes);
+    VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
+    PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
     return output;
 }
 
