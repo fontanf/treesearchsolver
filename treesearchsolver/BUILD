@@ -2,9 +2,9 @@ cc_library(
         name = "treesearchsolver",
         hdrs = [
                 "common.hpp",
-                "algorithms/a_star.hpp",
-                "algorithms/iterative_beam_search.hpp",
-                "algorithms/iterative_memory_bounded_a_star.hpp",
+                "best_first_search.hpp",
+                "iterative_beam_search.hpp",
+                "iterative_memory_bounded_best_first_search.hpp",
         ],
         deps = [
                 "@optimizationtools//optimizationtools:info",

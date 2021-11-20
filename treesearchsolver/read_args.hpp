@@ -1,16 +1,16 @@
-#include "treesearchsolver/algorithms/a_star.hpp"
-#include "treesearchsolver/algorithms/iterative_beam_search.hpp"
-#include "treesearchsolver/algorithms/iterative_memory_bounded_a_star.hpp"
+#include "treesearchsolver/best_first_search.hpp"
+#include "treesearchsolver/iterative_beam_search.hpp"
+#include "treesearchsolver/iterative_memory_bounded_best_first_search.hpp"
 
 #include <boost/program_options.hpp>
 
 namespace treesearchsolver
 {
 
-inline AStarOptionalParameters read_astar_args(
+inline BestFirstSearchOptionalParameters read_best_first_search_args(
         const std::vector<char*> argv)
 {
-    AStarOptionalParameters parameters;
+    BestFirstSearchOptionalParameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
@@ -26,7 +26,7 @@ inline AStarOptionalParameters read_astar_args(
     return parameters;
 }
 
-inline IterativeBeamSearchOptionalParameters read_iterativebeamsearch_args(
+inline IterativeBeamSearchOptionalParameters read_iterative_beam_search_args(
         const std::vector<char*> argv)
 {
     IterativeBeamSearchOptionalParameters parameters;
@@ -48,10 +48,10 @@ inline IterativeBeamSearchOptionalParameters read_iterativebeamsearch_args(
     return parameters;
 }
 
-inline IterativeMemoryBoundedAStarOptionalParameters read_iterativememoryboundedastar_args(
+inline IterativeMemoryBoundedBestFirstSearchOptionalParameters read_iterative_memory_bounded_best_first_search_args(
         const std::vector<char*> argv)
 {
-    IterativeMemoryBoundedAStarOptionalParameters parameters;
+    IterativeMemoryBoundedBestFirstSearchOptionalParameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")

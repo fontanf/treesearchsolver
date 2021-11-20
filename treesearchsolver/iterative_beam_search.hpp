@@ -31,7 +31,7 @@ struct IterativeBeamSearchOutput
 };
 
 template <typename BranchingScheme>
-inline IterativeBeamSearchOutput<BranchingScheme> iterativebeamsearch(
+inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
         const BranchingScheme& branching_scheme,
         IterativeBeamSearchOptionalParameters parameters = {})
 {

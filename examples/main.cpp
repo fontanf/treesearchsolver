@@ -17,18 +17,18 @@ SolutionPool<BranchingScheme> run(
     for (Counter i = 0; i < (Counter)algorithm_args.size(); ++i)
         algorithm_argv.push_back(const_cast<char*>(algorithm_args[i].c_str()));
 
-    if (algorithm_args[0] == "astar") {
-        auto parameters = read_astar_args(algorithm_argv);
+    if (algorithm_args[0] == "best_first_search") {
+        auto parameters = read_best_first_search_args(algorithm_argv);
         parameters.info = info;
-        return astar(branching_scheme, parameters).solution_pool;
-    } else if (algorithm_args[0] == "iterativebeamsearch") {
-        auto parameters = read_iterativebeamsearch_args(algorithm_argv);
+        return best_first_search(branching_scheme, parameters).solution_pool;
+    } else if (algorithm_args[0] == "iterative_beam_search") {
+        auto parameters = read_iterative_beam_search_args(algorithm_argv);
         parameters.info = info;
-        return iterativebeamsearch(branching_scheme, parameters).solution_pool;
-    } else if (algorithm_args[0] == "iterativememoryboundedastar") {
-        auto parameters = read_iterativememoryboundedastar_args(algorithm_argv);
+        return iterative_beam_search(branching_scheme, parameters).solution_pool;
+    } else if (algorithm_args[0] == "iterative_memory_bounded_best_first_search") {
+        auto parameters = read_iterative_memory_bounded_best_first_search_args(algorithm_argv);
         parameters.info = info;
-        return iterativememoryboundedastar(branching_scheme, parameters).solution_pool;
+        return iterative_memory_bounded_best_first_search(branching_scheme, parameters).solution_pool;
     } else {
         std::cerr << "\033[31m" << "ERROR, unknown algorithm: '" << algorithm_args[0] << "'.\033[0m" << std::endl;
     }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     std::string output_path = "";
     std::string certificate_path = "";
     std::string format = "";
-    std::string algorithm = "iterativebeamsearch";
+    std::string algorithm = "iterative_beam_search";
     std::string branching_scheme_parameters = "";
     double time_limit = std::numeric_limits<double>::infinity();
 

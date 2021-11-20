@@ -5,7 +5,7 @@
 namespace treesearchsolver
 {
 
-struct AStarOptionalParameters
+struct BestFirstSearchOptionalParameters
 {
     NodeId maximum_size_of_the_solution_pool = 1;
     NodeId maximum_number_of_nodes = -1;
@@ -14,9 +14,9 @@ struct AStarOptionalParameters
 };
 
 template <typename BranchingScheme>
-struct AStarOutput
+struct BestFirstSearchOutput
 {
-    AStarOutput(
+    BestFirstSearchOutput(
             const BranchingScheme& branching_scheme,
             Counter maximum_size_of_the_solution_pool):
         solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
@@ -27,11 +27,11 @@ struct AStarOutput
 };
 
 template <typename BranchingScheme>
-inline AStarOutput<BranchingScheme> astar(
+inline BestFirstSearchOutput<BranchingScheme> best_first_search(
         const BranchingScheme& branching_scheme,
-        AStarOptionalParameters parameters = {})
+        BestFirstSearchOptionalParameters parameters = {})
 {
-    AStarOutput<BranchingScheme> output(
+    BestFirstSearchOutput<BranchingScheme> output(
             branching_scheme, parameters.maximum_size_of_the_solution_pool);
     output.solution_pool.display_init(parameters.info);
     auto node_hasher = branching_scheme.node_hasher();
