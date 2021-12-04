@@ -18,7 +18,7 @@ cc_library(
         name = "read_args",
         hdrs = ["read_args.hpp"],
         deps = [
-                "treesearchsolver",
+                ":treesearchsolver",
                 "@boost//:program_options",
         ],
         visibility = ["//visibility:public"],

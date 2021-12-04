@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     if (main_args.print_instance)
         std::cout << instance << std::endl;
 
-    // Create brancing scheme.
+    // Create branching scheme.
     auto parameters = read_branching_scheme_forward_args(main_args.branching_scheme_argv);
     BranchingSchemeForward branching_scheme(instance, parameters);
 

@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(main_args.branching_scheme_argv[0], "forward") == 0) {
 
-        // Create brancing scheme.
+        // Create branching scheme.
         auto parameters = read_branching_scheme_forward_args(main_args.branching_scheme_argv);
         BranchingSchemeForward branching_scheme(instance, parameters);
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
     } else {
 
-        // Create brancing scheme.
+        // Create branching scheme.
         auto parameters = read_branching_scheme_insertion_args(main_args.branching_scheme_argv);
         BranchingSchemeInsertion branching_scheme(instance, parameters);
 
