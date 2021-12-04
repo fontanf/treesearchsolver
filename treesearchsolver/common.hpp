@@ -116,11 +116,6 @@ public:
     void display_end(optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
-
-        std::string sol_str = "Solution";
-        PUT(info, sol_str, "Time", t);
-        PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
-
         VER(info, std::defaultfloat
                 << std::endl
                 << "Final statistics" << std::endl
@@ -128,6 +123,9 @@ public:
                 << "Value:                      " << branching_scheme_.display(*solutions_.begin()) << std::endl
                 << "Time:                       " << t << std::endl);
 
+        std::string sol_str = "Solution";
+        PUT(info, sol_str, "Time", t);
+        PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
         info.write_json_output();
         //write(info);
     }

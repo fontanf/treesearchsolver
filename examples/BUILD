@@ -8,6 +8,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "knapsackwithconflicts_main",
+        srcs = ["knapsackwithconflicts_main.cpp"],
+        deps = [
+                ":knapsackwithconflicts",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "travellingsalesman",
         hdrs = ["travellingsalesman.hpp"],
@@ -17,6 +27,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "travellingsalesman_main",
+        srcs = ["travellingsalesman_main.cpp"],
+        deps = [
+                ":travellingsalesman",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "sequentialordering",
@@ -28,6 +48,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "sequentialordering_main",
+        srcs = ["sequentialordering_main.cpp"],
+        deps = [
+                ":sequentialordering",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "travellingrepairman",
         hdrs = ["travellingrepairman.hpp"],
@@ -37,6 +67,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "travellingrepairman_main",
+        srcs = ["travellingrepairman_main.cpp"],
+        deps = [
+                ":travellingrepairman",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "thieforienteering",
@@ -48,6 +88,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "thieforienteering_main",
+        srcs = ["thieforienteering_main.cpp"],
+        deps = [
+                ":thieforienteering",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "schedulingwithsdsttwt",
         hdrs = ["schedulingwithsdsttwt.hpp"],
@@ -57,6 +107,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "schedulingwithsdsttwt_main",
+        srcs = ["schedulingwithsdsttwt_main.cpp"],
+        deps = [
+                ":schedulingwithsdsttwt",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "orderacceptanceandscheduling",
@@ -68,6 +128,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "orderacceptanceandscheduling_main",
+        srcs = ["orderacceptanceandscheduling_main.cpp"],
+        deps = [
+                ":orderacceptanceandscheduling",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "batchschedulingtotalweightedtardiness",
         hdrs = ["batchschedulingtotalweightedtardiness.hpp"],
@@ -77,6 +147,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "batchschedulingtotalweightedtardiness_main",
+        srcs = ["batchschedulingtotalweightedtardiness_main.cpp"],
+        deps = [
+                ":batchschedulingtotalweightedtardiness",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "permutationflowshopschedulingmakespan",
@@ -88,6 +168,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "permutationflowshopschedulingmakespan_main",
+        srcs = ["permutationflowshopschedulingmakespan_main.cpp"],
+        deps = [
+                ":permutationflowshopschedulingmakespan",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "permutationflowshopschedulingtct",
         hdrs = ["permutationflowshopschedulingtct.hpp"],
@@ -97,6 +187,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "permutationflowshopschedulingtct_main",
+        srcs = ["permutationflowshopschedulingtct_main.cpp"],
+        deps = [
+                ":permutationflowshopschedulingtct",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "permutationflowshopschedulingtt",
@@ -108,6 +208,16 @@ cc_library(
         visibility = ["//visibility:public"],
 )
 
+cc_binary(
+        name = "permutationflowshopschedulingtt_main",
+        srcs = ["permutationflowshopschedulingtt_main.cpp"],
+        deps = [
+                ":permutationflowshopschedulingtt",
+                "//treesearchsolver:read_args",
+        ],
+)
+
+
 cc_library(
         name = "simpleassemblylinebalancing1",
         hdrs = ["simpleassemblylinebalancing1.hpp"],
@@ -117,6 +227,16 @@ cc_library(
         ],
         visibility = ["//visibility:public"],
 )
+
+cc_binary(
+        name = "simpleassemblylinebalancing1_main",
+        srcs = ["simpleassemblylinebalancing1_main.cpp"],
+        deps = [
+                ":simpleassemblylinebalancing1",
+                "//treesearchsolver:read_args",
+        ],
+)
+
 
 cc_library(
         name = "ushapedassemblylinebalancing1",
@@ -129,24 +249,12 @@ cc_library(
 )
 
 cc_binary(
-        name = "main",
-        srcs = ["read_args.hpp", "main.cpp"],
+        name = "ushapedassemblylinebalancing1_main",
+        srcs = ["ushapedassemblylinebalancing1_main.cpp"],
         deps = [
-                ":knapsackwithconflicts",
-                ":travellingsalesman",
-                ":sequentialordering",
-                ":travellingrepairman",
-                ":thieforienteering",
-                ":schedulingwithsdsttwt",
-                ":orderacceptanceandscheduling",
-                ":batchschedulingtotalweightedtardiness",
-                ":permutationflowshopschedulingmakespan",
-                ":permutationflowshopschedulingtct",
-                ":permutationflowshopschedulingtt",
-                ":simpleassemblylinebalancing1",
                 ":ushapedassemblylinebalancing1",
                 "//treesearchsolver:read_args",
-                "@boost//:program_options",
         ],
 )
+
 
