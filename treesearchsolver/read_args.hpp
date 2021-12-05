@@ -1,3 +1,4 @@
+#include "treesearchsolver/greedy.hpp"
 #include "treesearchsolver/best_first_search.hpp"
 #include "treesearchsolver/iterative_beam_search.hpp"
 #include "treesearchsolver/iterative_memory_bounded_best_first_search.hpp"
@@ -6,6 +7,24 @@
 
 namespace treesearchsolver
 {
+
+inline GreedyOptionalParameters read_greedy_args(
+        const std::vector<char*> argv)
+{
+    GreedyOptionalParameters parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
 
 inline BestFirstSearchOptionalParameters read_best_first_search_args(
         const std::vector<char*> argv)
@@ -71,6 +90,17 @@ inline IterativeMemoryBoundedBestFirstSearchOptionalParameters read_iterative_me
 }
 
 template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_greedy(
+        const std::vector<char*>& algorithm_argv,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_greedy_args(algorithm_argv);
+    parameters.info = info;
+    return greedy(branching_scheme, parameters).solution_pool;
+}
+
+template <typename BranchingScheme>
 SolutionPool<BranchingScheme> run_best_first_search(
         const std::vector<char*>& algorithm_argv,
         const BranchingScheme& branching_scheme,
@@ -122,7 +152,7 @@ MainArgs read_args(int argc, char *argv[])
     std::string output_path = "";
     std::string certificate_path = "";
     std::string algorithm = "iterative_beam_search";
-    std::string branching_scheme_parameters = "";
+    std::string branching_scheme_parameters = "forward";
     double time_limit = std::numeric_limits<double>::infinity();
 
     boost::program_options::options_description desc("Allowed options");
@@ -161,8 +191,6 @@ MainArgs read_args(int argc, char *argv[])
         main_args.algorithm_argv.push_back(const_cast<char*>(s.c_str()));
 
     main_args.branching_scheme_args = boost::program_options::split_unix(branching_scheme_parameters);
-    std::string dummy = "dummy";
-    main_args.branching_scheme_argv.push_back(const_cast<char*>(dummy.c_str()));
     for (std::string& s: main_args.branching_scheme_args)
         main_args.branching_scheme_argv.push_back(const_cast<char*>(s.c_str()));
 
