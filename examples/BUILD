@@ -219,6 +219,28 @@ cc_binary(
 
 
 cc_library(
+        name = "nowaitjobshopschedulingmakespan",
+        hdrs = ["nowaitjobshopschedulingmakespan.hpp"],
+        deps = [
+                "//treesearchsolver:treesearchsolver",
+                "@orproblems//orproblems:nowaitjobshopschedulingmakespan",
+        ],
+        visibility = ["//visibility:public"],
+)
+
+cc_binary(
+        name = "nowaitjobshopschedulingmakespan_main",
+        srcs = ["nowaitjobshopschedulingmakespan_main.cpp"],
+        deps = [
+                ":nowaitjobshopschedulingmakespan",
+                "//treesearchsolver:read_args",
+        ],
+        copts = ["-std=c++14"],
+        linkopts = ["-std=c++14"],
+)
+
+
+cc_library(
         name = "simpleassemblylinebalancing1",
         hdrs = ["simpleassemblylinebalancing1.hpp"],
         deps = [

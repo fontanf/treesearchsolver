@@ -46,12 +46,26 @@ local_repository(
 git_repository(
     name = "orproblems",
     remote = "https://github.com/fontanf/orproblems.git",
-    commit = "6d09cdbc30180d41b321d0ae060681ff10973a00",
-    shallow_since = "1638613761 +0100",
+    commit = "30c9143b2527a6f90659ce6b1e2cd421809509fe",
+    shallow_since = "1641033147 +0100",
 )
 
 local_repository(
     name = "orproblems_",
     path = "../orproblems/",
+)
+
+http_archive(
+    name = "interval-tree",
+    build_file_content = """
+cc_library(
+        name = "interval-tree",
+        hdrs = glob(["interval-tree-1.2/*.hpp"]),
+        visibility = ["//visibility:public"],
+        strip_include_prefix = "interval-tree-1.2/"
+)
+""",
+    urls = ["https://github.com/5cript/interval-tree/archive/refs/tags/1.2.zip"],
+    sha256 = "d72f917ae7d8f2540c4603bc9bf5386904ca3e40f09da0efcdb3671835b7326f"
 )
 

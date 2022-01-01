@@ -112,8 +112,8 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/orderacceptanceandscheduling_main --csv ../ordata/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -a "iterative_beam_search" -t 60`
-  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/batchschedulingtotalweightedtardiness/data.csv -l batchschedulingtotalweightedtardiness -b heuristiclong -t 61`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/orderacceptanceandscheduling_main --csv ../ordata/orderacceptanceandscheduling/data.csv -l orderacceptanceandscheduling -t 60`
+  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/orderacceptanceandscheduling/data.csv -l orderacceptanceandscheduling -b heuristiclong -t 61`
 
 </p>
 </details>
@@ -172,6 +172,22 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 * Benchmarks:
   * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingtt_main --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -a "iterative_beam_search" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -b heuristiclong -t 500`
+
+</p>
+</details>
+
+#### Job shop scheduling
+
+[No-wait job shop scheduling problem, Makespan](examples/nowaitjobshopschedulingmakespan.hpp)
+
+* Branching scheme: forward
+
+<details><summary>Benchmarks</summary>
+<p>
+
+* Benchmarks:
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/nowaitjobshopschedulingmakespan_main --csv ../ordata/jobshopscheduling/data_nowait.csv -l nowaitjobshopschedulingmakespan --timelimit "1000"`
+  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/jobshopscheduling/data_nowait.csv -l nowaitjobshopschedulingmakespan -b heuristiclong -t 1010`
 
 </p>
 </details>
