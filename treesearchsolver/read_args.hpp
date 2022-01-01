@@ -144,6 +144,8 @@ struct MainArgs
     optimizationtools::Info info = optimizationtools::Info();
     bool print_instance = false;
     bool print_solution = false;
+    bool has_cutoff = false;
+    double cutoff = 0;
 };
 
 MainArgs read_args(int argc, char *argv[])
@@ -162,6 +164,7 @@ MainArgs read_args(int argc, char *argv[])
         ("output,o", boost::program_options::value<std::string>(&output_path), "set JSON output path")
         ("certificate,c", boost::program_options::value<std::string>(&certificate_path), "set certificate path")
         ("format,f", boost::program_options::value<std::string>(&main_args.format), "set input file format (default: orlibrary)")
+        ("cutoff,", boost::program_options::value<double>(&main_args.cutoff), "Time limit in seconds\n  ex: 3600")
         ("algorithm,a", boost::program_options::value<std::string>(&algorithm), "set algorithm")
         ("branching-scheme,b", boost::program_options::value<std::string>(&branching_scheme_parameters), "set branchingscheme parameters")
         ("time-limit,t", boost::program_options::value<double>(&time_limit), "Time limit in seconds\n  ex: 3600")
@@ -185,6 +188,7 @@ MainArgs read_args(int argc, char *argv[])
 
     main_args.print_instance = (vm.count("print-instance"));
     main_args.print_solution = (vm.count("print-solution"));
+    main_args.has_cutoff = (vm.count("cutoff"));
 
     main_args.algorithm_args = boost::program_options::split_unix(algorithm);
     for (std::string& s: main_args.algorithm_args)
