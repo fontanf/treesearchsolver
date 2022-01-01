@@ -49,7 +49,7 @@ public:
 
     struct Parameters
     {
-        GuideId guide_id = 0;
+        GuideId guide_id = 1;
     };
 
     BranchingScheme(const Instance& instance, Parameters parameters):
@@ -126,13 +126,22 @@ public:
         Time d = instance_.job(j_next).due_date;
         if (child->time > d)
             child->weighted_tardiness += instance_.job(j_next).weight * (child->time - d);
-        child->guide = (double)child->time / (child->profit - child->weighted_tardiness);
         for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
             if (!child->available_jobs[j])
                 continue;
-            if (child->time + instance_.setup_time(j_next, j)
-                    + instance_.job(j).processing_time > instance_.job(j).deadline)
+            if (child->time
+                    + instance_.setup_time(j_next, j)
+                    + instance_.job(j).processing_time
+                    > instance_.job(j).deadline)
                 child->available_jobs[j] = false;
+        }
+        // Guide.
+        switch (parameters_.guide_id) {
+        case 1:
+            child->guide = (double)child->time / (child->profit - child->weighted_tardiness);
+            break;
+        default:
+            child->guide = child->weighted_tardiness - child->profit;
         }
         return child;
     }
