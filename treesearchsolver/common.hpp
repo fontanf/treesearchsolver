@@ -15,6 +15,76 @@ typedef double Value;
 
 enum class ObjectiveSense { Min, Max };
 
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// cutoff ////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename, typename T>
+struct HasCutoffMethod
+{
+    static_assert(
+        std::integral_constant<T, false>::value,
+        "Second template parameter needs to be of function type.");
+};
+
+template<typename C, typename Ret, typename... Args>
+struct HasCutoffMethod<C, Ret(Args...)>
+{
+
+private:
+
+    template<typename T>
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().cutoff(std::declval<Args>()...)), Ret>::type;
+
+    template<typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<C>(0)) type;
+
+public:
+
+    static constexpr bool value = type::value;
+
+};
+
+template<typename BranchingScheme>
+std::shared_ptr<typename BranchingScheme::Node> cutoff(
+        const BranchingScheme&,
+        double,
+        std::false_type)
+{
+    return nullptr;
+}
+
+template<typename BranchingScheme>
+std::shared_ptr<typename BranchingScheme::Node> cutoff(
+        const BranchingScheme& branching_scheme,
+        double value,
+        std::true_type)
+{
+    return branching_scheme.cutoff(value);
+}
+
+template<typename BranchingScheme>
+std::shared_ptr<typename BranchingScheme::Node> cutoff(
+        const BranchingScheme& branching_scheme,
+        double value)
+{
+    return cutoff(
+            branching_scheme,
+            value,
+            std::integral_constant<
+                bool,
+                HasCutoffMethod<BranchingScheme,
+                std::shared_ptr<typename BranchingScheme::Node>(double)>::value>());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////// Solution Pool /////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename BranchingScheme>
 struct SolutionPoolComparator
 {

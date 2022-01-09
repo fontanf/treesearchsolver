@@ -5,14 +5,24 @@
 namespace treesearchsolver
 {
 
+template <typename BranchingScheme>
 struct IterativeBeamSearchOptionalParameters
 {
-    NodeId maximum_size_of_the_solution_pool = 1;
-    double growth_factor = 2;
-    NodeId minimum_size_of_the_queue = 0;
-    NodeId maximum_size_of_the_queue = 100000000;
-    NodeId maximum_number_of_nodes = -1;
+    typedef typename BranchingScheme::Node Node;
 
+    /** Maximum size of the solution pool. */
+    NodeId maximum_size_of_the_solution_pool = 1;
+    /** Growth factor of the size of the queue. */
+    double growth_factor = 2;
+    /** Minimum size of the queue. */
+    NodeId minimum_size_of_the_queue = 0;
+    /** Maximum size of the queue. */
+    NodeId maximum_size_of_the_queue = 100000000;
+    /** Maximum number of nodes. */
+    NodeId maximum_number_of_nodes = -1;
+    /** Cutoff. */
+    std::shared_ptr<Node> cutoff = nullptr;
+    /** Info structure. */
     optimizationtools::Info info = optimizationtools::Info();
 };
 
@@ -33,7 +43,7 @@ struct IterativeBeamSearchOutput
 template <typename BranchingScheme>
 inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
         const BranchingScheme& branching_scheme,
-        IterativeBeamSearchOptionalParameters parameters = {})
+        IterativeBeamSearchOptionalParameters<BranchingScheme> parameters = {})
 {
     // Initial display.
     VER(parameters.info,
@@ -100,6 +110,13 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                 // Check node limit.
                 if (parameters.maximum_number_of_nodes != -1
                         && output.number_of_nodes > parameters.maximum_number_of_nodes)
+                    goto ibsend;
+
+                // Check cutoff.
+                if (parameters.cutoff != nullptr
+                        && !branching_scheme.better(
+                            parameters.cutoff,
+                            output.solution_pool.best()))
                     goto ibsend;
 
                 // Get node from the queue.

@@ -6,7 +6,16 @@
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/knapsackwithconflicts.hpp
  *
- * TODO
+ * Branching scheme:
+ * - Root node: empty solution, no item
+ * - Children: add a new item in the knapsack, i.e. create one child for each
+ *   valid item.
+ * - Guide: weight / profit / number of available items left
+ * - Dominance: if two nodes node_1 and node_2 have the same available items
+ *   left and:
+ *   - profit(node_1) >= profit(node_2)
+ *   - weight(node_1) <= weight(node_2)
+ *   then node_1 dominates node_2
  *
  */
 
@@ -34,7 +43,6 @@ public:
     struct Parameters
     {
         GuideId guide_id = 0;
-        bool force_order = false;
     };
 
     struct Node
@@ -44,54 +52,31 @@ public:
         ItemId j = -1;
         ItemPos j_pos = -1;
         ItemId number_of_items = 0;
+        ItemId number_of_available_items = -1;
         Weight weight = 0;
         Profit profit = 0;
-        Profit bound = -1;
         double guide = 0;
         ItemPos next_child_pos = 0;
     };
 
     BranchingScheme(const Instance& instance, const Parameters& parameters):
         instance_(instance),
-        parameters_(parameters),
-        sorted_items_(instance.number_of_items())
-    {
-        // Initialize sorted_items_.
-        std::iota(sorted_items_.begin(), sorted_items_.end(), 0);
-        sort(sorted_items_.begin(), sorted_items_.end(),
-                [&instance](ItemId j1, ItemId j2) -> bool
-                {
-                    return instance.item(j1).profit / instance.item(j1).weight
-                        > instance.item(j2).profit / instance.item(j2).weight;
-                });
-    }
+        parameters_(parameters) { }
 
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->available_items.resize(instance_.number_of_items(), true);
-        ItemId j = sorted_items_[0];
-        r->bound = std::floor(instance_.item(j).profit / instance_.item(j).weight
-                * instance_.capacity());
+        r->number_of_available_items = instance_.number_of_items();
         return r;
     }
 
     inline std::shared_ptr<Node> next_child(
             const std::shared_ptr<Node>& father) const
     {
-        assert(!infertile(father));
-        assert(!leaf(father));
-
-        ItemId j_next = sorted_items_[father->next_child_pos];
+        ItemId j_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
-        //std::cout << "father"
-        //    << " j " << father->j
-        //    << " j_pos " << father->j_pos
-        //    << " w " << father->weight
-        //    << " p " << father->profit
-        //    << " nc " << father->next_child_pos << "/" << instance_.number_of_items()
-        //    << std::endl;
 
         if (!father->available_items[j_next])
             return nullptr;
@@ -106,32 +91,22 @@ public:
         child->number_of_items = father->number_of_items + 1;
         child->available_items = father->available_items;
         child->available_items[j_next] = false;
-        for (ItemId j: instance_.item(j_next).neighbors)
-            child->available_items[j] = false;
+        child->number_of_available_items = father->number_of_available_items - 1;
+        for (ItemId j: instance_.item(j_next).neighbors) {
+            if (child->available_items[j]) {
+                child->available_items[j] = false;
+                child->number_of_available_items--;
+            }
+        }
         child->weight = father->weight + instance_.item(j_next).weight;
         child->profit = father->profit + instance_.item(j_next).profit;
-        child->guide = (double)child->weight / child->profit;
-        if (!parameters_.force_order) {
-            child->bound = child->profit
-                + std::floor(instance_.item(sorted_items_[0]).profit
-                        / instance_.item(sorted_items_[0]).weight
-                        * (instance_.capacity() - child->weight));
-        } else {
-            for (ItemId j_pos = father->j_pos + 1; j_pos < child->j_pos; ++j_pos)
-                child->available_items[sorted_items_[j_pos]] = false;
-            child->next_child_pos = father->next_child_pos;
-            child->bound = child->profit
-                + std::floor(instance_.item(j_next).profit
-                        / instance_.item(j_next).weight
-                        * (instance_.capacity() - child->weight));
-        }
+        child->guide = (double)child->weight / child->profit / child->number_of_available_items;
         return child;
     }
 
     inline bool infertile(
             const std::shared_ptr<Node>& node) const
     {
-        assert(node != nullptr);
         return (node->next_child_pos == instance_.number_of_items());
     }
 
@@ -139,10 +114,6 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        assert(node_1 != nullptr);
-        assert(node_2 != nullptr);
-        assert(!infertile(node_1));
-        assert(!infertile(node_2));
         if (node_1->number_of_items != node_2->number_of_items)
             return node_1->number_of_items < node_2->number_of_items;
         if (node_1->guide != node_2->guide)
@@ -153,15 +124,14 @@ public:
     inline bool leaf(
             const std::shared_ptr<Node>& node) const
     {
-        return node->next_child_pos == instance_.number_of_items()
-           || node->number_of_items == instance_.number_of_items();
+        return node->number_of_items == instance_.number_of_items();
     }
 
     bool bound(
-            const std::shared_ptr<Node>& node_1,
-            const std::shared_ptr<Node>& node_2) const
+            const std::shared_ptr<Node>&,
+            const std::shared_ptr<Node>&) const
     {
-        return node_1->bound <= node_2->profit;
+        return false;
     }
 
     /*
@@ -173,6 +143,13 @@ public:
             const std::shared_ptr<Node>& node_2) const
     {
         return node_1->profit > node_2->profit;
+    }
+
+    std::shared_ptr<Node> cutoff(double value) const
+    {
+        auto node = std::shared_ptr<Node>(new BranchingScheme::Node());
+        node->profit = value;
+        return node;
     }
 
     bool equals(
@@ -205,9 +182,8 @@ public:
      */
 
     inline bool comparable(
-            const std::shared_ptr<Node>& node) const
+            const std::shared_ptr<Node>&) const
     {
-        (void)node;
         return true;
     }
 
@@ -241,6 +217,10 @@ public:
             return true;
         return false;
     }
+
+    /*
+     * Outputs.
+     */
 
     std::ostream& print(
             std::ostream &os,
@@ -279,8 +259,6 @@ private:
 
     const Instance& instance_;
     const Parameters& parameters_;
-
-    mutable std::vector<ItemId> sorted_items_;
 
 };
 

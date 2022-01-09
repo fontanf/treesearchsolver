@@ -45,10 +45,11 @@ inline BestFirstSearchOptionalParameters read_best_first_search_args(
     return parameters;
 }
 
-inline IterativeBeamSearchOptionalParameters read_iterative_beam_search_args(
+template <typename BranchingScheme>
+inline IterativeBeamSearchOptionalParameters<BranchingScheme> read_iterative_beam_search_args(
         const std::vector<char*> argv)
 {
-    IterativeBeamSearchOptionalParameters parameters;
+    IterativeBeamSearchOptionalParameters<BranchingScheme> parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
@@ -87,50 +88,6 @@ inline IterativeMemoryBoundedBestFirstSearchOptionalParameters read_iterative_me
         throw "";
     }
     return parameters;
-}
-
-template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_greedy(
-        const std::vector<char*>& algorithm_argv,
-        const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
-{
-    auto parameters = read_greedy_args(algorithm_argv);
-    parameters.info = info;
-    return greedy(branching_scheme, parameters).solution_pool;
-}
-
-template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_best_first_search(
-        const std::vector<char*>& algorithm_argv,
-        const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
-{
-    auto parameters = read_best_first_search_args(algorithm_argv);
-    parameters.info = info;
-    return best_first_search(branching_scheme, parameters).solution_pool;
-}
-
-template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_iterative_beam_search(
-        const std::vector<char*>& algorithm_argv,
-        const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
-{
-    auto parameters = read_iterative_beam_search_args(algorithm_argv);
-    parameters.info = info;
-    return iterative_beam_search(branching_scheme, parameters).solution_pool;
-}
-
-template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_iterative_memory_bounded_best_first_search(
-        const std::vector<char*>& algorithm_argv,
-        const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
-{
-    auto parameters = read_iterative_memory_bounded_best_first_search_args(algorithm_argv);
-    parameters.info = info;
-    return iterative_memory_bounded_best_first_search(branching_scheme, parameters).solution_pool;
 }
 
 struct MainArgs
@@ -209,6 +166,52 @@ MainArgs read_args(int argc, char *argv[])
         ;
 
     return main_args;
+}
+
+template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_greedy(
+        const MainArgs& main_args,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_greedy_args(main_args.algorithm_argv);
+    parameters.info = info;
+    return greedy(branching_scheme, parameters).solution_pool;
+}
+
+template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_best_first_search(
+        const MainArgs& main_args,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_best_first_search_args(main_args.algorithm_argv);
+    parameters.info = info;
+    return best_first_search(branching_scheme, parameters).solution_pool;
+}
+
+template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_iterative_beam_search(
+        const MainArgs& main_args,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_iterative_beam_search_args<BranchingScheme>(main_args.algorithm_argv);
+    parameters.info = info;
+    if (main_args.has_cutoff)
+        parameters.cutoff = cutoff(branching_scheme, main_args.cutoff);
+    return iterative_beam_search(branching_scheme, parameters).solution_pool;
+}
+
+template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_iterative_memory_bounded_best_first_search(
+        const MainArgs& main_args,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_iterative_memory_bounded_best_first_search_args(main_args.algorithm_argv);
+    parameters.info = info;
+    return iterative_memory_bounded_best_first_search(branching_scheme, parameters).solution_pool;
 }
 
 }

@@ -10,7 +10,6 @@ inline BranchingScheme::Parameters read_branching_scheme_args(
     BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
-        ("force-order,f", boost::program_options::value<bool>(&parameters.force_order), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -39,12 +38,12 @@ int main(int argc, char *argv[])
     // Run algorithm.
     auto solution_pool =
         (strcmp(main_args.algorithm_argv[0], "greedy") == 0)?
-        run_greedy(main_args.algorithm_argv, branching_scheme, main_args.info):
+        run_greedy(main_args, branching_scheme, main_args.info):
         (strcmp(main_args.algorithm_argv[0], "best_first_search") == 0)?
-        run_best_first_search(main_args.algorithm_argv, branching_scheme, main_args.info):
+        run_best_first_search(main_args, branching_scheme, main_args.info):
         (strcmp(main_args.algorithm_argv[0], "iterative_beam_search") == 0)?
-        run_iterative_beam_search(main_args.algorithm_argv, branching_scheme, main_args.info):
-        run_iterative_memory_bounded_best_first_search(main_args.algorithm_argv, branching_scheme, main_args.info);
+        run_iterative_beam_search(main_args, branching_scheme, main_args.info):
+        run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
     // Write solution.
     branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
