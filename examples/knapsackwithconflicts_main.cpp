@@ -10,6 +10,7 @@ inline BranchingScheme::Parameters read_branching_scheme_args(
     BranchingScheme::Parameters parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);

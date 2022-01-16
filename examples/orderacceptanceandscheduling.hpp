@@ -136,13 +136,9 @@ public:
                 child->available_jobs[j] = false;
         }
         // Guide.
-        switch (parameters_.guide_id) {
-        case 1:
-            child->guide = (double)child->time / (child->profit - child->weighted_tardiness);
-            break;
-        default:
-            child->guide = child->weighted_tardiness - child->profit;
-        }
+        child->guide =
+            (parameters_.guide_id == 0)? child->weighted_tardiness - child->profit:
+                                         (double)child->time / (child->profit - child->weighted_tardiness);
         return child;
     }
 

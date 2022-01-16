@@ -150,16 +150,10 @@ public:
         child->bound = child->total_tardiness;
         // Compute guide.
         double alpha = (double)child->number_of_jobs / instance_.number_of_jobs();
-        switch (parameters_.guide_id) {
-        case 0: {
-            child->guide
-                = (0.5 + alpha / 2) * child->total_tardiness
-                + (1.0 - alpha / 2) * child->total_earliness
-                + (1.0 - alpha) * child->weighted_idle_time;
-            break;
-        } default: {
-        }
-        }
+        child->guide
+            = (0.5 + alpha / 2) * child->total_tardiness
+            + (1.0 - alpha / 2) * child->total_earliness
+            + (1.0 - alpha) * child->weighted_idle_time;
         return child;
     }
 
@@ -521,16 +515,10 @@ public:
         child->makespan = completion_times_[m - 1];
 
         double alpha = (double)child->number_of_jobs / n;
-        switch (parameters_.guide_id) {
-        case 0: {
-            child->guide
-                = (0.5 + alpha / 2) * child->total_tardiness
-                + (1.0 - alpha / 2) * child->total_earliness
-                + (1.0 - alpha) * child->makespan;
-            break;
-        } default: {
-        }
-        }
+        child->guide
+            = (0.5 + alpha / 2) * child->total_tardiness
+            + (1.0 - alpha / 2) * child->total_earliness
+            + (1.0 - alpha) * child->makespan;
         return child;
     }
 

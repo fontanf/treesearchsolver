@@ -10,7 +10,6 @@
  * - Root node: empty solution, no item
  * - Children: add a new item in the knapsack, i.e. create one child for each
  *   valid item.
- * - Guide: weight / profit / number of available items left
  * - Dominance: if two nodes node_1 and node_2 have the same available items
  *   left and:
  *   - profit(node_1) >= profit(node_2)
@@ -52,7 +51,9 @@ public:
         ItemId j = -1;
         ItemPos j_pos = -1;
         ItemId number_of_items = 0;
-        ItemId number_of_available_items = -1;
+        ItemId number_of_remaining_items = -1;
+        Profit remaining_weight = 0;
+        Profit remaining_profit = 0;
         Weight weight = 0;
         Profit profit = 0;
         double guide = 0;
@@ -67,7 +68,11 @@ public:
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->available_items.resize(instance_.number_of_items(), true);
-        r->number_of_available_items = instance_.number_of_items();
+        r->number_of_remaining_items = instance_.number_of_items();
+        for (ItemId j = 0; j < instance_.number_of_items(); ++j) {
+            r->remaining_weight += instance_.item(j).weight;
+            r->remaining_profit += instance_.item(j).profit;
+        }
         return r;
     }
 
@@ -91,16 +96,23 @@ public:
         child->number_of_items = father->number_of_items + 1;
         child->available_items = father->available_items;
         child->available_items[j_next] = false;
-        child->number_of_available_items = father->number_of_available_items - 1;
+        child->number_of_remaining_items = father->number_of_remaining_items - 1;
+        child->remaining_weight = father->remaining_weight - instance_.item(j_next).weight;
+        child->remaining_profit = father->remaining_profit - instance_.item(j_next).profit;
         for (ItemId j: instance_.item(j_next).neighbors) {
             if (child->available_items[j]) {
                 child->available_items[j] = false;
-                child->number_of_available_items--;
+                child->number_of_remaining_items--;
+                child->remaining_weight -= instance_.item(j).weight;
+                child->remaining_profit -= instance_.item(j).profit;
             }
         }
         child->weight = father->weight + instance_.item(j_next).weight;
         child->profit = father->profit + instance_.item(j_next).profit;
-        child->guide = (double)child->weight / child->profit / child->number_of_available_items;
+        child->guide =
+            (parameters_.guide_id == 0)? (double)child->weight / child->profit:
+            (parameters_.guide_id == 1)? (double)child->weight / child->profit / child->remaining_profit:
+                                         (double)1.0 / (child->profit + child->remaining_profit);
         return child;
     }
 
@@ -128,10 +140,10 @@ public:
     }
 
     bool bound(
-            const std::shared_ptr<Node>&,
-            const std::shared_ptr<Node>&) const
+            const std::shared_ptr<Node>& node_1,
+            const std::shared_ptr<Node>& node_2) const
     {
-        return false;
+        return node_1->profit + node_1->remaining_profit <= node_2->profit;
     }
 
     /*
@@ -258,7 +270,7 @@ public:
 private:
 
     const Instance& instance_;
-    const Parameters& parameters_;
+    Parameters parameters_;
 
 };
 
