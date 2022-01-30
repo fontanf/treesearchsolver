@@ -177,6 +177,14 @@ public:
         return node_1->number_of_stations < node_2->number_of_stations;
     }
 
+    std::shared_ptr<Node> cutoff(double value) const
+    {
+        auto node = std::shared_ptr<Node>(new BranchingScheme::Node());
+        node->number_of_jobs = instance_.number_of_jobs();
+        node->number_of_stations = value;
+        return node;
+    }
+
     bool equals(
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
