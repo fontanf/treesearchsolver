@@ -1,8 +1,8 @@
-#include "examples/travellingrepairman.hpp"
+#include "examples/travelingrepairman.hpp"
 #include "treesearchsolver/read_args.hpp"
 
 using namespace treesearchsolver;
-using namespace travellingrepairman;
+using namespace travelingrepairman;
 
 inline BranchingSchemeForward::Parameters read_branching_scheme_forward_args(
         const std::vector<char*> argv)

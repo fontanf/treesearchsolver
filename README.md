@@ -40,7 +40,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 
 ### Routing
 
-[Travelling Salesman Problem](examples/travellingsalesman.hpp)
+[Traveling Salesman Problem](examples/travelingsalesman.hpp)
 
 * Branching schemes: forward, insertion
 
@@ -48,8 +48,8 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/travellingsalesman_main --csv ../ordata/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -a "iterative_beam_search" -t 60`
-  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/travellingsalesman/data.csv -l travellingsalesman -f "'pla85900.tsp' not in row['Path']" -b heuristiclong -t 62`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/travelingsalesman_main --csv ../ordata/travelingsalesman/data.csv -l travelingsalesman -f "'pla85900.tsp' not in row['Path']" -a "iterative_beam_search" -t 60`
+  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/travelingsalesman/data.csv -l travelingsalesman -f "'pla85900.tsp' not in row['Path']" -b heuristiclong -t 62`
 
 </p>
 </details>
@@ -68,7 +68,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 </p>
 </details>
 
-[Travelling Repairman Problem / Minimum Latency Problem](examples/travellingrepairman.hpp)
+[Traveling Repairman Problem / Minimum Latency Problem](examples/travelingrepairman.hpp)
 
 * Branching scheme: forward
 
@@ -243,7 +243,7 @@ bazel build -- //...
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/travellingsalesman_main -v -a iterative_beam_search -i ../ordata/travellingsalesman/tsplib/a280.tsp -t 5
+./bazel-bin/examples/travelingsalesman_main -v -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5
 ```
 
 ## Usage, C++ library

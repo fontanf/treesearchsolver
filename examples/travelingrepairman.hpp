@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * Travelling Repairman Problem.
+ * Traveling Repairman Problem.
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/travellingrepairman.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/orproblems/travelingrepairman.hpp
  *
  * Tree search:
  * - forward branching
@@ -16,15 +16,15 @@
 #include "optimizationtools/sorted_on_demand_array.hpp"
 #include "optimizationtools/indexed_set.hpp"
 
-#include "orproblems/travellingrepairman.hpp"
+#include "orproblems/travelingrepairman.hpp"
 
 namespace treesearchsolver
 {
 
-namespace travellingrepairman
+namespace travelingrepairman
 {
 
-using namespace orproblems::travellingrepairman;
+using namespace orproblems::travelingrepairman;
 
 typedef int64_t GuideId;
 
@@ -46,6 +46,7 @@ public:
         LocationId number_of_locations = 1;
         Time current_time = 0;
         double total_completion_time = 0;
+        Time bound_orig = 0;
         Time bound = 0;
         double guide = 0;
         LocationPos next_child_pos = 0;
@@ -110,7 +111,10 @@ public:
         child->current_time = father->current_time + t;
         child->total_completion_time = father->total_completion_time
             + child->current_time;
-        child->bound = father->bound;
+        child->bound_orig = father->bound_orig
+            + (n - father->number_of_locations)
+            * (child->current_time - father->current_time);
+        child->bound = child->bound_orig;
         child->guide = child->bound;
         return child;
     }
@@ -172,14 +176,13 @@ public:
         return false;
     }
 
-    /**
+    /*
      * Dominances.
      */
 
     inline bool comparable(
-            const std::shared_ptr<Node>& node) const
+            const std::shared_ptr<Node>&) const
     {
-        (void)node;
         return true;
     }
 
@@ -241,8 +244,11 @@ public:
                 << " n " << node_tmp->number_of_locations
                 << " t " << node_tmp->current_time
                 << " tct " << node_tmp->total_completion_time
+                << " bndo " << node_tmp->bound_orig
                 << " bnd " << node_tmp->bound
                 << " j " << node_tmp->j
+                << " j_pred " << node_tmp->father->j
+                << " tj " << instance_.travel_time(node_tmp->father->j, node_tmp->j)
                 << std::endl;
         }
         return os;

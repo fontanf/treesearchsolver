@@ -176,8 +176,9 @@ public:
     void display(const std::stringstream& ss, optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
+        std::streamsize precision = std::cout.precision();
         VER(info,
-                std::setw(11) << std::fixed << std::setprecision(3) << t
+                std::setw(11) << std::fixed << std::setprecision(3) << t << std::defaultfloat << std::setprecision(precision)
                 << std::setw(32) << branching_scheme_.display(best())
                 << std::setw(32) << ss.str()
                 << std::endl);

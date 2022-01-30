@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * Travelling Salesman Problem.
+ * Traveling Salesman Problem.
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/travellingsalesman.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/orproblems/travelingsalesman.hpp
  *
  * Tree search 1:
  * - forward branching
@@ -21,15 +21,15 @@
 #include "optimizationtools/sorted_on_demand_array.hpp"
 #include "optimizationtools/indexed_set.hpp"
 
-#include "orproblems/travellingsalesman.hpp"
+#include "orproblems/travelingsalesman.hpp"
 
 namespace treesearchsolver
 {
 
-namespace travellingsalesman
+namespace travelingsalesman
 {
 
-using namespace orproblems::travellingsalesman;
+using namespace orproblems::travelingsalesman;
 
 typedef int64_t GuideId;
 

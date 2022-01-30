@@ -19,20 +19,20 @@ cc_binary(
 
 
 cc_library(
-        name = "travellingsalesman",
-        hdrs = ["travellingsalesman.hpp"],
+        name = "travelingsalesman",
+        hdrs = ["travelingsalesman.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:travellingsalesman",
+                "@orproblems//orproblems:travelingsalesman",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "travellingsalesman_main",
-        srcs = ["travellingsalesman_main.cpp"],
+        name = "travelingsalesman_main",
+        srcs = ["travelingsalesman_main.cpp"],
         deps = [
-                ":travellingsalesman",
+                ":travelingsalesman",
                 "//treesearchsolver:read_args",
         ],
 )
@@ -59,20 +59,20 @@ cc_binary(
 
 
 cc_library(
-        name = "travellingrepairman",
-        hdrs = ["travellingrepairman.hpp"],
+        name = "travelingrepairman",
+        hdrs = ["travelingrepairman.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:travellingrepairman",
+                "@orproblems//orproblems:travelingrepairman",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "travellingrepairman_main",
-        srcs = ["travellingrepairman_main.cpp"],
+        name = "travelingrepairman_main",
+        srcs = ["travelingrepairman_main.cpp"],
         deps = [
-                ":travellingrepairman",
+                ":travelingrepairman",
                 "//treesearchsolver:read_args",
         ],
 )
