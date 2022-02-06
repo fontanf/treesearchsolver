@@ -6,6 +6,25 @@ namespace treesearchsolver
 {
 
 template <typename BranchingScheme>
+struct IterativeBeamSearchOutput
+{
+    IterativeBeamSearchOutput(
+            const BranchingScheme& branching_scheme,
+            Counter maximum_size_of_the_solution_pool):
+        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
+
+    /** Solution pool. */
+    SolutionPool<BranchingScheme> solution_pool;
+    /** Number of nodes explored. */
+    Counter number_of_nodes = 0;
+    /** Maximum size of the queue reached. */
+    NodeId maximum_size_of_the_queue = 0;
+};
+
+template <typename BranchingScheme>
+using IterativeBeamSearchCallback = std::function<void(const IterativeBeamSearchOutput<BranchingScheme>&)>;
+
+template <typename BranchingScheme>
 struct IterativeBeamSearchOptionalParameters
 {
     typedef typename BranchingScheme::Node Node;
@@ -22,22 +41,11 @@ struct IterativeBeamSearchOptionalParameters
     NodeId maximum_number_of_nodes = -1;
     /** Cutoff. */
     std::shared_ptr<Node> cutoff = nullptr;
+    /** Callback function called when a new best solution is found. */
+    IterativeBeamSearchCallback<BranchingScheme> new_solution_callback
+        = [](const IterativeBeamSearchOutput<BranchingScheme>&) { };
     /** Info structure. */
     optimizationtools::Info info = optimizationtools::Info();
-};
-
-template <typename BranchingScheme>
-struct IterativeBeamSearchOutput
-{
-    IterativeBeamSearchOutput(
-            const BranchingScheme& branching_scheme,
-            Counter maximum_size_of_the_solution_pool):
-        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
-
-    SolutionPool<BranchingScheme> solution_pool;
-
-    Counter number_of_nodes = 0;
-    NodeId maximum_size_of_the_queue = 0;
 };
 
 template <typename BranchingScheme>
@@ -145,6 +153,7 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                         std::stringstream ss;
                         ss << "q " << output.maximum_size_of_the_queue;
                         output.solution_pool.add(child, ss, parameters.info);
+                        parameters.new_solution_callback(output);
                     }
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
