@@ -27,7 +27,7 @@ namespace orderacceptanceandscheduling
 
 using namespace orproblems::orderacceptanceandscheduling;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

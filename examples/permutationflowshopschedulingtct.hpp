@@ -29,7 +29,7 @@ namespace permutationflowshopschedulingtct
 
 using namespace orproblems::permutationflowshopschedulingtct;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

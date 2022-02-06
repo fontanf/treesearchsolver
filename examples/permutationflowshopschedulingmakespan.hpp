@@ -30,7 +30,7 @@ namespace permutationflowshopschedulingmakespan
 
 using namespace orproblems::permutationflowshopschedulingmakespan;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingSchemeBidirectional
 {

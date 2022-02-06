@@ -27,7 +27,7 @@ namespace schedulingwithsdsttwt
 
 using namespace orproblems::schedulingwithsdsttwt;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

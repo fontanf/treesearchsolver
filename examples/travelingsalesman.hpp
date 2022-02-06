@@ -31,7 +31,7 @@ namespace travelingsalesman
 
 using namespace orproblems::travelingsalesman;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingSchemeForward
 {

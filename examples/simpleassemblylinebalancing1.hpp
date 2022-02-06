@@ -24,7 +24,7 @@ namespace simpleassemblylinebalancing1
 
 using namespace orproblems::simpleassemblylinebalancing1;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

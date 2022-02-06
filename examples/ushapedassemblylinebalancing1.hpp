@@ -24,7 +24,7 @@ namespace ushapedassemblylinebalancing1
 
 using namespace orproblems::ushapedassemblylinebalancing1;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

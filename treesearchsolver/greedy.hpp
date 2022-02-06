@@ -32,7 +32,7 @@ inline GreedyOutput<BranchingScheme> greedy(
         const BranchingScheme& branching_scheme,
         GreedyOptionalParameters parameters = {})
 {
-    typedef typename BranchingScheme::Node Node;
+    using Node = typename BranchingScheme::Node;
 
     // Initial display.
     VER(parameters.info,

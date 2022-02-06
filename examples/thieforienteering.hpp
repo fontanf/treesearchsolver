@@ -27,7 +27,7 @@ namespace thieforienteering
 
 using namespace orproblems::thieforienteering;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

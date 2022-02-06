@@ -27,7 +27,7 @@ namespace sequentialordering
 
 using namespace orproblems::sequentialordering;
 
-typedef int64_t GuideId;
+using GuideId = int64_t;
 
 class BranchingScheme
 {

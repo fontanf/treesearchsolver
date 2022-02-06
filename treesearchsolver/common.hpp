@@ -9,9 +9,9 @@
 namespace treesearchsolver
 {
 
-typedef int64_t NodeId;
-typedef int64_t Counter;
-typedef double Value;
+using NodeId = int64_t;
+using Counter = int64_t;
+using Value = double;
 
 enum class ObjectiveSense { Min, Max };
 
@@ -88,7 +88,7 @@ std::shared_ptr<typename BranchingScheme::Node> cutoff(
 template <typename BranchingScheme>
 struct SolutionPoolComparator
 {
-    typedef typename BranchingScheme::Node Node;
+    using Node = typename BranchingScheme::Node;
 
     SolutionPoolComparator(const BranchingScheme& branching_scheme):
         branching_scheme(branching_scheme) {  }
@@ -111,7 +111,7 @@ struct SolutionPoolComparator
 template <typename BranchingScheme>
 class SolutionPool
 {
-    typedef typename BranchingScheme::Node Node;
+    using Node = typename BranchingScheme::Node;
 
 public:
 
@@ -229,7 +229,7 @@ inline bool add_to_history_and_queue(
         NodeSet<BranchingScheme>& q,
         const std::shared_ptr<typename BranchingScheme::Node>& node)
 {
-    typedef typename BranchingScheme::Node Node;
+    using Node = typename BranchingScheme::Node;
     assert(node != nullptr);
 
     // If node is not comparable, stop.

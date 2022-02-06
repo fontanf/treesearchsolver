@@ -27,7 +27,7 @@ using IterativeBeamSearchCallback = std::function<void(const IterativeBeamSearch
 template <typename BranchingScheme>
 struct IterativeBeamSearchOptionalParameters
 {
-    typedef typename BranchingScheme::Node Node;
+    using Node = typename BranchingScheme::Node;
 
     /** Maximum size of the solution pool. */
     NodeId maximum_size_of_the_solution_pool = 1;
