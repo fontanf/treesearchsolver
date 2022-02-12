@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
         run_best_first_search(main_args, branching_scheme, main_args.info):
         (strcmp(main_args.algorithm_argv[0], "iterative_beam_search") == 0)?
         run_iterative_beam_search(main_args, branching_scheme, main_args.info):
+        (strcmp(main_args.algorithm_argv[0], "anytime_column_search") == 0)?
+        run_anytime_column_search(main_args, branching_scheme, main_args.info):
         run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
     // Write solution.

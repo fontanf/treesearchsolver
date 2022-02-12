@@ -17,6 +17,7 @@ Algorithms:
 * Best First Search `best_first_search`
 * Iterative Beam Search `iterative_beam_search`
 * Iterative Memory Bounded Best First Search `iterative_memory_bounded_best_first_search`
+* Anytime Column Search `anytime_column_search`
 
 ## Examples
 

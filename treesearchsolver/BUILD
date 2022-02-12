@@ -6,6 +6,7 @@ cc_library(
                 "best_first_search.hpp",
                 "iterative_beam_search.hpp",
                 "iterative_memory_bounded_best_first_search.hpp",
+                "anytime_column_search.hpp",
         ],
         deps = [
                 "@optimizationtools//optimizationtools:info",

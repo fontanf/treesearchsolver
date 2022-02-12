@@ -2,6 +2,7 @@
 #include "treesearchsolver/best_first_search.hpp"
 #include "treesearchsolver/iterative_beam_search.hpp"
 #include "treesearchsolver/iterative_memory_bounded_best_first_search.hpp"
+#include "treesearchsolver/anytime_column_search.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -78,6 +79,29 @@ inline IterativeMemoryBoundedBestFirstSearchOptionalParameters read_iterative_me
         ("growth-factor,f", boost::program_options::value<double>(&parameters.growth_factor), "")
         ("minimum-size-of-the-queue,m", boost::program_options::value<NodeId>(&parameters.minimum_size_of_the_queue), "")
         ("maximum-size-of-the-queue,M", boost::program_options::value<NodeId>(&parameters.maximum_size_of_the_queue), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    return parameters;
+}
+
+template <typename BranchingScheme>
+inline AnytimeColumnSearchOptionalParameters<BranchingScheme> read_anytime_column_search_args(
+        const std::vector<char*> argv)
+{
+    AnytimeColumnSearchOptionalParameters<BranchingScheme> parameters;
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("initial-column-size,s", boost::program_options::value<Counter>(&parameters.initial_column_size), "")
+        ("column-size-growth-factor,f", boost::program_options::value<double>(&parameters.column_size_growth_factor), "")
+        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
+        ("minimum-number-of-iterations,i", boost::program_options::value<NodeId>(&parameters.maximum_number_of_iterations), "")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
@@ -212,6 +236,19 @@ SolutionPool<BranchingScheme> run_iterative_memory_bounded_best_first_search(
     auto parameters = read_iterative_memory_bounded_best_first_search_args(main_args.algorithm_argv);
     parameters.info = info;
     return iterative_memory_bounded_best_first_search(branching_scheme, parameters).solution_pool;
+}
+
+template <typename BranchingScheme>
+SolutionPool<BranchingScheme> run_anytime_column_search(
+        const MainArgs& main_args,
+        const BranchingScheme& branching_scheme,
+        const optimizationtools::Info& info)
+{
+    auto parameters = read_anytime_column_search_args<BranchingScheme>(main_args.algorithm_argv);
+    parameters.info = info;
+    if (main_args.has_cutoff)
+        parameters.cutoff = cutoff(branching_scheme, main_args.cutoff);
+    return anytime_column_search(branching_scheme, parameters).solution_pool;
 }
 
 }
