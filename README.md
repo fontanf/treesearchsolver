@@ -143,7 +143,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <p>
 
 ```shell
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingmakespan_main --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingmakespan.csv -l "${DATE}_permutationflowshopschedulingmakespan" --timelimitfield "Time limit"
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingmakespan_main --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingmakespan.csv -l "${DATE}_permutationflowshopschedulingmakespan" --timelimitfield "Time limit"
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingmakespan.csv -l "${DATE}_permutationflowshopschedulingmakespan" -b heuristiclong -t 500
 ```
 
@@ -158,7 +158,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 <p>
 
 ```shell
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingtct_main --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingtct.csv -l "${DATE}_permutationflowshopschedulingtct" --timelimitfield "Time limit"
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingtct_main --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingtct.csv -l "${DATE}_permutationflowshopschedulingtct" --timelimitfield "Time limit"
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/flowshopscheduling/data_permutationflowshopschedulingtct.csv -l "${DATE}_permutationflowshopschedulingtct" -b heuristiclong -t 500
 ```
 
@@ -207,13 +207,13 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 <p>
 
 ```shell
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_small'" -l "${DATE}_simpleassemblylinebalancing1_small" -t 60
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_small'" -l "${DATE}_simpleassemblylinebalancing1_small" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_small'" -l "${DATE}_simpleassemblylinebalancing1_small" -b heuristiclong -t 61
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_medium'" -l "${DATE}_simpleassemblylinebalancing1_medium" -t 60
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_medium'" -l "${DATE}_simpleassemblylinebalancing1_medium" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_medium'" -l "${DATE}_simpleassemblylinebalancing1_medium" -b heuristiclong -t 61
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_large'" -l "${DATE}_simpleassemblylinebalancing1_large" -t 60
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_large'" -l "${DATE}_simpleassemblylinebalancing1_large" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_large'" -l "${DATE}_simpleassemblylinebalancing1_large" -b heuristiclong -t 61
-DATE=$(date '+%Y-%m-%d--%H-%M') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_verylarge'" -l "${DATE}_simpleassemblylinebalancing1_verylarge" -t 60
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/simpleassemblylinebalancing1_main --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_verylarge'" -l "${DATE}_simpleassemblylinebalancing1_verylarge" -t 60
 python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/simpleassemblylinebalancing1/data.csv -f "row['Dataset'] == 'otto2013_verylarge'" -l "${DATE}_simpleassemblylinebalancing1_verylarge" -b heuristiclong -t 61
 ```
 
