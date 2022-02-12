@@ -127,8 +127,8 @@ public:
     virtual ~SolutionPool() { }
 
     const std::set<std::shared_ptr<Node>, SolutionPoolComparator<BranchingScheme>>& solutions() const { return solutions_; };
-    const std::shared_ptr<Node>& best() { return *solutions_.begin(); }
-    const std::shared_ptr<Node>& worst() { return *std::prev(solutions_.end()); }
+    const std::shared_ptr<Node>& best() const { return *solutions_.begin(); }
+    const std::shared_ptr<Node>& worst() const { return *std::prev(solutions_.end()); }
 
     bool add(
             const std::shared_ptr<Node>& node,
