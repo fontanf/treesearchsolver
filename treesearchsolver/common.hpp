@@ -11,9 +11,75 @@ namespace treesearchsolver
 
 using NodeId = int64_t;
 using Counter = int64_t;
+using Depth = int64_t;
 using Value = double;
 
 enum class ObjectiveSense { Min, Max };
+
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// depth /////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename, typename T>
+struct HasDepthMethod
+{
+    static_assert(
+        std::integral_constant<T, false>::value,
+        "Second template parameter needs to be of function type.");
+};
+
+template<typename C, typename Ret, typename... Args>
+struct HasDepthMethod<C, Ret(Args...)>
+{
+
+private:
+
+    template<typename T>
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().depth(std::declval<Args>()...)), Ret>::type;
+
+    template<typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<C>(0)) type;
+
+public:
+
+    static constexpr bool value = type::value;
+
+};
+
+template<typename BranchingScheme>
+Depth depth(
+        const BranchingScheme&,
+        const std::shared_ptr<typename BranchingScheme::Node>&,
+        std::false_type)
+{
+    return -1;
+}
+
+template<typename BranchingScheme>
+Depth depth(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& node,
+        std::true_type)
+{
+    return branching_scheme.depth(node);
+}
+
+template<typename BranchingScheme>
+Depth depth(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& node)
+{
+    return depth(
+            branching_scheme,
+            node,
+            std::integral_constant<
+                bool,
+                HasDepthMethod<BranchingScheme,
+                Depth(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
