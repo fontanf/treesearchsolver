@@ -62,9 +62,12 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <details><summary>Benchmarks</summary>
 <p>
 
-* Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/sequentialordering_main --csv ../ordata/sequentialordering/data.csv -l sequentialordering -f "row['Dataset'] == 'soplib'" -a "iterative_beam_search" -t 600`
-  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/sequentialordering/data.csv -l sequentialordering -f "row['Dataset'] == 'soplib'" -b heuristiclong -t 602`
+```shell
+DATE=$(date '+%Y-%m-%d--%H-%M-%S') && python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/sequentialordering_main --csv ../ordata/sequentialordering/data.csv -l "${DATE}_sequentialordering" -f "row['Dataset'] == 'soplib'" -t 60
+python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/sequentialordering/data.csv -l "${DATE}_sequentialordering" -f "row['Dataset'] == 'soplib'" -b heuristiclong -t 61
+```
+
+![sequentialordering](img/sequentialordering.png?raw=true "sequentialordering")
 
 </p>
 </details>
