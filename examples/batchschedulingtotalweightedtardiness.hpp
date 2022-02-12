@@ -391,14 +391,14 @@ public:
 
     inline void write(
             const std::shared_ptr<Node>& node,
-            std::string filepath) const
+            std::string certificate_path) const
     {
-        if (filepath.empty())
+        if (certificate_path.empty())
             return;
-        std::ofstream cert(filepath);
+        std::ofstream cert(certificate_path);
         if (!cert.good()) {
-            std::cerr << "\033[31m" << "ERROR, unable to open file \"" << filepath << "\"" << "\033[0m" << std::endl;
-            return;
+            throw std::runtime_error(
+                    "Unable to open file \"" + certificate_path + "\".");
         }
 
         std::vector<std::vector<JobId>> batches;
