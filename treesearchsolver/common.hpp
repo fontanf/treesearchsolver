@@ -83,11 +83,11 @@ Depth depth(
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////// cutoff ////////////////////////////////////
+////////////////////////////////// bound_node //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename, typename T>
-struct HasCutoffMethod
+struct HasBoundNodeMethod
 {
     static_assert(
         std::integral_constant<T, false>::value,
@@ -95,13 +95,13 @@ struct HasCutoffMethod
 };
 
 template<typename C, typename Ret, typename... Args>
-struct HasCutoffMethod<C, Ret(Args...)>
+struct HasBoundNodeMethod<C, Ret(Args...)>
 {
 
 private:
 
     template<typename T>
-    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().cutoff(std::declval<Args>()...)), Ret>::type;
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().bound_node(std::declval<Args>()...)), Ret>::type;
 
     template<typename>
     static constexpr std::false_type check(...);
@@ -115,7 +115,7 @@ public:
 };
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> cutoff(
+std::shared_ptr<typename BranchingScheme::Node> bound_node(
         const BranchingScheme&,
         double,
         std::false_type)
@@ -124,25 +124,25 @@ std::shared_ptr<typename BranchingScheme::Node> cutoff(
 }
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> cutoff(
+std::shared_ptr<typename BranchingScheme::Node> bound_node(
         const BranchingScheme& branching_scheme,
         double value,
         std::true_type)
 {
-    return branching_scheme.cutoff(value);
+    return branching_scheme.bound_node(value);
 }
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> cutoff(
+std::shared_ptr<typename BranchingScheme::Node> bound_node(
         const BranchingScheme& branching_scheme,
         double value)
 {
-    return cutoff(
+    return bound_node(
             branching_scheme,
             value,
             std::integral_constant<
                 bool,
-                HasCutoffMethod<BranchingScheme,
+                HasBoundNodeMethod<BranchingScheme,
                 std::shared_ptr<typename BranchingScheme::Node>(double)>::value>());
 }
 

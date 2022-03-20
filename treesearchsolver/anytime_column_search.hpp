@@ -39,8 +39,8 @@ struct AnytimeColumnSearchOptionalParameters
     NodeId maximum_number_of_nodes = -1;
     /** Maximum number of iterations. */
     NodeId maximum_number_of_iterations = -1;
-    /** Cutoff. */
-    std::shared_ptr<Node> cutoff = nullptr;
+    /** Best known bound. */
+    std::shared_ptr<Node> best_known_bound = nullptr;
     /** Callback function called when a new best solution is found. */
     AnytimeColumnSearchCallback<BranchingScheme> new_solution_callback
         = [](const AnytimeColumnSearchOutput<BranchingScheme>&) { };
@@ -138,10 +138,10 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
                             && output.number_of_nodes > parameters.maximum_number_of_nodes)
                         goto acsend;
 
-                    // Check cutoff.
-                    if (parameters.cutoff != nullptr
+                    // Check best known bound.
+                    if (parameters.best_known_bound != nullptr
                             && !branching_scheme.better(
-                                parameters.cutoff,
+                                parameters.best_known_bound,
                                 output.solution_pool.best()))
                         goto acsend;
 

@@ -39,8 +39,8 @@ struct IterativeBeamSearchOptionalParameters
     NodeId maximum_size_of_the_queue = 100000000;
     /** Maximum number of nodes. */
     NodeId maximum_number_of_nodes = -1;
-    /** Cutoff. */
-    std::shared_ptr<Node> cutoff = nullptr;
+    /** Best known bound. */
+    std::shared_ptr<Node> best_known_bound = nullptr;
     /** Callback function called when a new best solution is found. */
     IterativeBeamSearchCallback<BranchingScheme> new_solution_callback
         = [](const IterativeBeamSearchOutput<BranchingScheme>&) { };
@@ -148,10 +148,10 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                             && output.number_of_nodes > parameters.maximum_number_of_nodes)
                         goto ibsend;
 
-                    // Check cutoff.
-                    if (parameters.cutoff != nullptr
+                    // Check best known bound.
+                    if (parameters.best_known_bound != nullptr
                             && !branching_scheme.better(
-                                parameters.cutoff,
+                                parameters.best_known_bound,
                                 output.solution_pool.best()))
                         goto ibsend;
 
