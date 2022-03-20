@@ -39,8 +39,13 @@ struct AnytimeColumnSearchOptionalParameters
     NodeId maximum_number_of_nodes = -1;
     /** Maximum number of iterations. */
     NodeId maximum_number_of_iterations = -1;
-    /** Best known bound. */
-    std::shared_ptr<Node> best_known_bound = nullptr;
+    /**
+     * Goal.
+     *
+     * If not 'nullptr', The alglorithm stops as soon as a better node is
+     * found.
+     */
+    std::shared_ptr<Node> goal = nullptr;
     /** Callback function called when a new best solution is found. */
     AnytimeColumnSearchCallback<BranchingScheme> new_solution_callback
         = [](const AnytimeColumnSearchOutput<BranchingScheme>&) { };
@@ -139,9 +144,9 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
                         goto acsend;
 
                     // Check best known bound.
-                    if (parameters.best_known_bound != nullptr
+                    if (parameters.goal != nullptr
                             && !branching_scheme.better(
-                                parameters.best_known_bound,
+                                parameters.goal,
                                 output.solution_pool.best()))
                         goto acsend;
 

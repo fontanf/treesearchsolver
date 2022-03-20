@@ -177,7 +177,7 @@ public:
         return node_1->number_of_stations < node_2->number_of_stations;
     }
 
-    std::shared_ptr<Node> bound_node(double value) const
+    std::shared_ptr<Node> goal_node(double value) const
     {
         auto node = std::shared_ptr<Node>(new BranchingScheme::Node());
         node->number_of_jobs = instance_.number_of_jobs();

@@ -83,11 +83,11 @@ Depth depth(
 
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// bound_node //////////////////////////////////
+////////////////////////////////// goal_node ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename, typename T>
-struct HasBoundNodeMethod
+struct HasGoalNodeMethod
 {
     static_assert(
         std::integral_constant<T, false>::value,
@@ -95,13 +95,13 @@ struct HasBoundNodeMethod
 };
 
 template<typename C, typename Ret, typename... Args>
-struct HasBoundNodeMethod<C, Ret(Args...)>
+struct HasGoalNodeMethod<C, Ret(Args...)>
 {
 
 private:
 
     template<typename T>
-    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().bound_node(std::declval<Args>()...)), Ret>::type;
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().goal_node(std::declval<Args>()...)), Ret>::type;
 
     template<typename>
     static constexpr std::false_type check(...);
@@ -115,7 +115,7 @@ public:
 };
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> bound_node(
+std::shared_ptr<typename BranchingScheme::Node> goal_node(
         const BranchingScheme&,
         double,
         std::false_type)
@@ -124,25 +124,25 @@ std::shared_ptr<typename BranchingScheme::Node> bound_node(
 }
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> bound_node(
+std::shared_ptr<typename BranchingScheme::Node> goal_node(
         const BranchingScheme& branching_scheme,
         double value,
         std::true_type)
 {
-    return branching_scheme.bound_node(value);
+    return branching_scheme.goal_node(value);
 }
 
 template<typename BranchingScheme>
-std::shared_ptr<typename BranchingScheme::Node> bound_node(
+std::shared_ptr<typename BranchingScheme::Node> goal_node(
         const BranchingScheme& branching_scheme,
         double value)
 {
-    return bound_node(
+    return goal_node(
             branching_scheme,
             value,
             std::integral_constant<
                 bool,
-                HasBoundNodeMethod<BranchingScheme,
+                HasGoalNodeMethod<BranchingScheme,
                 std::shared_ptr<typename BranchingScheme::Node>(double)>::value>());
 }
 

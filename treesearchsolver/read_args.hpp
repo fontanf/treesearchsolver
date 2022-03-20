@@ -125,8 +125,8 @@ struct MainArgs
     optimizationtools::Info info = optimizationtools::Info();
     bool print_instance = false;
     bool print_solution = false;
-    bool has_best_known_bound = false;
-    double best_known_bound = 0;
+    bool has_goal = false;
+    double goal = 0;
 };
 
 MainArgs read_args(int argc, char *argv[])
@@ -145,7 +145,7 @@ MainArgs read_args(int argc, char *argv[])
         ("output,o", boost::program_options::value<std::string>(&output_path), "set JSON output path")
         ("certificate,c", boost::program_options::value<std::string>(&certificate_path), "set certificate path")
         ("format,f", boost::program_options::value<std::string>(&main_args.format), "set input file format (default: orlibrary)")
-        ("best-known-bound,", boost::program_options::value<double>(&main_args.best_known_bound), "Time limit in seconds\n  ex: 3600")
+        ("goal,g", boost::program_options::value<double>(&main_args.goal), "set goal")
         ("algorithm,a", boost::program_options::value<std::string>(&algorithm), "set algorithm")
         ("branching-scheme,b", boost::program_options::value<std::string>(&branching_scheme_parameters), "set branchingscheme parameters")
         ("time-limit,t", boost::program_options::value<double>(&time_limit), "Time limit in seconds\n  ex: 3600")
@@ -169,7 +169,7 @@ MainArgs read_args(int argc, char *argv[])
 
     main_args.print_instance = (vm.count("print-instance"));
     main_args.print_solution = (vm.count("print-solution"));
-    main_args.has_best_known_bound = (vm.count("best-known-bound"));
+    main_args.has_goal = (vm.count("goal"));
 
     main_args.algorithm_args = boost::program_options::split_unix(algorithm);
     for (std::string& s: main_args.algorithm_args)
@@ -222,8 +222,8 @@ SolutionPool<BranchingScheme> run_iterative_beam_search(
 {
     auto parameters = read_iterative_beam_search_args<BranchingScheme>(main_args.algorithm_argv);
     parameters.info = info;
-    if (main_args.has_best_known_bound)
-        parameters.best_known_bound = bound_node(branching_scheme, main_args.best_known_bound);
+    if (main_args.has_goal)
+        parameters.best_known_bound = goal_node(branching_scheme, main_args.goal);
     return iterative_beam_search(branching_scheme, parameters).solution_pool;
 }
 
@@ -246,8 +246,8 @@ SolutionPool<BranchingScheme> run_anytime_column_search(
 {
     auto parameters = read_anytime_column_search_args<BranchingScheme>(main_args.algorithm_argv);
     parameters.info = info;
-    if (main_args.has_best_known_bound)
-        parameters.best_known_bound = bound_node(branching_scheme, main_args.best_known_bound);
+    if (main_args.has_goal)
+        parameters.best_known_bound = goal_node(branching_scheme, main_args.goal);
     return anytime_column_search(branching_scheme, parameters).solution_pool;
 }
 

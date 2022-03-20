@@ -157,7 +157,7 @@ public:
         return node_1->profit > node_2->profit;
     }
 
-    std::shared_ptr<Node> bound_node(double value) const
+    std::shared_ptr<Node> goal_node(double value) const
     {
         auto node = std::shared_ptr<Node>(new BranchingScheme::Node());
         node->profit = value;

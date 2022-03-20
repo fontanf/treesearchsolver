@@ -39,8 +39,13 @@ struct IterativeBeamSearchOptionalParameters
     NodeId maximum_size_of_the_queue = 100000000;
     /** Maximum number of nodes. */
     NodeId maximum_number_of_nodes = -1;
-    /** Best known bound. */
-    std::shared_ptr<Node> best_known_bound = nullptr;
+    /**
+     * Goal.
+     *
+     * If not 'nullptr', The alglorithm stops as soon as a better node is
+     * found.
+     */
+    std::shared_ptr<Node> goal = nullptr;
     /** Callback function called when a new best solution is found. */
     IterativeBeamSearchCallback<BranchingScheme> new_solution_callback
         = [](const IterativeBeamSearchOutput<BranchingScheme>&) { };
@@ -149,9 +154,9 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                         goto ibsend;
 
                     // Check best known bound.
-                    if (parameters.best_known_bound != nullptr
+                    if (parameters.goal != nullptr
                             && !branching_scheme.better(
-                                parameters.best_known_bound,
+                                parameters.goal,
                                 output.solution_pool.best()))
                         goto ibsend;
 
