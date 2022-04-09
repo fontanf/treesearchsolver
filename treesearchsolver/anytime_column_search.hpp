@@ -61,7 +61,7 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
     using Node = typename BranchingScheme::Node;
 
     // Initial display.
-    VER(parameters.info,
+    FFOT_VER(parameters.info,
                "======================================" << std::endl
             << "          Tree Search Solver          " << std::endl
             << "======================================" << std::endl
@@ -212,10 +212,10 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
 acsend:
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
-    VER(parameters.info, "Number of iterations:       " << output.number_of_iterations << std::endl);
-    PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
-    PUT(parameters.info, "Algorithm", "NumberOfIterations", output.number_of_iterations);
+    FFOT_VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
+    FFOT_VER(parameters.info, "Number of iterations:       " << output.number_of_iterations << std::endl);
+    FFOT_PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
+    FFOT_PUT(parameters.info, "Algorithm", "NumberOfIterations", output.number_of_iterations);
     return output;
 }
 

@@ -12,10 +12,10 @@
  *
  */
 
-#include "optimizationtools/info.hpp"
-#include "optimizationtools/utils.hpp"
-#include "optimizationtools/sorted_on_demand_array.hpp"
-#include "optimizationtools/indexed_set.hpp"
+#include "optimizationtools/utils/info.hpp"
+#include "optimizationtools/utils/utils.hpp"
+#include "optimizationtools/containers/sorted_on_demand_array.hpp"
+#include "optimizationtools/containers/indexed_set.hpp"
 
 #include "orproblems/schedulingwithsdsttwt.hpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "optimizationtools/info.hpp"
-#include "optimizationtools/utils.hpp"
+#include "optimizationtools/utils/info.hpp"
+#include "optimizationtools/utils/utils.hpp"
 
 #include <cstdint>
 #include <set>
@@ -213,9 +213,9 @@ public:
             info.output->number_of_solutions++;
             double t = info.elapsed_time();
             std::string sol_str = "Solution" + std::to_string(info.output->number_of_solutions);
-            PUT(info, sol_str, "Value", branching_scheme_.display(node));
-            PUT(info, sol_str, "Time", t);
-            PUT(info, sol_str, "Comment", ss.str());
+            FFOT_PUT(info, sol_str, "Value", branching_scheme_.display(node));
+            FFOT_PUT(info, sol_str, "Time", t);
+            FFOT_PUT(info, sol_str, "Comment", ss.str());
             if (!info.output->only_write_at_the_end) {
                 info.write_json_output();
                 //write(info);
@@ -230,7 +230,7 @@ public:
 
     void display_init(optimizationtools::Info& info)
     {
-        VER(info,
+        FFOT_VER(info,
                 std::setw(11) << "Time"
                 << std::setw(32) << "Value"
                 << std::setw(32) << "Comment" << std::endl
@@ -243,7 +243,7 @@ public:
     {
         double t = info.elapsed_time();
         std::streamsize precision = std::cout.precision();
-        VER(info,
+        FFOT_VER(info,
                 std::setw(11) << std::fixed << std::setprecision(3) << t << std::defaultfloat << std::setprecision(precision)
                 << std::setw(32) << branching_scheme_.display(best())
                 << std::setw(32) << ss.str()
@@ -253,7 +253,7 @@ public:
     void display_end(optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
-        VER(info, std::defaultfloat
+        FFOT_VER(info, std::defaultfloat
                 << std::endl
                 << "Final statistics" << std::endl
                 << "----------------" << std::endl
@@ -261,8 +261,8 @@ public:
                 << "Time:                       " << t << std::endl);
 
         std::string sol_str = "Solution";
-        PUT(info, sol_str, "Time", t);
-        PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
+        FFOT_PUT(info, sol_str, "Time", t);
+        FFOT_PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
         info.write_json_output();
         //write(info);
     }

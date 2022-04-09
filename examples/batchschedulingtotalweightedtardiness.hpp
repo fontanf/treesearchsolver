@@ -71,8 +71,8 @@
  *
  */
 
-#include "optimizationtools/info.hpp"
-#include "optimizationtools/indexed_set.hpp"
+#include "optimizationtools/utils/info.hpp"
+#include "optimizationtools/containers/indexed_set.hpp"
 
 #include "orproblems/batchschedulingtotalweightedtardiness.hpp"
 

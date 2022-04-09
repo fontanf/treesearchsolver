@@ -35,7 +35,7 @@ inline GreedyOutput<BranchingScheme> greedy(
     using Node = typename BranchingScheme::Node;
 
     // Initial display.
-    VER(parameters.info,
+    FFOT_VER(parameters.info,
                "======================================" << std::endl
             << "          Tree Search Solver          " << std::endl
             << "======================================" << std::endl
@@ -82,8 +82,8 @@ inline GreedyOutput<BranchingScheme> greedy(
     }
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
-    PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
+    FFOT_VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
+    FFOT_PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
     return output;
 }
 

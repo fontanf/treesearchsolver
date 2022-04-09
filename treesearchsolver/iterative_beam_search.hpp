@@ -59,7 +59,7 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
         IterativeBeamSearchOptionalParameters<BranchingScheme> parameters = {})
 {
     // Initial display.
-    VER(parameters.info,
+    FFOT_VER(parameters.info,
                "======================================" << std::endl
             << "          Tree Search Solver          " << std::endl
             << "======================================" << std::endl
@@ -269,10 +269,10 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
 ibsend:
 
     output.solution_pool.display_end(parameters.info);
-    VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
-    VER(parameters.info, "Maximum size of the queue:  " << output.maximum_size_of_the_queue << std::endl);
-    PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
-    PUT(parameters.info, "Algorithm", "MaximumSizeOfTheQueue", output.maximum_size_of_the_queue);
+    FFOT_VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
+    FFOT_VER(parameters.info, "Maximum size of the queue:  " << output.maximum_size_of_the_queue << std::endl);
+    FFOT_PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
+    FFOT_PUT(parameters.info, "Algorithm", "MaximumSizeOfTheQueue", output.maximum_size_of_the_queue);
     return output;
 }
 

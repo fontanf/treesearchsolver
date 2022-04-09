@@ -223,7 +223,7 @@ SolutionPool<BranchingScheme> run_iterative_beam_search(
     auto parameters = read_iterative_beam_search_args<BranchingScheme>(main_args.algorithm_argv);
     parameters.info = info;
     if (main_args.has_goal)
-        parameters.best_known_bound = goal_node(branching_scheme, main_args.goal);
+        parameters.goal = goal_node(branching_scheme, main_args.goal);
     return iterative_beam_search(branching_scheme, parameters).solution_pool;
 }
 
@@ -247,7 +247,7 @@ SolutionPool<BranchingScheme> run_anytime_column_search(
     auto parameters = read_anytime_column_search_args<BranchingScheme>(main_args.algorithm_argv);
     parameters.info = info;
     if (main_args.has_goal)
-        parameters.best_known_bound = goal_node(branching_scheme, main_args.goal);
+        parameters.goal = goal_node(branching_scheme, main_args.goal);
     return anytime_column_search(branching_scheme, parameters).solution_pool;
 }
 
