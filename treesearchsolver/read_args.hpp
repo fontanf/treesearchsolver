@@ -123,8 +123,9 @@ struct MainArgs
     std::vector<std::string> branching_scheme_args;
     std::vector<char*> branching_scheme_argv;
     optimizationtools::Info info = optimizationtools::Info();
-    bool print_instance = false;
-    bool print_solution = false;
+    int print_instance = 1;
+    int print_solution = 1;
+    int print_checker = 1;
     bool has_goal = false;
     double goal = 0;
 };
@@ -151,8 +152,9 @@ MainArgs read_args(int argc, char *argv[])
         ("time-limit,t", boost::program_options::value<double>(&time_limit), "Time limit in seconds\n  ex: 3600")
         ("only-write-at-the-end,e", "Only write output and certificate files at the end")
         ("verbose,v", "")
-        ("print-instance", "")
-        ("print-solution", "")
+        ("print-instance", boost::program_options::value<int>(&main_args.print_instance), "print instance")
+        ("print-solution", boost::program_options::value<int>(&main_args.print_solution), "print solution")
+        ("print-checker", boost::program_options::value<int>(&main_args.print_checker), "print checker")
         ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);

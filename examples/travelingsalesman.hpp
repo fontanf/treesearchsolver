@@ -260,7 +260,7 @@ public:
         return ss.str();
     }
 
-    std::ostream& print(
+    std::ostream& print_solution(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {
@@ -526,7 +526,7 @@ public:
         return ss.str();
     }
 
-    std::ostream& print(
+    std::ostream& print_solution(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {

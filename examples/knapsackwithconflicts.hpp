@@ -234,7 +234,7 @@ public:
      * Outputs.
      */
 
-    std::ostream& print(
+    std::ostream& print_solution(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {

@@ -355,7 +355,7 @@ public:
         return std::to_string(node->total_weighted_tardiness);
     }
 
-    std::ostream& print(
+    std::ostream& print_solution(
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {

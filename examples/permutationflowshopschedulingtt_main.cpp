@@ -45,11 +45,16 @@ inline BranchingSchemeInsertion::Parameters read_branching_scheme_insertion_args
 int main(int argc, char *argv[])
 {
     auto main_args = read_args(argc, argv);
+    auto& os = main_args.info.os();
 
     // Create instance.
     Instance instance(main_args.instance_path, main_args.format);
-    if (main_args.print_instance)
-        std::cout << instance << std::endl;
+    if (main_args.print_instance) {
+        os
+            << "Instance" << std::endl
+            << "--------" << std::endl;
+        os << instance << std::endl;
+    }
 
     if (strcmp(main_args.branching_scheme_argv[0], "forward") == 0) {
 
@@ -71,8 +76,12 @@ int main(int argc, char *argv[])
 
         // Write solution.
         branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
-        if (main_args.print_solution)
-            branching_scheme.print(std::cout, solution_pool.best());
+        if (main_args.print_solution) {
+            os << std::endl
+                << "Solution" << std::endl
+                << "--------" << std::endl;
+            branching_scheme.print_solution(os, solution_pool.best());
+        }
 
     } else {
 
@@ -94,8 +103,12 @@ int main(int argc, char *argv[])
 
         // Write solution.
         branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
-        if (main_args.print_solution)
-            branching_scheme.print(std::cout, solution_pool.best());
+        if (main_args.print_solution) {
+            os << std::endl
+                << "Solution" << std::endl
+                << "--------" << std::endl;
+            branching_scheme.print_solution(os, solution_pool.best());
+        }
 
     }
 

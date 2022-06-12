@@ -213,9 +213,9 @@ public:
             info.output->number_of_solutions++;
             double t = info.elapsed_time();
             std::string sol_str = "Solution" + std::to_string(info.output->number_of_solutions);
-            FFOT_PUT(info, sol_str, "Value", branching_scheme_.display(node));
-            FFOT_PUT(info, sol_str, "Time", t);
-            FFOT_PUT(info, sol_str, "Comment", ss.str());
+            info.add_to_json(sol_str, "Value", branching_scheme_.display(node));
+            info.add_to_json(sol_str, "Time", t);
+            info.add_to_json(sol_str, "Comment", ss.str());
             if (!info.output->only_write_at_the_end) {
                 info.write_json_output();
                 //write(info);
@@ -230,39 +230,39 @@ public:
 
     void display_init(optimizationtools::Info& info)
     {
-        FFOT_VER(info,
-                std::setw(11) << "Time"
+        info.os()
+                << std::setw(11) << "Time"
                 << std::setw(32) << "Value"
                 << std::setw(32) << "Comment" << std::endl
                 << std::setw(11) << "----"
                 << std::setw(32) << "-----"
-                << std::setw(32) << "-------" << std::endl);
+                << std::setw(32) << "-------" << std::endl;
     }
 
     void display(const std::stringstream& ss, optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
-        std::streamsize precision = std::cout.precision();
-        FFOT_VER(info,
-                std::setw(11) << std::fixed << std::setprecision(3) << t << std::defaultfloat << std::setprecision(precision)
+        std::streamsize precision = info.os().precision();
+        info.os()
+                << std::setw(11) << std::fixed << std::setprecision(3) << t << std::defaultfloat << std::setprecision(precision)
                 << std::setw(32) << branching_scheme_.display(best())
                 << std::setw(32) << ss.str()
-                << std::endl);
+                << std::endl;
     }
 
     void display_end(optimizationtools::Info& info)
     {
         double t = info.elapsed_time();
-        FFOT_VER(info, std::defaultfloat
+        info.os() << std::defaultfloat
                 << std::endl
                 << "Final statistics" << std::endl
                 << "----------------" << std::endl
                 << "Value:                      " << branching_scheme_.display(*solutions_.begin()) << std::endl
-                << "Time:                       " << t << std::endl);
+                << "Time:                       " << t << std::endl;
 
         std::string sol_str = "Solution";
-        FFOT_PUT(info, sol_str, "Time", t);
-        FFOT_PUT(info, sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
+        info.add_to_json(sol_str, "Time", t);
+        info.add_to_json(sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
         info.write_json_output();
         //write(info);
     }

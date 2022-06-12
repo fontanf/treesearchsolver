@@ -32,8 +32,8 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
         BestFirstSearchOptionalParameters parameters = {})
 {
     // Initial display.
-    FFOT_VER(parameters.info,
-               "======================================" << std::endl
+    parameters.info.os()
+            << "======================================" << std::endl
             << "          Tree Search Solver          " << std::endl
             << "======================================" << std::endl
             << std::endl
@@ -46,8 +46,7 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
             << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
             << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
             << "Time limit:                  " << parameters.info.time_limit << std::endl
-            << std::endl
-       );
+            << std::endl;
 
     BestFirstSearchOutput<BranchingScheme> output(
             branching_scheme, parameters.maximum_size_of_the_solution_pool);
@@ -111,8 +110,8 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
     }
 
     output.solution_pool.display_end(parameters.info);
-    FFOT_VER(parameters.info, "Number of nodes:            " << output.number_of_nodes << std::endl);
-    FFOT_PUT(parameters.info, "Algorithm", "NumberOfNodes", output.number_of_nodes);
+    parameters.info.os() << "Number of nodes:            " << output.number_of_nodes << std::endl;
+    parameters.info.add_to_json("Algorithm", "NumberOfNodes", output.number_of_nodes);
     return output;
 }
 
