@@ -96,12 +96,7 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
             new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     Depth number_of_queues = 2;
 
-    for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;
-            output.maximum_size_of_the_queue = output.maximum_size_of_the_queue * parameters.growth_factor) {
-        if (output.maximum_size_of_the_queue == (NodeId)(output.maximum_size_of_the_queue * parameters.growth_factor))
-            output.maximum_size_of_the_queue++;
-        if (output.maximum_size_of_the_queue > parameters.maximum_size_of_the_queue)
-            break;
+    for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
 
         std::stringstream ss;
         ss << "q " << output.maximum_size_of_the_queue;
@@ -260,6 +255,13 @@ inline IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
             q[d]->clear();
             history[d]->clear();
         }
+
+        // Increase the size of the queue.
+        output.maximum_size_of_the_queue = std::max(
+                output.maximum_size_of_the_queue + 1,
+                (NodeId)(output.maximum_size_of_the_queue * parameters.growth_factor));
+        if (output.maximum_size_of_the_queue > parameters.maximum_size_of_the_queue)
+            break;
 
         // Stop if no nodes has been pruned.
         if (stop)
