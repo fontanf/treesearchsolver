@@ -34,7 +34,7 @@ struct IterativeBeamSearch2OptionalParameters
     /** Growth factor of the size of the queue. */
     double growth_factor = 2;
     /** Minimum size of the queue. */
-    NodeId minimum_size_of_the_queue = 0;
+    NodeId minimum_size_of_the_queue = 1;
     /** Maximum size of the queue. */
     NodeId maximum_size_of_the_queue = 100000000;
     /** Maximum number of nodes. */
