@@ -15,8 +15,14 @@ struct IterativeBeamSearch2Output
 
     /** Solution pool. */
     SolutionPool<BranchingScheme> solution_pool;
-    /** Number of nodes explored. */
-    NodeId number_of_nodes = 0;
+    /** Number of nodes generated. */
+    NodeId number_of_nodes_generated = 0;
+    /** Number of nodes added. */
+    NodeId number_of_nodes_added = 0;
+    /** Number of nodes processed. */
+    NodeId number_of_nodes_processed = 0;
+    /** Number of nodes expanded. */
+    NodeId number_of_nodes_expanded = 0;
     /** Maximum size of the queue reached. */
     NodeId maximum_size_of_the_queue = 0;
 };
@@ -37,8 +43,8 @@ struct IterativeBeamSearch2OptionalParameters
     NodeId minimum_size_of_the_queue = 1;
     /** Maximum size of the queue. */
     NodeId maximum_size_of_the_queue = 100000000;
-    /** Maximum number of nodes. */
-    NodeId maximum_number_of_nodes = -1;
+    /** Maximum number of nodes expanded. */
+    NodeId maximum_number_of_nodes_expanded = -1;
     /**
      * Goal.
      *
@@ -70,12 +76,12 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
             << std::endl
             << "Parameters" << std::endl
             << "----------" << std::endl
-            << "Minimum size of the queue:   " << parameters.minimum_size_of_the_queue << std::endl
-            << "Maximum size of the queue:   " << parameters.maximum_size_of_the_queue << std::endl
-            << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
-            << "Growth factor:               " << parameters.growth_factor << std::endl
-            << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
-            << "Time limit:                  " << parameters.info.time_limit << std::endl
+            << "Minimum size of the queue:          " << parameters.minimum_size_of_the_queue << std::endl
+            << "Maximum size of the queue:          " << parameters.maximum_size_of_the_queue << std::endl
+            << "Maximum number of nodes expadned:   " << parameters.maximum_number_of_nodes_expanded << std::endl
+            << "Growth factor:                      " << parameters.growth_factor << std::endl
+            << "Maximum size of the pool:           " << parameters.maximum_size_of_the_solution_pool << std::endl
+            << "Time limit:                         " << parameters.info.time_limit << std::endl
             << std::endl;
 
     IterativeBeamSearch2Output<BranchingScheme> output(
@@ -104,16 +110,20 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
         // Initialize queue.
         bool stop = true;
         auto current_node = branching_scheme.root();
+        output.number_of_nodes_generated++;
         q[0]->insert(current_node);
+        output.number_of_nodes_added++;
 
         Depth current_depth = 0;
         for (;;) {
+            //std::cout << "depth " << current_depth << std::endl;
 
             while (!q[current_depth]->empty()) {
 
                 // Get node from the queue.
                 auto current_node = *q[current_depth]->begin();
                 q[current_depth]->erase(q[current_depth]->begin());
+                output.number_of_nodes_processed++;
 
                 // Bound.
                 if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
@@ -128,18 +138,14 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
 
                 // Get next child.
                 auto children = branching_scheme.children(current_node);
+                output.number_of_nodes_expanded++;
 
                 for (auto child: children) {
 
-                    output.number_of_nodes++;
+                    output.number_of_nodes_generated++;
 
                     // Check time.
                     if (parameters.info.needs_to_end())
-                        goto ibsend;
-
-                    // Check node limit.
-                    if (parameters.maximum_number_of_nodes != -1
-                            && output.number_of_nodes > parameters.maximum_number_of_nodes)
                         goto ibsend;
 
                     // Check best known bound.
@@ -188,11 +194,13 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
                         // Check queue size.
                         if ((NodeId)q[child_depth]->size() < output.maximum_size_of_the_queue
                                 || branching_scheme(child, *(std::prev(q[child_depth]->end())))) {
-                            add_to_history_and_queue(
+                            bool added = add_to_history_and_queue(
                                     branching_scheme,
                                     *history[child_depth],
                                     *q[child_depth],
                                     child);
+                            if (added)
+                                output.number_of_nodes_added++;
                             //q_next->insert(child);
                             if ((NodeId)q[child_depth]->size() > output.maximum_size_of_the_queue) {
                                 remove_from_history_and_queue(
@@ -204,6 +212,11 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
                         }
                     }
                 }
+
+                // Check node limit.
+                if (parameters.maximum_number_of_nodes_expanded != -1
+                        && output.number_of_nodes_expanded > parameters.maximum_number_of_nodes_expanded)
+                    goto ibsend;
 
             }
 
@@ -257,9 +270,15 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
 ibsend:
 
     output.solution_pool.display_end(parameters.info);
-    parameters.info.os() << "Number of nodes:            " << output.number_of_nodes << std::endl;
+    parameters.info.os() << "Number of nodes generated:  " << output.number_of_nodes_generated << std::endl;
+    parameters.info.os() << "Number of nodes added:      " << output.number_of_nodes_added << std::endl;
+    parameters.info.os() << "Number of nodes processed:  " << output.number_of_nodes_processed << std::endl;
+    parameters.info.os() << "Number of nodes expanded:   " << output.number_of_nodes_expanded << std::endl;
     parameters.info.os() << "Maximum size of the queue:  " << output.maximum_size_of_the_queue << std::endl;
-    parameters.info.add_to_json("Algorithm", "NumberOfNodes", output.number_of_nodes);
+    parameters.info.add_to_json("Algorithm", "NumberOfNodesGenerated", output.number_of_nodes_generated);
+    parameters.info.add_to_json("Algorithm", "NumberOfNodesAdded", output.number_of_nodes_added);
+    parameters.info.add_to_json("Algorithm", "NumberOfNodesProcessed", output.number_of_nodes_processed);
+    parameters.info.add_to_json("Algorithm", "NumberOfNodesExpanded", output.number_of_nodes_expanded);
     parameters.info.add_to_json("Algorithm", "MaximumSizeOfTheQueue", output.maximum_size_of_the_queue);
     return output;
 }
