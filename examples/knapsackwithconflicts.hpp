@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Knapsack Problem with Conflicts.
  *
@@ -17,6 +15,8 @@
  *   then node_1 dominates node_2
  *
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -235,14 +235,39 @@ public:
      */
 
     std::ostream& print_solution(
+            const std::shared_ptr<Node>& node,
             std::ostream &os,
-            const std::shared_ptr<Node>& node)
+            int verbosity_level)
     {
-        for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father)
-            os << "j " << node_tmp->j
-                << " wj " << instance_.item(node_tmp->j).weight
-                << " pj " << instance_.item(node_tmp->j).profit
+        if (verbosity_level >= 1) {
+            os << "Profit:            " << node->profit << std::endl;
+            os << "Weight:            " << node->weight << " / " << instance_.capacity() << std::endl;
+            os << "Number of items:   " << node->number_of_items << " / " << instance_.number_of_items() << std::endl;
+        }
+        if (verbosity_level >= 2) {
+            os << std::endl
+                << std::setw(12) << "Item"
+                << std::setw(12) << "Profit"
+                << std::setw(12) << "Weight"
+                << std::setw(12) << "Efficiency"
+                << std::setw(12) << "# conflicts"
+                << std::endl
+                << std::setw(12) << "----"
+                << std::setw(12) << "------"
+                << std::setw(12) << "------"
+                << std::setw(12) << "----------"
+                << std::setw(12) << "-----------"
                 << std::endl;
+            for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father) {
+                ItemId j = node_tmp->j;
+                os << std::setw(12) << j
+                    << std::setw(12) << instance_.item(j).profit
+                    << std::setw(12) << instance_.item(j).weight
+                    << std::setw(12) << (double)instance_.item(j).profit / instance_.item(j).weight
+                    << std::setw(12) << instance_.item(j).neighbors.size()
+                    << std::endl;
+            }
+        }
         return os;
     }
 

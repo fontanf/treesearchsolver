@@ -30,11 +30,12 @@ int main(int argc, char *argv[])
 
     // Create instance.
     Instance instance(main_args.instance_path, main_args.format);
-    if (main_args.print_instance) {
+    if (main_args.print_instance > 0) {
         os
             << "Instance" << std::endl
             << "--------" << std::endl;
-        os << instance << std::endl;
+        instance.print(os, main_args.print_instance);
+        os << std::endl;
     }
 
     // Create branching scheme.
@@ -55,17 +56,26 @@ int main(int argc, char *argv[])
 
     // Write solution.
     branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
-    if (main_args.print_solution) {
+    if (main_args.print_solution > 0) {
         os << std::endl
             << "Solution" << std::endl
             << "--------" << std::endl;
-        branching_scheme.print_solution(os, solution_pool.best());
+        branching_scheme.print_solution(
+                solution_pool.best(),
+                os,
+                main_args.print_solution);
     }
 
     // Run checker.
-    if (main_args.info.output->certificate_path != "") {
-        std::cout << std::endl;
-        instance.check(main_args.info.output->certificate_path);
+    if (main_args.print_checker > 0
+            && main_args.info.output->certificate_path != "") {
+        os << std::endl
+            << "Checker" << std::endl
+            << "-------" << std::endl;
+        instance.check(
+                main_args.info.output->certificate_path,
+                os,
+                main_args.print_checker);
     }
 
     return 0;
