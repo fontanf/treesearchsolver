@@ -254,7 +254,7 @@ bazel build -- //...
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/travelingsalesman_main -v -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5
+./bazel-bin/examples/travelingsalesman_main -v 1 -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5
 ```
 
 ## Usage, C++ library
