@@ -8,6 +8,7 @@ namespace treesearchsolver
 struct BestFirstSearchOptionalParameters
 {
     NodeId maximum_size_of_the_solution_pool = 1;
+
     NodeId maximum_number_of_nodes = -1;
 
     optimizationtools::Info info = optimizationtools::Info();

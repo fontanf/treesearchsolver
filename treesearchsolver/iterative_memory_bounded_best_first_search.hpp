@@ -8,9 +8,13 @@ namespace treesearchsolver
 struct IterativeMemoryBoundedBestFirstSearchOptionalParameters
 {
     NodeId maximum_size_of_the_solution_pool = 1;
+
     NodeId maximum_number_of_nodes = -1;
+
     double growth_factor = 1.5;
+
     NodeId minimum_size_of_the_queue = 0;
+
     NodeId maximum_size_of_the_queue = 100000000;
 
     optimizationtools::Info info = optimizationtools::Info();
@@ -27,6 +31,7 @@ struct IterativeMemoryBoundedBestFirstSearchOutput
     SolutionPool<BranchingScheme> solution_pool;
 
     Counter number_of_nodes = 0;
+
     NodeId maximum_size_of_the_queue = 0;
 };
 

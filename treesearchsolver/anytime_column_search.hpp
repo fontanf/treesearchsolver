@@ -15,8 +15,10 @@ struct AnytimeColumnSearchOutput
 
     /** Solution pool. */
     SolutionPool<BranchingScheme> solution_pool;
+
     /** Number of nodes explored. */
     Counter number_of_nodes = 0;
+
     /** Number of iterations. */
     Counter number_of_iterations = 0;
 };
@@ -31,14 +33,19 @@ struct AnytimeColumnSearchOptionalParameters
 
     /** Maximum size of the solution pool. */
     NodeId maximum_size_of_the_solution_pool = 1;
+
     /** Initial size of the column. */
     Counter initial_column_size = 1;
+
     /** Growth factor of the column size. */
     double column_size_growth_factor = 1.5;
+
     /** Maximum number of nodes. */
     NodeId maximum_number_of_nodes = -1;
+
     /** Maximum number of iterations. */
     NodeId maximum_number_of_iterations = -1;
+
     /**
      * Goal.
      *
@@ -46,9 +53,11 @@ struct AnytimeColumnSearchOptionalParameters
      * found.
      */
     std::shared_ptr<Node> goal = nullptr;
+
     /** Callback function called when a new best solution is found. */
     AnytimeColumnSearchCallback<BranchingScheme> new_solution_callback
         = [](const AnytimeColumnSearchOutput<BranchingScheme>&) { };
+
     /** Info structure. */
     optimizationtools::Info info = optimizationtools::Info();
 };

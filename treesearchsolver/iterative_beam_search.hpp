@@ -15,8 +15,10 @@ struct IterativeBeamSearchOutput
 
     /** Solution pool. */
     SolutionPool<BranchingScheme> solution_pool;
+
     /** Number of nodes explored. */
     NodeId number_of_nodes = 0;
+
     /** Maximum size of the queue reached. */
     NodeId maximum_size_of_the_queue = 0;
 };
@@ -31,14 +33,19 @@ struct IterativeBeamSearchOptionalParameters
 
     /** Maximum size of the solution pool. */
     NodeId maximum_size_of_the_solution_pool = 1;
+
     /** Growth factor of the size of the queue. */
     double growth_factor = 2;
+
     /** Minimum size of the queue. */
     NodeId minimum_size_of_the_queue = 1;
+
     /** Maximum size of the queue. */
     NodeId maximum_size_of_the_queue = 100000000;
+
     /** Maximum number of nodes. */
     NodeId maximum_number_of_nodes = -1;
+
     /**
      * Goal.
      *
@@ -46,9 +53,11 @@ struct IterativeBeamSearchOptionalParameters
      * found.
      */
     std::shared_ptr<Node> goal = nullptr;
+
     /** Callback function called when a new best solution is found. */
     IterativeBeamSearchCallback<BranchingScheme> new_solution_callback
         = [](const IterativeBeamSearchOutput<BranchingScheme>&) { };
+
     /** Info structure. */
     optimizationtools::Info info = optimizationtools::Info();
 };

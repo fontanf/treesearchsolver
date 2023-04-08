@@ -9,6 +9,7 @@ struct GreedyOptionalParameters
 {
     /** Maximum size of the solution pool. */
     NodeId maximum_size_of_the_solution_pool = 1;
+
     /** Info structure. */
     optimizationtools::Info info = optimizationtools::Info();
 };
@@ -23,6 +24,7 @@ struct GreedyOutput
 
     /** Solution pool. */
     SolutionPool<BranchingScheme> solution_pool;
+
     /** Number of nodes. */
     Counter number_of_nodes = 0;
 };
