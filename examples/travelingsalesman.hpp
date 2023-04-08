@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Traveling Salesman Problem.
  *
@@ -15,6 +13,8 @@
  * - guide: current length
  *
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -262,17 +262,37 @@ public:
 
     std::ostream& print_solution(
             std::ostream &os,
-            const std::shared_ptr<Node>& node)
+            const std::shared_ptr<Node>& node,
+            int verbosity_level)
     {
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        std::vector<std::shared_ptr<Node>> nodes;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
-            os << "node_tmp"
-                << " n " << node_tmp->number_of_vertices
-                << " l " << node_tmp->length
-                << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
-                << std::endl;
+            nodes.push_back(node_tmp);
         }
+        std::reverse(nodes.begin(), nodes.end());
+
+        if (verbosity_level >= 1) {
+            os << "Number of vertices:   " << node->number_of_vertices << " / " << instance_.number_of_vertices() << std::endl;
+            os << "Distance:             " << node->length + instance_.distance(node->j, 0) << std::endl;
+        }
+
+        if (verbosity_level >= 2) {
+            os << std::endl
+                << std::setw(12) << "Vertex"
+                << std::setw(12) << "Distance"
+                << std::endl
+                << std::setw(12) << "------"
+                << std::setw(12) << "--------"
+                << std::endl;
+            for (const auto& node_tmp: nodes) {
+                os << std::setw(12) << node_tmp->j
+                    << std::setw(12) << node_tmp->length
+                    << std::endl;
+            }
+        }
+
         return os;
     }
 
