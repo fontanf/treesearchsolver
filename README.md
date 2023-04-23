@@ -254,7 +254,65 @@ bazel build -- //...
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/travelingsalesman_main -v 1 -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5
+./bazel-bin/examples/travelingsalesman_main -v 1 -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5 -c solution.txt
+```
+```
+Instance
+--------
+Number of vertices:  280
+
+======================================
+          Tree Search Solver          
+======================================
+
+Algorithm
+---------
+Iterative Beam Search
+
+Parameters
+----------
+Minimum size of the queue:   1
+Maximum size of the queue:   100000000
+Maximum number of nodes:     -1
+Growth factor:               2
+Maximum size of the pool:    1
+Time limit:                  5
+
+       Time                           Value                         Comment
+       ----                           -----                         -------
+      0.003                                                             q 1
+      0.003                            3285                             q 2
+      0.003                            3285                             q 4
+      0.004                            3285                             q 8
+      0.006                            3285                            q 16
+      0.010                            3285                            q 32
+      0.018                            3285                            q 64
+      0.036                            3285                           q 128
+      0.075                            3285                           q 256
+      0.162                            3285                           q 512
+      0.339                            3285                          q 1024
+      0.745                            3275                          q 2048
+      1.581                            3275                          q 4096
+      3.608                            3258                          q 8192
+
+Final statistics
+----------------
+Value:                      3258
+Time:                       5
+Number of nodes:            4064375
+Maximum size of the queue:  8192
+
+Solution
+--------
+Number of vertices:   280 / 280
+Distance:             3258
+
+Checker
+-------
+Number of vertices:     280 / 280
+Number of duplicates:   0
+Feasible:               1
+Total distance:         3258
 ```
 
 ## Usage, C++ library

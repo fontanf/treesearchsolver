@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Permutation flow shop scheduling problem, Total completion time.
  *
@@ -14,6 +12,8 @@
  *   - 2: weighted idle time
  *   - 3: total completion time and weighted idle time
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -40,7 +40,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
-        JobId j = -1;
+        JobId job_id = -1;
         JobId number_of_jobs = 0;
         std::vector<Time> times;
         Time total_completion_time = 0;
@@ -56,7 +56,9 @@ public:
         GuideId guide_id = 2;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters)
     {
@@ -70,8 +72,8 @@ public:
         r->available_jobs.resize(n, true);
         r->times.resize(m, 0);
         r->bound = 0;
-        for (JobId j = 0; j < n; ++j)
-            r->bound += instance_.processing_time(j, m - 1);
+        for (JobId job_id = 0; job_id < n; ++job_id)
+            r->bound += instance_.processing_time(job_id, m - 1);
         return r;
     }
 
@@ -81,17 +83,17 @@ public:
         MachineId m = instance_.number_of_machines();
         auto father = node->father;
         node->available_jobs = father->available_jobs;
-        node->available_jobs[node->j] = false;
+        node->available_jobs[node->job_id] = false;
         node->times = father->times;
         node->times[0] = father->times[0]
-            + instance_.processing_time(node->j, 0);
-        for (MachineId i = 1; i < m; ++i) {
-            if (node->times[i - 1] > father->times[i]) {
-                node->times[i] = node->times[i - 1]
-                    + instance_.processing_time(node->j, i);
+            + instance_.processing_time(node->job_id, 0);
+        for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+            if (node->times[machine_id - 1] > father->times[machine_id]) {
+                node->times[machine_id] = node->times[machine_id - 1]
+                    + instance_.processing_time(node->job_id, machine_id);
             } else {
-                node->times[i] = father->times[i]
-                    + instance_.processing_time(node->j, i);
+                node->times[machine_id] = father->times[machine_id]
+                    + instance_.processing_time(node->job_id, machine_id);
             }
         }
     }
@@ -116,11 +118,11 @@ public:
         //        << " guide " << father->guide
         //        << std::endl;
 
-        JobId j_next = father->next_child_pos;
+        JobId job_id_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
         // Check job availibility.
-        if (!father->available_jobs[j_next])
+        if (!father->available_jobs[job_id_next])
             return nullptr;
 
         // Compute new child.
@@ -128,23 +130,22 @@ public:
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->idle_time = father->idle_time;
         child->weighted_idle_time = father->weighted_idle_time;
         Time t_prec = father->times[0]
-            + instance_.processing_time(j_next, 0);
+            + instance_.processing_time(job_id_next, 0);
         Time t = 0;
-        for (MachineId i = 1; i < m; ++i) {
-            if (t_prec > father->times[i]) {
-                Time idle_time = t_prec - father->times[i];
-                t = t_prec
-                    + instance_.processing_time(j_next, i);
+        for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+            if (t_prec > father->times[machine_id]) {
+                Time idle_time = t_prec - father->times[machine_id];
+                t = t_prec + instance_.processing_time(job_id_next, machine_id);
                 child->idle_time += idle_time;
-                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - i) * idle_time;
+                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - machine_id) * idle_time;
             } else {
-                t = father->times[i]
-                    + instance_.processing_time(j_next, i);
+                t = father->times[machine_id]
+                    + instance_.processing_time(job_id_next, machine_id);
             }
             t_prec = t;
         }
@@ -152,7 +153,7 @@ public:
         // Compute bound.
         child->bound = father->bound
             + (n - father->number_of_jobs) * (t - father->times[m - 1])
-            - instance_.processing_time(j_next, m - 1);
+            - instance_.processing_time(job_id_next, m - 1);
         // Compute guide.
         double alpha = (double)child->number_of_jobs / instance_.number_of_jobs();
         switch (parameters_.guide_id) {
@@ -285,8 +286,10 @@ public:
     {
         if (node_1->total_completion_time <= node_2->total_completion_time) {
             bool dominates = true;
-            for (MachineId i = 0; i < instance_.number_of_machines(); ++i) {
-                if (node_1->times[i] > node_2->times[i]) {
+            for (MachineId machine_id = 0;
+                    machine_id < instance_.number_of_machines();
+                    ++machine_id) {
+                if (node_1->times[machine_id] > node_2->times[machine_id]) {
                     dominates = false;
                     break;
                 }
@@ -317,14 +320,15 @@ public:
     {
         if (node->times.empty())
             compute_structures(node);
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
                 << " c " << node_tmp->times[instance_.number_of_machines() - 1]
                 << " tct " << node_tmp->total_completion_time
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
+                << " j " << node_tmp->job_id
                 << std::endl;
         }
         return os;
@@ -343,12 +347,14 @@ public:
         }
 
         std::vector<JobId> jobs;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
-            jobs.push_back(node_tmp->j);
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            jobs.push_back(node_tmp->job_id);
+        }
         std::reverse(jobs.begin(), jobs.end());
-        for (JobId j: jobs)
-            cert << j << " ";
+        for (JobId job_id: jobs)
+            cert << job_id << " ";
     }
 
 

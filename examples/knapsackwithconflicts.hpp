@@ -48,8 +48,8 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_items;
-        ItemId j = -1;
-        ItemPos j_pos = -1;
+        ItemId item_id = -1;
+        ItemPos item_pos = -1;
         ItemId number_of_items = 0;
         ItemId number_of_remaining_items = -1;
         Profit remaining_weight = 0;
@@ -60,7 +60,9 @@ public:
         ItemPos next_child_pos = 0;
     };
 
-    BranchingScheme(const Instance& instance, const Parameters& parameters):
+    BranchingScheme(
+            const Instance& instance,
+            const Parameters& parameters):
         instance_(instance),
         parameters_(parameters) { }
 
@@ -69,9 +71,11 @@ public:
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->available_items.resize(instance_.number_of_items(), true);
         r->number_of_remaining_items = instance_.number_of_items();
-        for (ItemId j = 0; j < instance_.number_of_items(); ++j) {
-            r->remaining_weight += instance_.item(j).weight;
-            r->remaining_profit += instance_.item(j).profit;
+        for (ItemId item_id = 0;
+                item_id < instance_.number_of_items();
+                ++item_id) {
+            r->remaining_weight += instance_.item(item_id).weight;
+            r->remaining_profit += instance_.item(item_id).profit;
         }
         return r;
     }
@@ -79,36 +83,36 @@ public:
     inline std::shared_ptr<Node> next_child(
             const std::shared_ptr<Node>& father) const
     {
-        ItemId j_next = father->next_child_pos;
+        ItemId item_id_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
 
-        if (!father->available_items[j_next])
+        if (!father->available_items[item_id_next])
             return nullptr;
-        if (father->weight + instance_.item(j_next).weight > instance_.capacity())
+        if (father->weight + instance_.item(item_id_next).weight > instance_.capacity())
             return nullptr;
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
-        child->j = j_next;
-        child->j_pos = father->next_child_pos - 1;
+        child->item_id = item_id_next;
+        child->item_pos = father->next_child_pos - 1;
         child->number_of_items = father->number_of_items + 1;
         child->available_items = father->available_items;
-        child->available_items[j_next] = false;
+        child->available_items[item_id_next] = false;
         child->number_of_remaining_items = father->number_of_remaining_items - 1;
-        child->remaining_weight = father->remaining_weight - instance_.item(j_next).weight;
-        child->remaining_profit = father->remaining_profit - instance_.item(j_next).profit;
-        for (ItemId j: instance_.item(j_next).neighbors) {
-            if (child->available_items[j]) {
-                child->available_items[j] = false;
+        child->remaining_weight = father->remaining_weight - instance_.item(item_id_next).weight;
+        child->remaining_profit = father->remaining_profit - instance_.item(item_id_next).profit;
+        for (ItemId item_id: instance_.item(item_id_next).neighbors) {
+            if (child->available_items[item_id]) {
+                child->available_items[item_id] = false;
                 child->number_of_remaining_items--;
-                child->remaining_weight -= instance_.item(j).weight;
-                child->remaining_profit -= instance_.item(j).profit;
+                child->remaining_weight -= instance_.item(item_id).weight;
+                child->remaining_profit -= instance_.item(item_id).profit;
             }
         }
-        child->weight = father->weight + instance_.item(j_next).weight;
-        child->profit = father->profit + instance_.item(j_next).profit;
+        child->weight = father->weight + instance_.item(item_id_next).weight;
+        child->profit = father->profit + instance_.item(item_id_next).profit;
         child->guide =
             (parameters_.guide_id == 0)? (double)child->weight / child->profit:
             (parameters_.guide_id == 1)? (double)child->weight / child->profit / child->remaining_profit:
@@ -172,9 +176,9 @@ public:
             return false;
         std::vector<bool> v(instance_.number_of_items(), false);
         for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
-            v[node_tmp->j] = true;
+            v[node_tmp->item_id] = true;
         for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
-            if (!v[node_tmp->j])
+            if (!v[node_tmp->item_id])
                 return false;
         return true;
     }
@@ -259,12 +263,14 @@ public:
                 << std::setw(12) << "-----------"
                 << std::endl;
             for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father) {
-                ItemId j = node_tmp->j;
-                os << std::setw(12) << j
-                    << std::setw(12) << instance_.item(j).profit
-                    << std::setw(12) << instance_.item(j).weight
-                    << std::setw(12) << (double)instance_.item(j).profit / instance_.item(j).weight
-                    << std::setw(12) << instance_.item(j).neighbors.size()
+                ItemId item_id = node_tmp->item_id;
+                const Item& item = instance_.item(item_id);
+                os
+                    << std::setw(12) << item_id
+                    << std::setw(12) << item.profit
+                    << std::setw(12) << item.weight
+                    << std::setw(12) << (double)item.profit / item.weight
+                    << std::setw(12) << item.neighbors.size()
                     << std::endl;
             }
         }
@@ -286,10 +292,10 @@ public:
         std::vector<ItemId> items;
         for (auto node_tmp = node; node_tmp->father != nullptr;
                 node_tmp = node_tmp->father)
-            items.push_back(node_tmp->j);
+            items.push_back(node_tmp->item_id);
         std::reverse(items.begin(), items.end());
-        for (ItemId j: items)
-            cert << j << " ";
+        for (ItemId item_id: items)
+            cert << item_id << " ";
     }
 
 private:

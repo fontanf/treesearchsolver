@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Thief orienterring problem.
  *
@@ -11,6 +9,8 @@
  * - guide: time^exponent_time * weight^exponent_weight / profit^exponent_profit
  * - no bound
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -38,7 +38,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_items;
-        ItemId i = -1; // Last added item.
+        ItemId item_id = -1; // Last added item.
         ItemId number_of_items = 0;
         LocationId number_of_locations = 0;
         Time time = 0;
@@ -56,51 +56,55 @@ public:
         double exponent_profit = 1;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_items_(instance.number_of_items() + 1),
         generator_(0)
     {
         // Initialize sorted_items_.
-        for (ItemId i = 0; i < instance_.number_of_items() + 1; ++i) {
-            sorted_items_[i].reset(instance.number_of_items());
-            LocationId j = (i == instance_.number_of_items())?
-                0: instance_.item(i).location;
-            for (LocationId i2 = 0; i2 < instance_.number_of_items(); ++i2) {
-                LocationId j2 = instance_.item(i2).location;
+        for (ItemId item_id = 0; item_id < instance_.number_of_items() + 1; ++item_id) {
+            sorted_items_[item_id].reset(instance.number_of_items());
+            LocationId location_id = (item_id == instance_.number_of_items())?
+                0: instance_.item(item_id).location_id;
+            for (LocationId item_id_2 = 0; item_id_2 < instance_.number_of_items(); ++item_id_2) {
+                LocationId location_id_2 = instance_.item(item_id_2).location_id;
                 double c;
                 switch (parameters.guide_id) {
                 case 0: {
-                    c = std::pow(instance_.duration(j, j2, instance_.capacity() / 2), parameters_.exponent_time)
-                        * std::pow(instance_.item(i2).weight, parameters_.exponent_weight)
-                        / std::pow(instance_.item(i2).profit, parameters_.exponent_profit);
+                    c = std::pow(instance_.duration(location_id, location_id_2, instance_.capacity() / 2), parameters_.exponent_time)
+                        * std::pow(instance_.item(item_id_2).weight, parameters_.exponent_weight)
+                        / std::pow(instance_.item(item_id_2).profit, parameters_.exponent_profit);
                     break;
                 } default: {
-                    c = instance_.duration(j, j2, instance_.capacity() / 2)
-                        * instance_.item(i2).weight
-                        / instance_.item(i2).profit;
+                    c = instance_.duration(location_id, location_id_2, instance_.capacity() / 2)
+                        * instance_.item(item_id_2).weight
+                        / instance_.item(item_id_2).profit;
                 }
                 }
-                if (i == i2)
+                if (item_id == item_id_2)
                     c = std::numeric_limits<double>::max();
-                sorted_items_[i].set_cost(i2, c);
+                sorted_items_[item_id].set_cost(item_id_2, c);
             }
         }
     }
 
-    inline LocationId neighbor(ItemId i, ItemPos pos) const
+    inline LocationId neighbor(
+            ItemId item_id,
+            ItemPos pos) const
     {
-        assert(i < instance_.number_of_items() + 1);
+        assert(item_id < instance_.number_of_items() + 1);
         assert(pos < instance_.number_of_items());
-        return sorted_items_[i].get(pos, generator_);
+        return sorted_items_[item_id].get(pos, generator_);
     }
 
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->available_items.resize(instance_.number_of_items(), true);
-        r->i = instance_.number_of_items();
+        r->item_id = instance_.number_of_items();
         r->guide = 0;
         return r;
     }
@@ -111,22 +115,22 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        ItemId i_next = neighbor(father->i, father->next_child_pos);
+        ItemId item_id_next = neighbor(father->item_id, father->next_child_pos);
         // Update father
         father->next_child_pos++;
         // Check item availibility.
-        if (!father->available_items[i_next])
+        if (!father->available_items[item_id_next])
             return nullptr;
         // Check capacity.
-        if (father->weight + instance_.item(i_next).weight > instance_.capacity())
+        if (father->weight + instance_.item(item_id_next).weight > instance_.capacity())
             return nullptr;
         // Check time limit.
-        LocationId j = (father->father == nullptr)?
-            0: instance_.item(father->i).location;
-        LocationId j_next = instance_.item(i_next).location;
-        Time t = instance_.duration(j, j_next, father->weight);
-        Time t_end = instance_.duration(j_next, instance_.number_of_locations() - 1,
-                father->weight + instance_.item(i_next).weight);
+        LocationId location_id = (father->father == nullptr)?
+            0: instance_.item(father->item_id).location_id;
+        LocationId location_id_next = instance_.item(item_id_next).location_id;
+        Time t = instance_.duration(location_id, location_id_next, father->weight);
+        Time t_end = instance_.duration(location_id_next, instance_.number_of_locations() - 1,
+                father->weight + instance_.item(item_id_next).weight);
         if (father->time + t + t_end > instance_.time_limit())
             return nullptr;
 
@@ -134,18 +138,18 @@ public:
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
         child->available_items = father->available_items;
-        child->available_items[i_next] = false;
-        child->i = i_next;
+        child->available_items[item_id_next] = false;
+        child->item_id = item_id_next;
         child->number_of_items = father->number_of_items + 1;
         child->number_of_locations = father->number_of_locations;
-        if (j_next != j) {
-            for (ItemId i_tmp: instance_.location(j).items)
-                child->available_items[i_tmp] = false;
+        if (location_id_next != location_id) {
+            for (ItemId item_id_tmp: instance_.location(location_id).item_ids)
+                child->available_items[item_id_tmp] = false;
             child->number_of_locations++;
         }
         child->time = father->time + t;
-        child->profit = father->profit + instance_.item(i_next).profit;
-        child->weight = father->weight + instance_.item(i_next).weight;
+        child->profit = father->profit + instance_.item(item_id_next).profit;
+        child->weight = father->weight + instance_.item(item_id_next).weight;
         switch (parameters_.guide_id) {
         case 0: {
             child->guide = std::pow(child->time, parameters_.exponent_time)
@@ -237,8 +241,8 @@ public:
                 const std::shared_ptr<Node>& node_1,
                 const std::shared_ptr<Node>& node_2) const
         {
-            if (branching_scheme_.instance().item(node_1->i).location
-                    != branching_scheme_.instance().item(node_2->i).location)
+            if (branching_scheme_.instance().item(node_1->item_id).location_id
+                    != branching_scheme_.instance().item(node_2->item_id).location_id)
                 return false;
             if (node_1->available_items != node_2->available_items)
                 return false;
@@ -248,7 +252,7 @@ public:
         inline std::size_t operator()(
                 const std::shared_ptr<Node>& node) const
         {
-            size_t hash = hasher_1(branching_scheme_.instance().item(node->i).location);
+            size_t hash = hasher_1(branching_scheme_.instance().item(node->item_id).location_id);
             optimizationtools::hash_combine(hash, hasher_2(node->available_items));
             return hash;
         }
@@ -273,13 +277,13 @@ public:
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
-        LocationId j = instance_.item(node->i).location;
+        LocationId location_id = instance_.item(node->item_id).location_id;
         std::stringstream ss;
         ss << node->profit
             << " (n" << node->number_of_locations
             << " m" << node->number_of_items
             << " w" << std::round(100 * (double)node->weight / instance_.capacity()) / 100
-            << " t" << std::round(100 * (node->time + instance_.duration(j, instance_.number_of_locations() - 1, node->weight)) / instance_.time_limit()) / 100
+            << " t" << std::round(100 * (node->time + instance_.duration(location_id, instance_.number_of_locations() - 1, node->weight)) / instance_.time_limit()) / 100
             << ")";
         return ss.str();
     }
@@ -297,7 +301,7 @@ public:
                 << " w " << node_tmp->weight
                 << " p " << node_tmp->profit
                 << " guide " << node_tmp->guide
-                << " i " << node_tmp->i
+                << " i " << node_tmp->item_id
                 << std::endl;
         }
         return os;
@@ -318,11 +322,11 @@ public:
         std::vector<thieforienteering::ItemId> items;
         auto node_tmp = node;
         while (node_tmp->father != nullptr) {
-            items.push_back(node_tmp->i);
+            items.push_back(node_tmp->item_id);
             node_tmp = node_tmp->father;
         }
-        for (thieforienteering::ItemId i: items)
-            cert << i << " ";
+        for (thieforienteering::ItemId item_id: items)
+            cert << item_id << " ";
         cert << std::endl;
         cert.close();
     }

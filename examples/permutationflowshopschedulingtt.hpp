@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Permutation flow shop scheduling problem, Total tardiness.
  *
@@ -9,6 +7,8 @@
  * Tree search:
  * - Forward branching
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -35,7 +35,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
-        JobId j = -1;
+        JobId job_id = -1;
         JobId number_of_jobs = 0;
         std::vector<Time> times;
         Time total_tardiness = 0;
@@ -52,11 +52,11 @@ public:
         GuideId guide_id = 0;
     };
 
-    BranchingSchemeForward(const Instance& instance, Parameters parameters):
+    BranchingSchemeForward(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
-        parameters_(parameters)
-    {
-    }
+        parameters_(parameters) { }
 
     inline const std::shared_ptr<Node> root() const
     {
@@ -75,17 +75,17 @@ public:
         MachineId m = instance_.number_of_machines();
         auto father = node->father;
         node->available_jobs = father->available_jobs;
-        node->available_jobs[node->j] = false;
+        node->available_jobs[node->job_id] = false;
         node->times = father->times;
         node->times[0] = father->times[0]
-            + instance_.job(node->j).processing_times[0];
-        for (MachineId i = 1; i < m; ++i) {
-            if (node->times[i - 1] > father->times[i]) {
-                node->times[i] = node->times[i - 1]
-                    + instance_.job(node->j).processing_times[i];
+            + instance_.job(node->job_id).processing_times[0];
+        for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+            if (node->times[machine_id - 1] > father->times[machine_id]) {
+                node->times[machine_id] = node->times[machine_id - 1]
+                    + instance_.job(node->job_id).processing_times[machine_id];
             } else {
-                node->times[i] = father->times[i]
-                    + instance_.job(node->j).processing_times[i];
+                node->times[machine_id] = father->times[machine_id]
+                    + instance_.job(node->job_id).processing_times[machine_id];
             }
         }
     }
@@ -110,11 +110,11 @@ public:
         //        << " guide " << father->guide
         //        << std::endl;
 
-        JobId j_next = father->next_child_pos;
+        JobId job_id_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
         // Check job availibility.
-        if (!father->available_jobs[j_next])
+        if (!father->available_jobs[job_id_next])
             return nullptr;
 
         // Compute new child.
@@ -122,30 +122,30 @@ public:
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingSchemeForward::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->idle_time = father->idle_time;
         child->weighted_idle_time = father->weighted_idle_time;
         Time t_prec = father->times[0]
-            + instance_.job(j_next).processing_times[0];
+            + instance_.job(job_id_next).processing_times[0];
         Time t = 0;
-        for (MachineId i = 1; i < m; ++i) {
-            if (t_prec > father->times[i]) {
-                Time idle_time = t_prec - father->times[i];
+        for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+            if (t_prec > father->times[machine_id]) {
+                Time idle_time = t_prec - father->times[machine_id];
                 t = t_prec
-                    + instance_.job(j_next).processing_times[i];
+                    + instance_.job(job_id_next).processing_times[machine_id];
                 child->idle_time += idle_time;
-                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - i) * idle_time;
+                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - machine_id) * idle_time;
             } else {
-                t = father->times[i]
-                    + instance_.job(j_next).processing_times[i];
+                t = father->times[machine_id]
+                    + instance_.job(job_id_next).processing_times[machine_id];
             }
             t_prec = t;
         }
         child->total_tardiness = father->total_tardiness
-            + std::max((Time)0, t - instance_.job(j_next).due_date);
+            + std::max((Time)0, t - instance_.job(job_id_next).due_date);
         child->total_earliness = father->total_earliness
-            + std::max((Time)0, instance_.job(j_next).due_date - t);
+            + std::max((Time)0, instance_.job(job_id_next).due_date - t);
         // Compute bound.
         child->bound = child->total_tardiness;
         // Compute guide.
@@ -264,8 +264,10 @@ public:
     {
         if (node_1->total_tardiness <= node_2->total_tardiness) {
             bool dominates = true;
-            for (MachineId i = 0; i < instance_.number_of_machines(); ++i) {
-                if (node_1->times[i] > node_2->times[i]) {
+            for (MachineId machine_id = 0;
+                    machine_id < instance_.number_of_machines();
+                    ++machine_id) {
+                if (node_1->times[machine_id] > node_2->times[machine_id]) {
                     dominates = false;
                     break;
                 }
@@ -299,7 +301,8 @@ public:
     {
         if (node->times.empty())
             compute_structures(node);
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
@@ -309,8 +312,8 @@ public:
                 << " it " << node_tmp->idle_time
                 << " wit " << node_tmp->weighted_idle_time
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
-                << " dj " << instance_.job(node_tmp->j).due_date
+                << " j " << node_tmp->job_id
+                << " dj " << instance_.job(node_tmp->job_id).due_date
                 << std::endl;
         }
         return os;
@@ -329,12 +332,14 @@ public:
         }
 
         std::vector<JobId> jobs;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
-            jobs.push_back(node_tmp->j);
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            jobs.push_back(node_tmp->job_id);
+        }
         std::reverse(jobs.begin(), jobs.end());
-        for (JobId j: jobs)
-            cert << j << " ";
+        for (JobId job_id: jobs)
+            cert << job_id << " ";
     }
 
 
@@ -369,7 +374,9 @@ public:
         GuideId sort_criterion_id = 1;
     };
 
-    BranchingSchemeInsertion(const Instance& instance, Parameters parameters):
+    BranchingSchemeInsertion(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_jobs_(instance.number_of_jobs()),
@@ -378,9 +385,16 @@ public:
         completion_times_(instance.number_of_machines(), 0)
     {
         // Compute processing_time_sums_;
-        for (JobId j = 0; j < instance.number_of_jobs(); ++j)
-            for (MachineId i = 0; i < instance.number_of_machines(); ++i)
-                processing_time_sums_[j] += instance.job(j).processing_times[i];
+        for (JobId job_id = 0;
+                job_id < instance.number_of_jobs();
+                ++job_id) {
+            const Job& job = instance.job(job_id);
+            for (MachineId machine_id = 0;
+                    machine_id < instance.number_of_machines();
+                    ++machine_id) {
+                processing_time_sums_[job_id] += job.processing_times[machine_id];
+            }
+        }
 
         // Initialize sorted_jobs_.
         std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
@@ -390,9 +404,10 @@ public:
             break;
         } case 1: {
             std::sort(sorted_jobs_.begin(), sorted_jobs_.end(),
-                    [this](JobId j1, JobId j2) -> bool
+                    [this](JobId job_id_1, JobId job_id_2) -> bool
                     {
-                        return processing_time_sums_[j1] < processing_time_sums_[j2];
+                        return processing_time_sums_[job_id_1]
+                            < processing_time_sums_[job_id_2];
                     });
             break;
         } default: {
@@ -435,7 +450,7 @@ public:
         if (father->father != nullptr && father->jobs.empty())
             compute_structures(father);
 
-        JobId j_next = sorted_jobs_[instance_.number_of_jobs() - father->number_of_jobs - 1];
+        JobId job_id_next = sorted_jobs_[instance_.number_of_jobs() - father->number_of_jobs - 1];
         JobPos pos = father->next_child_pos;
         // Update father
         father->next_child_pos++;
@@ -447,70 +462,70 @@ public:
 
         // Update heads_.
         if (pos == 0) {
-            for (MachineId i = 0; i < m; ++i)
-                heads_[i] = 0;
+            for (MachineId machine_id = 0; machine_id < m; ++machine_id)
+                heads_[machine_id] = 0;
             head_total_earliness_ = 0;
             head_total_tardiness_ = 0;
         } else {
-            JobId j = father->jobs[pos - 1];
+            JobId job_id = father->jobs[pos - 1];
             heads_[0] = heads_[0]
-                + instance_.job(j).processing_times[0];
-            for (MachineId i = 1; i < m; ++i) {
-                if (heads_[i - 1] > heads_[i]) {
-                    heads_[i] = heads_[i - 1]
-                        + instance_.job(j).processing_times[i];
+                + instance_.job(job_id).processing_times[0];
+            for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                if (heads_[machine_id - 1] > heads_[machine_id]) {
+                    heads_[machine_id] = heads_[machine_id - 1]
+                        + instance_.job(job_id).processing_times[machine_id];
                 } else {
-                    heads_[i] = heads_[i]
-                        + instance_.job(j).processing_times[i];
+                    heads_[machine_id] = heads_[machine_id]
+                        + instance_.job(job_id).processing_times[machine_id];
                 }
             }
-            if (heads_[m - 1] < instance_.job(j).due_date)
-                head_total_earliness_ += (instance_.job(j).due_date
+            if (heads_[m - 1] < instance_.job(job_id).due_date)
+                head_total_earliness_ += (instance_.job(job_id).due_date
                         - heads_[m - 1]);
-            if (heads_[m - 1] > instance_.job(j).due_date)
+            if (heads_[m - 1] > instance_.job(job_id).due_date)
                 head_total_tardiness_ += (heads_[m - 1]
-                        - instance_.job(j).due_date);
+                        - instance_.job(job_id).due_date);
         }
-        // Update completion_times_ of j_next.
+        // Update completion_times_ of job_id_next.
         child->total_earliness = head_total_earliness_;
         child->total_tardiness = head_total_tardiness_;
         completion_times_[0] = heads_[0]
-            + instance_.job(j_next).processing_times[0];
-        for (MachineId i = 1; i < m; ++i) {
-            if (completion_times_[i - 1] > heads_[i]) {
-                completion_times_[i] = completion_times_[i - 1]
-                    + instance_.job(j_next).processing_times[i];
+            + instance_.job(job_id_next).processing_times[0];
+        for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+            if (completion_times_[machine_id - 1] > heads_[machine_id]) {
+                completion_times_[machine_id] = completion_times_[machine_id - 1]
+                    + instance_.job(job_id_next).processing_times[machine_id];
             } else {
-                completion_times_[i] = heads_[i]
-                    + instance_.job(j_next).processing_times[i];
+                completion_times_[machine_id] = heads_[machine_id]
+                    + instance_.job(job_id_next).processing_times[machine_id];
             }
         }
-        if (completion_times_[m - 1] < instance_.job(j_next).due_date)
-            child->total_earliness += (instance_.job(j_next).due_date
+        if (completion_times_[m - 1] < instance_.job(job_id_next).due_date)
+            child->total_earliness += (instance_.job(job_id_next).due_date
                     - completion_times_[m - 1]);
-        if (completion_times_[m - 1] > instance_.job(j_next).due_date)
+        if (completion_times_[m - 1] > instance_.job(job_id_next).due_date)
             child->total_tardiness += (completion_times_[m - 1]
-                    - instance_.job(j_next).due_date);
+                    - instance_.job(job_id_next).due_date);
         // Update completion_times_ of tail jobs.
-        for (JobPos j_pos = pos; j_pos < (JobPos)father->jobs.size(); ++j_pos) {
-            JobId j = father->jobs[j_pos];
+        for (JobPos job_pos = pos; job_pos < (JobPos)father->jobs.size(); ++job_pos) {
+            JobId job_id = father->jobs[job_pos];
             completion_times_[0] = completion_times_[0]
-                + instance_.job(j).processing_times[0];
-            for (MachineId i = 1; i < m; ++i) {
-                if (completion_times_[i - 1] > completion_times_[i]) {
-                    completion_times_[i] = completion_times_[i - 1]
-                        + instance_.job(j).processing_times[i];
+                + instance_.job(job_id).processing_times[0];
+            for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                if (completion_times_[machine_id - 1] > completion_times_[machine_id]) {
+                    completion_times_[machine_id] = completion_times_[machine_id - 1]
+                        + instance_.job(job_id).processing_times[machine_id];
                 } else {
-                    completion_times_[i] = completion_times_[i]
-                        + instance_.job(j).processing_times[i];
+                    completion_times_[machine_id] = completion_times_[machine_id]
+                        + instance_.job(job_id).processing_times[machine_id];
                 }
             }
-            if (completion_times_[m - 1] < instance_.job(j).due_date)
-                child->total_earliness += (instance_.job(j).due_date
+            if (completion_times_[m - 1] < instance_.job(job_id).due_date)
+                child->total_earliness += (instance_.job(job_id).due_date
                         - completion_times_[m - 1]);
-            if (completion_times_[m - 1] > instance_.job(j).due_date)
+            if (completion_times_[m - 1] > instance_.job(job_id).due_date)
                 child->total_tardiness += (completion_times_[m - 1]
-                        - instance_.job(j).due_date);
+                        - instance_.job(job_id).due_date);
         }
         child->makespan = completion_times_[m - 1];
 
@@ -670,8 +685,8 @@ public:
 
         if (node->father != nullptr && node->jobs.empty())
             compute_structures(node);
-        for (JobId j: node->jobs)
-            cert << j << " ";
+        for (JobId job_id: node->jobs)
+            cert << job_id << " ";
     }
 
 private:

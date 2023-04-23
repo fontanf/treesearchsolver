@@ -33,11 +33,12 @@ int main(int argc, char *argv[])
 
     // Create instance.
     Instance instance(main_args.instance_path, main_args.format);
-    if (main_args.print_instance) {
+    if (main_args.print_instance > 0) {
         os
             << "Instance" << std::endl
             << "--------" << std::endl;
-        os << instance << std::endl;
+        instance.print(os, main_args.print_instance);
+        os << std::endl;
     }
 
     // Create branching scheme.
@@ -57,7 +58,8 @@ int main(int argc, char *argv[])
         run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
     // Write solution.
-    branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
+    std::string certificate_path = main_args.info.output->certificate_path;
+    branching_scheme.write(solution_pool.best(), certificate_path);
     if (main_args.print_solution) {
         os << std::endl
             << "Solution" << std::endl
@@ -66,9 +68,15 @@ int main(int argc, char *argv[])
     }
 
     // Run checker.
-    if (main_args.info.output->certificate_path != "") {
-        std::cout << std::endl;
-        instance.check(main_args.info.output->certificate_path);
+    if (main_args.print_checker > 0
+            && certificate_path != "") {
+        os << std::endl
+            << "Checker" << std::endl
+            << "-------" << std::endl;
+        instance.check(
+               certificate_path,
+                os,
+                main_args.print_checker);
     }
 
     return 0;

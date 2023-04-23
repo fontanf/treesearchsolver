@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Permutation flow shop scheduling problem, Makespan.
  *
@@ -15,6 +13,8 @@
  *   - 3: bound and weighted idle time
  *   - 4: gap, bound and weighted idle time
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -51,7 +51,7 @@ public:
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
         bool forward = true;
-        JobId j = -1;
+        JobId job_id = -1;
         JobId number_of_jobs = 0;
         std::vector<NodeMachine> machines;
         Time idle_time = 0;
@@ -67,7 +67,9 @@ public:
         GuideId guide_id = 3;
     };
 
-    BranchingSchemeBidirectional(const Instance& instance, Parameters parameters):
+    BranchingSchemeBidirectional(
+            const Instance& instance,
+            const Parameters& parameters):
         instance_(instance),
         parameters_(parameters)
     {
@@ -80,12 +82,15 @@ public:
         auto r = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         r->available_jobs.resize(n, true);
         r->machines.resize(m);
-        for (JobId j = 0; j < n; ++j)
-            for (MachineId i = 0; i < m; ++i)
-                r->machines[i].remaining_processing_time += instance_.processing_time(j, i);
+        for (JobId job_id = 0; job_id < n; ++job_id) {
+            for (MachineId machine_id = 0; machine_id < m; ++machine_id) {
+                r->machines[machine_id].remaining_processing_time
+                    += instance_.processing_time(job_id, machine_id);
+            }
+        }
         r->bound = 0;
-        for (JobId j = 0; j < n; ++j)
-            r->bound += instance_.processing_time(j, m - 1);
+        for (JobId job_id = 0; job_id < n; ++job_id)
+            r->bound += instance_.processing_time(job_id, m - 1);
         if (best_node_ == nullptr)
             best_node_ = r;
         return r;
@@ -97,35 +102,47 @@ public:
         MachineId m = instance_.number_of_machines();
         auto father = node->father;
         node->available_jobs = father->available_jobs;
-        node->available_jobs[node->j] = false;
+        node->available_jobs[node->job_id] = false;
         node->machines = father->machines;
         if (father->forward) {
-            node->machines[0].time_forward += instance_.processing_time(node->j, 0);
-            node->machines[0].remaining_processing_time -= instance_.processing_time(node->j, 0);
-            for (MachineId i = 1; i < m; ++i) {
-                if (node->machines[i - 1].time_forward > father->machines[i].time_forward) {
-                    Time idle_time = node->machines[i - 1].time_forward - father->machines[i].time_forward;
-                    node->machines[i].time_forward = node->machines[i - 1].time_forward
-                        + instance_.processing_time(node->j, i);
-                    node->machines[i].idle_time_forward += idle_time;
+            node->machines[0].time_forward
+                += instance_.processing_time(node->job_id, 0);
+            node->machines[0].remaining_processing_time
+                -= instance_.processing_time(node->job_id, 0);
+            for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                if (node->machines[machine_id - 1].time_forward
+                        > father->machines[machine_id].time_forward) {
+                    Time idle_time = node->machines[machine_id - 1].time_forward
+                        - father->machines[machine_id].time_forward;
+                    node->machines[machine_id].time_forward
+                        = node->machines[machine_id - 1].time_forward
+                        + instance_.processing_time(node->job_id, machine_id);
+                    node->machines[machine_id].idle_time_forward += idle_time;
                 } else {
-                    node->machines[i].time_forward += + instance_.processing_time(node->j, i);
+                    node->machines[machine_id].time_forward
+                        += instance_.processing_time(node->job_id, machine_id);
                 }
-                node->machines[i].remaining_processing_time -= instance_.processing_time(node->j, i);
+                node->machines[machine_id].remaining_processing_time
+                    -= instance_.processing_time(node->job_id, machine_id);
             }
         } else {
-            node->machines[m - 1].time_backward += instance_.processing_time(node->j, m - 1);
-            node->machines[m - 1].remaining_processing_time -= instance_.processing_time(node->j, m - 1);
-            for (MachineId i = m - 2; i >= 0; --i) {
-                if (node->machines[i + 1].time_backward > father->machines[i].time_backward) {
-                    Time idle_time = node->machines[i + 1].time_backward - father->machines[i].time_backward;
-                    node->machines[i].time_backward = node->machines[i + 1].time_backward
-                        + instance_.processing_time(node->j, i);
-                    node->machines[i].idle_time_backward += idle_time;
+            node->machines[m - 1].time_backward += instance_.processing_time(node->job_id, m - 1);
+            node->machines[m - 1].remaining_processing_time -= instance_.processing_time(node->job_id, m - 1);
+            for (MachineId machine_id = m - 2; machine_id >= 0; --machine_id) {
+                if (node->machines[machine_id + 1].time_backward
+                        > father->machines[machine_id].time_backward) {
+                    Time idle_time = node->machines[machine_id + 1].time_backward
+                        - father->machines[machine_id].time_backward;
+                    node->machines[machine_id].time_backward
+                        = node->machines[machine_id + 1].time_backward
+                        + instance_.processing_time(node->job_id, machine_id);
+                    node->machines[machine_id].idle_time_backward += idle_time;
                 } else {
-                    node->machines[i].time_backward += instance_.processing_time(node->j, i);
+                    node->machines[machine_id].time_backward
+                        += instance_.processing_time(node->job_id, machine_id);
                 }
-                node->machines[i].remaining_processing_time -= instance_.processing_time(node->j, i);
+                node->machines[machine_id].remaining_processing_time
+                    -= instance_.processing_time(node->job_id, machine_id);
             }
         }
     }
@@ -165,32 +182,31 @@ public:
             JobPos n_backward = 0;
             Time bound_forward = 0;
             Time bound_backward = 0;
-            for (JobId j_next = 0; j_next < n; ++j_next) {
-                if (!father->available_jobs[j_next])
+            for (JobId job_id_next = 0; job_id_next < n; ++job_id_next) {
+                if (!father->available_jobs[job_id_next])
                     continue;
                 // Forward.
                 Time bf = 0;
                 Time t_prec = father->machines[0].time_forward
-                    + instance_.processing_time(j_next, 0);
+                    + instance_.processing_time(job_id_next, 0);
                 Time t = 0;
                 bf = std::max(bf,
                         t_prec
                         + father->machines[0].remaining_processing_time
-                        - instance_.processing_time(j_next, 0)
+                        - instance_.processing_time(job_id_next, 0)
                         + father->machines[0].time_backward);
-                for (MachineId i = 1; i < m; ++i) {
-                    if (t_prec > father->machines[i].time_forward) {
-                        t = t_prec
-                            + instance_.processing_time(j_next, i);
+                for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                    if (t_prec > father->machines[machine_id].time_forward) {
+                        t = t_prec + instance_.processing_time(job_id_next, machine_id);
                     } else {
-                        t = father->machines[i].time_forward
-                            + instance_.processing_time(j_next, i);
+                        t = father->machines[machine_id].time_forward
+                            + instance_.processing_time(job_id_next, machine_id);
                     }
-                    bf = std::max(bf,
-                            t
-                            + father->machines[i].remaining_processing_time
-                            - instance_.processing_time(j_next, i)
-                            + father->machines[i].time_backward);
+                    bf = std::max(
+                            bf,
+                            t + father->machines[machine_id].remaining_processing_time
+                            - instance_.processing_time(job_id_next, machine_id)
+                            + father->machines[machine_id].time_backward);
                     t_prec = t;
                 }
                 if (best_node_->number_of_jobs != n
@@ -202,24 +218,24 @@ public:
                 Time bb = 0;
                 t_prec
                     = father->machines[m - 1].time_backward
-                    + instance_.processing_time(j_next, m - 1);
+                    + instance_.processing_time(job_id_next, m - 1);
                 bb = std::max(bb,
                         father->machines[m - 1].time_forward
                         + father->machines[m - 1].remaining_processing_time
-                        - instance_.processing_time(j_next, m - 1)
+                        - instance_.processing_time(job_id_next, m - 1)
                         + t_prec);
-                for (MachineId i = m - 2; i >= 0; --i) {
-                    if (t_prec > father->machines[i].time_backward) {
-                        t = t_prec
-                            + instance_.processing_time(j_next, i);
+                for (MachineId machine_id = m - 2; machine_id >= 0; --machine_id) {
+                    if (t_prec > father->machines[machine_id].time_backward) {
+                        t = t_prec + instance_.processing_time(job_id_next, machine_id);
                     } else {
-                        t = father->machines[i].time_backward
-                            + instance_.processing_time(j_next, i);
+                        t = father->machines[machine_id].time_backward
+                            + instance_.processing_time(job_id_next, machine_id);
                     }
-                    bb = std::max(bb,
-                            father->machines[i].time_forward
-                            + father->machines[i].remaining_processing_time
-                            - instance_.processing_time(j_next, i)
+                    bb = std::max(
+                            bb,
+                            father->machines[machine_id].time_forward
+                            + father->machines[machine_id].remaining_processing_time
+                            - instance_.processing_time(job_id_next, machine_id)
                             + t);
                     t_prec = t;
                 }
@@ -242,11 +258,11 @@ public:
             }
         }
 
-        JobId j_next = father->next_child_pos;
+        JobId job_id_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
         // Check job availibility.
-        if (!father->available_jobs[j_next])
+        if (!father->available_jobs[job_id_next])
             return nullptr;
 
         // Compute new child.
@@ -254,7 +270,7 @@ public:
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         // Update machines and idle_time.
         child->idle_time = father->idle_time;
@@ -262,76 +278,76 @@ public:
         Time t_prec = 0;
         if (father->forward) {
             t_prec = father->machines[0].time_forward
-                + instance_.processing_time(j_next, 0);
+                + instance_.processing_time(job_id_next, 0);
             Time remaining_processing_time
                 = father->machines[0].remaining_processing_time
-                - instance_.processing_time(j_next, 0);
+                - instance_.processing_time(job_id_next, 0);
             child->weighted_idle_time += (father->machines[0].time_backward == 0)? 1:
                 (double)father->machines[0].idle_time_backward / father->machines[0].time_backward;
             child->bound = std::max(child->bound,
                     t_prec
                     + remaining_processing_time
                     + father->machines[0].time_backward);
-            for (MachineId i = 1; i < m; ++i) {
-                Time machine_idle_time = father->machines[i].idle_time_forward;
-                if (t_prec > father->machines[i].time_forward) {
-                    Time idle_time = t_prec - father->machines[i].time_forward;
-                    t = t_prec
-                        + instance_.processing_time(j_next, i);
+            for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                Time machine_idle_time = father->machines[machine_id].idle_time_forward;
+                if (t_prec > father->machines[machine_id].time_forward) {
+                    Time idle_time = t_prec - father->machines[machine_id].time_forward;
+                    t = t_prec + instance_.processing_time(job_id_next, machine_id);
                     machine_idle_time += idle_time;
                     child->idle_time += idle_time;
                 } else {
-                    t = father->machines[i].time_forward
-                        + instance_.processing_time(j_next, i);
+                    t = father->machines[machine_id].time_forward
+                        + instance_.processing_time(job_id_next, machine_id);
                 }
                 Time remaining_processing_time
-                    = father->machines[i].remaining_processing_time
-                    - instance_.processing_time(j_next, i);
+                    = father->machines[machine_id].remaining_processing_time
+                    - instance_.processing_time(job_id_next, machine_id);
                 child->weighted_idle_time += (t == 0)? 1:
                     (double)machine_idle_time / t;
-                child->weighted_idle_time += (father->machines[i].time_backward == 0)? 1:
-                    (double)father->machines[i].idle_time_backward / father->machines[i].time_backward;
-                child->bound = std::max(child->bound,
-                        t
-                        + remaining_processing_time
-                        + father->machines[i].time_backward);
+                child->weighted_idle_time += (father->machines[machine_id].time_backward == 0)? 1:
+                    (double)father->machines[machine_id].idle_time_backward
+                    / father->machines[machine_id].time_backward;
+                child->bound = std::max(
+                        child->bound,
+                        t + remaining_processing_time
+                        + father->machines[machine_id].time_backward);
                 t_prec = t;
             }
         } else {
             t_prec = father->machines[m - 1].time_backward
-                + instance_.processing_time(j_next, m - 1);
+                + instance_.processing_time(job_id_next, m - 1);
             Time remaining_processing_time
                 = father->machines[m - 1].remaining_processing_time
-                - instance_.processing_time(j_next, m - 1);
+                - instance_.processing_time(job_id_next, m - 1);
             child->weighted_idle_time += (father->machines[m - 1].time_forward == 0)? 1:
                 (double)father->machines[m - 1].idle_time_forward / father->machines[m - 1].time_forward;
             child->bound = std::max(child->bound,
                     father->machines[m - 1].time_forward
                     + remaining_processing_time
                     + t_prec);
-            for (MachineId i = m - 2; i >= 0; --i) {
-                Time machine_idle_time = father->machines[i].idle_time_backward;
-                if (t_prec > father->machines[i].time_backward) {
-                    Time idle_time = t_prec - father->machines[i].time_backward;
-                    t = t_prec
-                        + instance_.processing_time(j_next, i);
+            for (MachineId machine_id = m - 2; machine_id >= 0; --machine_id) {
+                Time machine_idle_time = father->machines[machine_id].idle_time_backward;
+                if (t_prec > father->machines[machine_id].time_backward) {
+                    Time idle_time = t_prec - father->machines[machine_id].time_backward;
+                    t = t_prec + instance_.processing_time(job_id_next, machine_id);
                     machine_idle_time += idle_time;
                     child->idle_time += idle_time;
                 } else {
-                    t = father->machines[i].time_backward
-                        + instance_.processing_time(j_next, i);
+                    t = father->machines[machine_id].time_backward
+                        + instance_.processing_time(job_id_next, machine_id);
                 }
                 Time remaining_processing_time
-                    = father->machines[i].remaining_processing_time
-                    - instance_.processing_time(j_next, i);
-                child->weighted_idle_time += (father->machines[i].time_forward == 0)? 1:
-                    (double)father->machines[i].idle_time_forward / father->machines[i].time_forward;
+                    = father->machines[machine_id].remaining_processing_time
+                    - instance_.processing_time(job_id_next, machine_id);
+                child->weighted_idle_time += (father->machines[machine_id].time_forward == 0)? 1:
+                    (double)father->machines[machine_id].idle_time_forward
+                    / father->machines[machine_id].time_forward;
                 child->weighted_idle_time += (t == 0)? 1:
                     (double)machine_idle_time / t;
-                child->bound = std::max(child->bound,
-                        father->machines[i].time_forward
-                        + remaining_processing_time
-                        + t);
+                child->bound = std::max(
+                        child->bound,
+                        father->machines[machine_id].time_forward
+                        + remaining_processing_time + t);
                 t_prec = t;
             }
         }
@@ -500,7 +516,8 @@ public:
         MachineId m = instance_.number_of_machines();
         if (node->machines.empty())
             compute_structures(node);
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
@@ -510,7 +527,7 @@ public:
                 << " cb0 " << node_tmp->machines[0].time_backward
                 << " cbm " << node_tmp->machines[m - 1].time_backward
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
+                << " j " << node_tmp->job_id
                 << std::endl;
         }
         return os;
@@ -530,18 +547,19 @@ public:
 
         std::vector<JobId> jobs_forward;
         std::vector<JobId> jobs_backward;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             if (node_tmp->father->forward) {
-                jobs_forward.push_back(node_tmp->j);
+                jobs_forward.push_back(node_tmp->job_id);
             } else {
-                jobs_backward.push_back(node_tmp->j);
+                jobs_backward.push_back(node_tmp->job_id);
             }
         }
         std::reverse(jobs_forward.begin(), jobs_forward.end());
         jobs_forward.insert(jobs_forward.end(), jobs_backward.begin(), jobs_backward.end());
-        for (JobId j: jobs_forward)
-            cert << j << " ";
+        for (JobId job_id: jobs_forward)
+            cert << job_id << " ";
     }
 
 
@@ -575,7 +593,9 @@ public:
         GuideId sort_criterion_id = 1;
     };
 
-    BranchingSchemeInsertion(const Instance& instance, Parameters parameters):
+    BranchingSchemeInsertion(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_jobs_(instance.number_of_jobs()),
@@ -585,9 +605,16 @@ public:
         completion_times_(instance.number_of_jobs(), std::vector<Time>(instance.number_of_machines() + 1, 0))
     {
         // Compute processing_time_sums_;
-        for (JobId j = 0; j < instance.number_of_jobs(); ++j)
-            for (MachineId i = 0; i < instance.number_of_machines(); ++i)
-                processing_time_sums_[j] += instance.processing_time(j, i);
+        for (JobId job_id = 0;
+                job_id < instance.number_of_jobs();
+                ++job_id) {
+            for (MachineId machine_id = 0;
+                    machine_id < instance.number_of_machines();
+                    ++machine_id) {
+                processing_time_sums_[job_id]
+                    += instance.processing_time(job_id, machine_id);
+            }
+        }
 
         // Initialize sorted_jobs_.
         std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
@@ -597,9 +624,10 @@ public:
             break;
         } case 1: {
             std::sort(sorted_jobs_.begin(), sorted_jobs_.end(),
-                    [this](JobId j1, JobId j2) -> bool
+                    [this](JobId job_id_1, JobId job_id_2) -> bool
                     {
-                        return processing_time_sums_[j1] < processing_time_sums_[j2];
+                        return processing_time_sums_[job_id_1]
+                            < processing_time_sums_[job_id_2];
                     });
             break;
         } default: {
@@ -641,55 +669,61 @@ public:
         if (father->father != nullptr && father->jobs.empty())
             compute_structures(father);
 
-        JobId j_next = sorted_jobs_[instance_.number_of_jobs() - father->number_of_jobs - 1];
+        JobId job_id_next = sorted_jobs_[instance_.number_of_jobs() - father->number_of_jobs - 1];
         JobPos pos = father->next_child_pos;
         // Update father
         father->next_child_pos++;
 
         if (pos == 0) {
             // Compute heads_.
-            for (JobPos j_pos = 0; j_pos < (JobPos)father->jobs.size(); ++j_pos) {
-                JobId j = father->jobs[j_pos];
-                heads_[j_pos + 1][0] = heads_[j_pos][0]
-                    + instance_.processing_time(j, 0);
-                for (MachineId i = 1; i < m; ++i) {
-                    if (heads_[j_pos + 1][i - 1] > heads_[j_pos][i]) {
-                        heads_[j_pos + 1][i] = heads_[j_pos + 1][i - 1]
-                            + instance_.processing_time(j, i);
+            for (JobPos job_pos = 0;
+                    job_pos < (JobPos)father->jobs.size();
+                    ++job_pos) {
+                JobId job_id = father->jobs[job_pos];
+                heads_[job_pos + 1][0] = heads_[job_pos][0]
+                    + instance_.processing_time(job_id, 0);
+                for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                    if (heads_[job_pos + 1][machine_id - 1] > heads_[job_pos][machine_id]) {
+                        heads_[job_pos + 1][machine_id] = heads_[job_pos + 1][machine_id - 1]
+                            + instance_.processing_time(job_id, machine_id);
                     } else {
-                        heads_[j_pos + 1][i] = heads_[j_pos][i]
-                            + instance_.processing_time(j, i);
+                        heads_[job_pos + 1][machine_id] = heads_[job_pos][machine_id]
+                            + instance_.processing_time(job_id, machine_id);
                     }
                 }
             }
             // Compute completion_times_.
-            for (JobPos j_pos = 0; j_pos <= (JobPos)father->jobs.size(); ++j_pos) {
-                completion_times_[j_pos][0] = heads_[j_pos][0]
-                    + instance_.processing_time(j_next, 0);
-                for (MachineId i = 1; i < m; ++i) {
-                    if (heads_[j_pos][i] > completion_times_[j_pos][i - 1]) {
-                        completion_times_[j_pos][i] = heads_[j_pos][i]
-                            + instance_.processing_time(j_next, i);
+            for (JobPos job_pos = 0;
+                    job_pos <= (JobPos)father->jobs.size();
+                    ++job_pos) {
+                completion_times_[job_pos][0] = heads_[job_pos][0]
+                    + instance_.processing_time(job_id_next, 0);
+                for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
+                    if (heads_[job_pos][machine_id] > completion_times_[job_pos][machine_id - 1]) {
+                        completion_times_[job_pos][machine_id] = heads_[job_pos][machine_id]
+                            + instance_.processing_time(job_id_next, machine_id);
                     } else {
-                        completion_times_[j_pos][i] = completion_times_[j_pos][i - 1]
-                            + instance_.processing_time(j_next, i);
+                        completion_times_[job_pos][machine_id] = completion_times_[job_pos][machine_id - 1]
+                            + instance_.processing_time(job_id_next, machine_id);
                     }
                 }
             }
             // Update tails_.
-            for (MachineId i = m - 1; i >= 0; --i)
-                tails_[father->jobs.size()][i] = 0;
-            for (JobPos j_pos = (JobPos)father->jobs.size() - 1; j_pos >= 0; --j_pos) {
-                JobId j = father->jobs[j_pos];
-                tails_[j_pos][m - 1] = tails_[j_pos + 1][m - 1]
-                    + instance_.processing_time(j, m - 1);
-                for (MachineId i = m - 2; i >= 0; --i) {
-                    if (tails_[j_pos][i + 1] > tails_[j_pos + 1][i]) {
-                        tails_[j_pos][i] = tails_[j_pos][i + 1]
-                            + instance_.processing_time(j, i);
+            for (MachineId machine_id = m - 1; machine_id >= 0; --machine_id)
+                tails_[father->jobs.size()][machine_id] = 0;
+            for (JobPos job_pos = (JobPos)father->jobs.size() - 1;
+                    job_pos >= 0;
+                    --job_pos) {
+                JobId job_id = father->jobs[job_pos];
+                tails_[job_pos][m - 1] = tails_[job_pos + 1][m - 1]
+                    + instance_.processing_time(job_id, m - 1);
+                for (MachineId machine_id = m - 2; machine_id >= 0; --machine_id) {
+                    if (tails_[job_pos][machine_id + 1] > tails_[job_pos + 1][machine_id]) {
+                        tails_[job_pos][machine_id] = tails_[job_pos][machine_id + 1]
+                            + instance_.processing_time(job_id, machine_id);
                     } else {
-                        tails_[j_pos][i] = tails_[j_pos + 1][i]
-                            + instance_.processing_time(j, i);
+                        tails_[job_pos][machine_id] = tails_[job_pos + 1][machine_id]
+                            + instance_.processing_time(job_id, machine_id);
                     }
                 }
             }
@@ -699,9 +733,11 @@ public:
         child->father = father;
         child->pos = pos;
         child->number_of_jobs = father->number_of_jobs + 1;
-        for (MachineId i = 0; i < m; ++i)
-            child->makespan = std::max(child->makespan,
-                    completion_times_[pos][i] + tails_[pos][i]);
+        for (MachineId machine_id = 0; machine_id < m; ++machine_id) {
+            child->makespan = std::max(
+                    child->makespan,
+                    completion_times_[pos][machine_id] + tails_[pos][machine_id]);
+        }
         if (father->number_of_jobs == 0)
             child->makespan = 0;
         child->guide = child->makespan;
@@ -826,7 +862,8 @@ public:
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
@@ -851,8 +888,8 @@ public:
 
         if (node->father != nullptr && node->jobs.empty())
             compute_structures(node);
-        for (JobId j: node->jobs)
-            cert << j << " ";
+        for (JobId job_id: node->jobs)
+            cert << job_id << " ";
     }
 
 private:

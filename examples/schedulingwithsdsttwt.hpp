@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Single machine scheduling problem with sequence-dependent setup times, Total
  * weighted Tardiness.
@@ -11,6 +9,8 @@
  * - forward branching
  *
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -43,7 +43,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> visited;
-        JobId j = 0;
+        JobId job_id = 0;
         JobId number_of_jobs = 0;
         Time current_time = 0;
         double total_weighted_earliness = 0;
@@ -53,7 +53,9 @@ public:
         JobPos next_child_pos = 0;
     };
 
-    BranchingScheme(const Instance& instance, const Parameters& parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters)
     { }
@@ -63,7 +65,7 @@ public:
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
         r->visited.resize(instance_.number_of_jobs(), false);
         r->guide = r->bound;
-        r->j = instance_.number_of_jobs();
+        r->job_id = instance_.number_of_jobs();
         return r;
     }
 
@@ -73,12 +75,12 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        JobId j_next = father->next_child_pos;
+        JobId job_id_next = father->next_child_pos;
         // Update father
         father->next_child_pos++;
-        if (father->visited[j_next])
+        if (father->visited[job_id_next])
             return nullptr;
-        Weight wj = instance_.job(j_next).weight;
+        Weight wj = instance_.job(job_id_next).weight;
         if (wj == 0 && father->number_of_jobs < instance_.number_of_jobs() - instance_.number_of_zero_weight_jobs())
             return nullptr;
 
@@ -86,20 +88,20 @@ public:
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
         child->visited = father->visited;
-        child->visited[j_next] = true;
-        child->j = j_next;
+        child->visited[job_id_next] = true;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->current_time = father->current_time
-            + instance_.setup_time(father->j, j_next)
-            + instance_.job(j_next).processing_time;
+            + instance_.setup_time(father->job_id, job_id_next)
+            + instance_.job(job_id_next).processing_time;
 
         child->total_weighted_tardiness = father->total_weighted_tardiness;
-        if (child->current_time > instance_.job(j_next).due_date)
-            child->total_weighted_tardiness += (child->current_time - instance_.job(j_next).due_date) * wj;
+        if (child->current_time > instance_.job(job_id_next).due_date)
+            child->total_weighted_tardiness += (child->current_time - instance_.job(job_id_next).due_date) * wj;
 
         child->total_weighted_earliness = father->total_weighted_earliness;
-        if (child->current_time < instance_.job(j_next).due_date)
-            child->total_weighted_earliness += (double)(instance_.job(j_next).due_date - child->current_time) / wj;
+        if (child->current_time < instance_.job(job_id_next).due_date)
+            child->total_weighted_earliness += (double)(instance_.job(job_id_next).due_date - child->current_time) / wj;
 
         child->guide = 10 * child->current_time
             + child->total_weighted_earliness
@@ -184,7 +186,7 @@ public:
                 const std::shared_ptr<Node>& node_1,
                 const std::shared_ptr<Node>& node_2) const
         {
-            if (node_1->j != node_2->j)
+            if (node_1->job_id != node_2->job_id)
                 return false;
             return node_1->visited == node_2->visited;
         }
@@ -192,7 +194,7 @@ public:
         inline std::size_t operator()(
                 const std::shared_ptr<Node>& node) const
         {
-            size_t hash = hasher_1(node->j);
+            size_t hash = hasher_1(node->job_id);
             optimizationtools::hash_combine(hash, hasher_2(node->visited));
             return hash;
         }
@@ -227,7 +229,8 @@ public:
             std::ostream &os,
             const std::shared_ptr<Node>& node)
     {
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
@@ -235,9 +238,9 @@ public:
                 << " twt " << node_tmp->total_weighted_tardiness
                 << " twe " << node_tmp->total_weighted_earliness
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
-                << " dj " << instance_.job(node_tmp->j).due_date
-                << " wj " << instance_.job(node_tmp->j).weight
+                << " j " << node_tmp->job_id
+                << " dj " << instance_.job(node_tmp->job_id).due_date
+                << " wj " << instance_.job(node_tmp->job_id).weight
                 << std::endl;
         }
         return os;
@@ -256,12 +259,14 @@ public:
         }
 
         std::vector<JobId> jobs;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
-            jobs.push_back(node_tmp->j);
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            jobs.push_back(node_tmp->job_id);
+        }
         std::reverse(jobs.begin(), jobs.end());
-        for (JobId j: jobs)
-            cert << j << " ";
+        for (JobId job_id: jobs)
+            cert << job_id << " ";
     }
 
 private:

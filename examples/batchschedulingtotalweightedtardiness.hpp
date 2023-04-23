@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Single machine batch scheduling problem, Total weighted tardiness.
  *
@@ -71,6 +69,8 @@
  *
  */
 
+#pragma once
+
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/containers/indexed_set.hpp"
 
@@ -95,7 +95,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> jobs;
-        JobId j = -1;
+        JobId job_id = -1;
         bool new_batch = false;
         JobId number_of_jobs = 0;
         Time current_batch_start = 0;
@@ -113,7 +113,9 @@ public:
         GuideId guide_id = 0;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_jobs_(instance.number_of_jobs())
@@ -121,9 +123,10 @@ public:
         // Initialize sorted_jobs_.
         std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
         sort(sorted_jobs_.begin(), sorted_jobs_.end(),
-                [&instance](JobId j1, JobId j2) -> bool
+                [&instance](JobId job_id_1, JobId job_id_2) -> bool
                 {
-                    return instance.job(j1).release_date < instance.job(j2).release_date;
+                    return instance.job(job_id_1).release_date
+                        < instance.job(job_id_2).release_date;
                 });
     }
 
@@ -141,24 +144,24 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        JobId j_next = sorted_jobs_[father->next_child_pos % instance_.number_of_jobs()];
+        JobId job_id_next = sorted_jobs_[father->next_child_pos % instance_.number_of_jobs()];
         bool new_batch = (father->next_child_pos >= instance_.number_of_jobs());
         bool x = (father->new_batch && father->current_batch_start > father->father->current_batch_end);
         // Update father
         father->next_child_pos++;
 
-        if (father->jobs[j_next])
+        if (father->jobs[job_id_next])
             return nullptr;
-        Time r = instance_.job(j_next).release_date;
+        Time r = instance_.job(job_id_next).release_date;
         if (!new_batch && r > father->current_batch_start)
             return nullptr;
-        Time p = instance_.job(j_next).processing_time;
+        Time p = instance_.job(job_id_next).processing_time;
         if (!new_batch
                 && !x
-                && (p > instance_.job(father->j).processing_time
-                    || (p == instance_.job(father->j).processing_time && j_next < father->j)))
+                && (p > instance_.job(father->job_id).processing_time
+                    || (p == instance_.job(father->job_id).processing_time && job_id_next < father->job_id)))
             return nullptr;
-        Size s = instance_.job(j_next).size;
+        Size s = instance_.job(job_id_next).size;
         if (!new_batch
                 && father->current_batch_size + s > instance_.capacity())
             return nullptr;
@@ -170,11 +173,11 @@ public:
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->new_batch = new_batch;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->jobs = father->jobs;
-        child->jobs[j_next] = true;
+        child->jobs[job_id_next] = true;
         if (!new_batch) {
             child->current_batch_start = father->current_batch_start;
             if (father->current_batch_end >= father->current_batch_start + p) {
@@ -197,10 +200,11 @@ public:
         child->total_weighted_tardiness = 0;
         Time current_batch_end = child->current_batch_end;
         while (node_tmp->father != nullptr) {
-            JobId j = node_tmp->j;
-            if (current_batch_end > instance_.job(j).due_date)
-                child->total_weighted_tardiness += instance_.job(j).weight
-                    * (current_batch_end - instance_.job(j).due_date);
+            JobId job_id = node_tmp->job_id;
+            const Job& job = instance_.job(job_id);
+            if (current_batch_end > job.due_date)
+                child->total_weighted_tardiness += job.weight
+                    * (current_batch_end - job.due_date);
             if (node_tmp->new_batch)
                 current_batch_end = node_tmp->father->current_batch_end;
             node_tmp = node_tmp->father;
@@ -209,21 +213,25 @@ public:
         // Compute bound.
         bool x_child = (child->new_batch && child->current_batch_start > child->father->current_batch_end);
         child->bound = child->total_weighted_tardiness;
-        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
-            if (!child->jobs[j]) {
+        for (JobId job_id = 0; job_id < instance_.number_of_jobs(); ++job_id) {
+            const Job& job = instance_.job(job_id);
+            if (!child->jobs[job_id]) {
                 Time e = -1;
-                if (child->current_batch_size + instance_.job(j).size <= instance_.capacity()
-                        && instance_.job(j).release_date <= child->current_batch_start
+                if (child->current_batch_size + job.size <= instance_.capacity()
+                        && job.release_date <= child->current_batch_start
                         && (x_child
-                            || instance_.job(j).processing_time < p
-                            || (instance_.job(j).processing_time == p && j > j_next))) {
-                    e = std::max(child->current_batch_end, child->current_batch_start + instance_.job(j).processing_time);
+                            || job.processing_time < p
+                            || (job.processing_time == p && job_id > job_id_next))) {
+                    e = std::max(
+                            child->current_batch_end,
+                            child->current_batch_start + job.processing_time);
                 } else {
-                    e = std::max(child->current_batch_end, instance_.job(j).release_date) + instance_.job(j).processing_time;
+                    e = std::max(
+                            child->current_batch_end,
+                            job.release_date) + job.processing_time;
                 }
-                if (e > instance_.job(j).due_date) {
-                    child->bound += instance_.job(j).weight
-                        * (e - instance_.job(j).due_date);
+                if (e > job.due_date) {
+                    child->bound += job.weight * (e - job.due_date);
                 }
             }
         }
@@ -361,11 +369,12 @@ public:
     {
         batchschedulingtotalweightedtardiness::Time current_batch_end
             = node->current_batch_end;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             batchschedulingtotalweightedtardiness::Weight wtj
-                = (current_batch_end <= instance_.job(node_tmp->j).due_date)? 0:
-                instance_.job(node_tmp->j).weight * (current_batch_end - instance_.job(node_tmp->j).due_date);
+                = (current_batch_end <= instance_.job(node_tmp->job_id).due_date)? 0:
+                instance_.job(node_tmp->job_id).weight * (current_batch_end - instance_.job(node_tmp->job_id).due_date);
             os << "node_tmp"
                 << " n " << node_tmp->number_of_jobs
                 << " bs " << node_tmp->current_batch_start
@@ -374,13 +383,13 @@ public:
                 << " s " << node_tmp->current_batch_size
                 << " twt " << node_tmp->total_weighted_tardiness
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
+                << " j " << node_tmp->job_id
                 << " nb " << node_tmp->new_batch
-                << " pj " << instance_.job(node_tmp->j).processing_time
-                << " sj " << instance_.job(node_tmp->j).size
-                << " rj " << instance_.job(node_tmp->j).release_date
-                << " dj " << instance_.job(node_tmp->j).due_date
-                << " wj " << instance_.job(node_tmp->j).weight
+                << " pj " << instance_.job(node_tmp->job_id).processing_time
+                << " sj " << instance_.job(node_tmp->job_id).size
+                << " rj " << instance_.job(node_tmp->job_id).release_date
+                << " dj " << instance_.job(node_tmp->job_id).due_date
+                << " wj " << instance_.job(node_tmp->job_id).weight
                 << " wtj " << wtj
                 << std::endl;
             if (node_tmp->new_batch)
@@ -402,18 +411,19 @@ public:
         }
 
         std::vector<std::vector<JobId>> batches;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father) {
             if (node_tmp->new_batch)
                 batches.push_back({});
-            batches.back().push_back(node_tmp->j);
+            batches.back().push_back(node_tmp->job_id);
         }
         std::reverse(batches.begin(), batches.end());
         for (auto& batch: batches) {
             std::reverse(batch.begin(), batch.end());
             cert << batch.size();
-            for (JobId j: batch)
-                cert << " " << j;
+            for (JobId job_id: batch)
+                cert << " " << job_id;
             cert << std::endl;
         }
     }

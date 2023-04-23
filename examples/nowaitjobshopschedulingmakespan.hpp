@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * No-wait job shop scheduling problem, Makespan.
  *
@@ -9,6 +7,8 @@
  * Tree search:
  * - Forward branching
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -35,7 +35,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<Time> starts;
-        JobId j = -1; // New job.
+        JobId job_id = -1; // New job.
         Time start = -1; // Start date of new job.
 
         JobId number_of_jobs = 0;
@@ -59,11 +59,11 @@ public:
         GuideId guide_id = 0;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
-        parameters_(parameters)
-    {
-    }
+        parameters_(parameters) { }
 
     inline const std::shared_ptr<Node> root() const
     {
@@ -84,12 +84,13 @@ public:
         node->intervals = father->intervals;
         node->makespans = father->makespans;
         Time current_time = node->start;
-        for (OperationPos k = 0; k < instance_.number_of_operations(node->j); ++k) {
-            MachineId i = instance_.operation(node->j, k).machine_id;
-            Time completion_time = current_time + instance_.operation(node->j, k).processing_time;
-            node->intervals[i].insert_overlap({current_time, completion_time});
-            if (node->makespans[i] < completion_time)
-                node->makespans[i] = completion_time;
+        for (OperationPos k = 0; k < instance_.number_of_operations(node->job_id); ++k) {
+            MachineId machine_id = instance_.operation(node->job_id, k).machine_id;
+            Time completion_time = current_time
+                + instance_.operation(node->job_id, k).processing_time;
+            node->intervals[machine_id].insert_overlap({current_time, completion_time});
+            if (node->makespans[machine_id] < completion_time)
+                node->makespans[machine_id] = completion_time;
             current_time = completion_time;
         }
         //MachineId m = instance_.number_of_machines();
@@ -127,22 +128,22 @@ public:
             father->next_start_pos = 0;
         }
 
-        JobId j_next = father->next_job;
+        JobId job_id_next = father->next_job;
 
         // Check job availibility.
-        if (father->starts[j_next] >= 0)
+        if (father->starts[job_id_next] >= 0)
             return nullptr;
 
         // Compute possible starts.
         if (father->possible_starts.empty()) {
             father->possible_starts.push_back({0});
             Time p = 0;
-            for (OperationPos k = 0; k < instance_.number_of_operations(j_next); ++k) {
-                MachineId i = instance_.operation(j_next, k).machine_id;
-                for (const auto& interval: father->intervals[i])
+            for (OperationPos k = 0; k < instance_.number_of_operations(job_id_next); ++k) {
+                MachineId machine_id = instance_.operation(job_id_next, k).machine_id;
+                for (const auto& interval: father->intervals[machine_id])
                     if (interval.high() - p > 0)
                         father->possible_starts.push_back(interval.high() - p);
-                p += instance_.operation(j_next, k).processing_time;
+                p += instance_.operation(job_id_next, k).processing_time;
             }
             std::sort(father->possible_starts.begin(), father->possible_starts.end());
             std::unique(father->possible_starts.begin(), father->possible_starts.end());
@@ -156,18 +157,16 @@ public:
 
         // Check if start is feasible.
         Time current_time = start;
-        Time pj = 0;
         Time processing_time = father->processing_time;
         Time makespan_sum = 0;
         Time makespan = 0;
-        for (OperationPos k = 0; k < instance_.number_of_operations(j_next); ++k) {
-            Time pij = instance_.operation(j_next, k).processing_time;
+        for (OperationPos k = 0; k < instance_.number_of_operations(job_id_next); ++k) {
+            Time pij = instance_.operation(job_id_next, k).processing_time;
             Time completion_time = current_time + pij;
-            MachineId i = instance_.operation(j_next, k).machine_id;
+            MachineId i = instance_.operation(job_id_next, k).machine_id;
             if (father->intervals[i].overlap_find({current_time, completion_time}, true)
                     != father->intervals[i].end())
                 return nullptr;
-            pj += pij;
             processing_time += pij;
             Time makespan_cur = std::max(
                     completion_time,
@@ -180,14 +179,14 @@ public:
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->start = start;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->processing_time = processing_time;
         child->makespan_sum = makespan_sum;
         child->makespan = makespan;
         child->starts = father->starts;
-        child->starts[j_next] = start;
+        child->starts[job_id_next] = start;
         child->starts_sum += start;
         // Compute guide.
         //JobPos n = instance_.number_of_jobs();
@@ -338,7 +337,7 @@ public:
                 << " p " << node_tmp->processing_time
                 << " makespan_sum " << node_tmp->makespan_sum
                 << " makesean " << node_tmp->makespan
-                << " j " << node_tmp->j
+                << " j " << node_tmp->job_id
                 << " s " << node_tmp->start
                 << std::endl;
         }
@@ -359,11 +358,13 @@ public:
 
         JobId n = instance_.number_of_jobs();
         std::vector<Time> starts(n, -1);
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
-            starts[node_tmp->j] = node_tmp->start;
-        for (JobId j = 0; j < n; ++j)
-            cert << starts[j] << " ";
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            starts[node_tmp->job_id] = node_tmp->start;
+        }
+        for (JobId job_id = 0; job_id < n; ++job_id)
+            cert << starts[job_id] << " ";
     }
 
 

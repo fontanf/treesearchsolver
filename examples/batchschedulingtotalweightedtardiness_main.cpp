@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
         run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
     // Write solution.
-    branching_scheme.write(solution_pool.best(), main_args.info.output->certificate_path);
+    std::string certificate_path = main_args.info.output->certificate_path;
+    branching_scheme.write(solution_pool.best(), certificate_path);
     if (main_args.print_solution > 0) {
         os << std::endl
             << "Solution" << std::endl
@@ -65,12 +66,12 @@ int main(int argc, char *argv[])
 
     // Run checker.
     if (main_args.print_checker > 0
-            && main_args.info.output->certificate_path != "") {
+            && certificate_path != "") {
         os << std::endl
             << "Checker" << std::endl
             << "-------" << std::endl;
         instance.check(
-                main_args.info.output->certificate_path,
+                certificate_path,
                 os,
                 main_args.print_checker);
     }

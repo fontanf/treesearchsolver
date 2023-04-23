@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Single machine order acceptance and scheduling problem with
  * sequence-dependent setup times.
@@ -11,6 +9,8 @@
  * - forward branching
  * - guide: time / profit
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -38,7 +38,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> available_jobs;
-        JobId j = 0;
+        JobId job_id = 0;
         JobId number_of_jobs = 0;
         Time time = 0;
         Profit profit = 0;
@@ -52,27 +52,29 @@ public:
         GuideId guide_id = 1;
     };
 
-    BranchingScheme(const Instance& instance, Parameters parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_jobs_(instance.number_of_jobs() + 1),
         generator_(0)
     {
         // Initialize sorted_jobs_.
-        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
-            sorted_jobs_[j].reset(instance.number_of_jobs());
-            for (JobId j2 = 0; j2 < instance_.number_of_jobs(); ++j2) {
-                double c = (double)instance_.setup_time(j, j2) / instance_.job(j2).profit;
-                sorted_jobs_[j].set_cost(j2, c);
+        for (JobId job_id = 0; job_id < instance_.number_of_jobs(); ++job_id) {
+            sorted_jobs_[job_id].reset(instance.number_of_jobs());
+            for (JobId job_id_2 = 0; job_id_2 < instance_.number_of_jobs(); ++job_id_2) {
+                double c = (double)instance_.setup_time(job_id, job_id_2) / instance_.job(job_id_2).profit;
+                sorted_jobs_[job_id].set_cost(job_id_2, c);
             }
         }
     }
 
-    inline JobId neighbor(JobId j, JobPos pos) const
+    inline JobId neighbor(JobId job_id, JobPos pos) const
     {
-        assert(j < instance_.number_of_jobs());
+        assert(job_id < instance_.number_of_jobs());
         assert(pos < instance_.number_of_jobs());
-        return sorted_jobs_[j].get(pos, generator_);
+        return sorted_jobs_[job_id].get(pos, generator_);
     }
 
     inline const std::shared_ptr<Node> root() const
@@ -89,51 +91,52 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        JobId j_next = neighbor(father->j, father->next_child_pos);
+        JobId job_id_next = neighbor(father->job_id, father->next_child_pos);
 
         //std::cout << "father "
         //    << " j " << father->j
         //    << " t " << father->time
         //    << " p " << father->profit
         //    << " w " << father->weight
-        //    << " j_next " << j_next
-        //    << " s " << instance_.setup_time(father->j, j_next)
-        //    << " r " << instance_.job(j_next).release_date
-        //    << " d " << instance_.job(j_next).deadline
+        //    << " job_id_next " << job_id_next
+        //    << " s " << instance_.setup_time(father->j, job_id_next)
+        //    << " r " << instance_.job(job_id_next).release_date
+        //    << " d " << instance_.job(job_id_next).deadline
         //    << std::endl;
 
         // Update father
         father->next_child_pos++;
         // Check job availibility.
-        if (!father->available_jobs[j_next])
+        if (!father->available_jobs[job_id_next])
             return nullptr;
         // Check deadline.
-        Time start = std::max(father->time, instance_.job(j_next).release_date);
-        Time p = instance_.setup_time(father->j, j_next) + instance_.job(j_next).processing_time;
-        if (start + p > instance_.job(j_next).deadline)
+        Time start = std::max(father->time, instance_.job(job_id_next).release_date);
+        Time p = instance_.setup_time(father->job_id, job_id_next)
+            + instance_.job(job_id_next).processing_time;
+        if (start + p > instance_.job(job_id_next).deadline)
             return nullptr;
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
         child->available_jobs = father->available_jobs;
-        child->available_jobs[j_next] = false;
-        child->j = j_next;
+        child->available_jobs[job_id_next] = false;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->time = start + p;
-        child->profit = father->profit + instance_.job(j_next).profit;
+        child->profit = father->profit + instance_.job(job_id_next).profit;
         child->weighted_tardiness = father->weighted_tardiness;
-        Time d = instance_.job(j_next).due_date;
+        Time d = instance_.job(job_id_next).due_date;
         if (child->time > d)
-            child->weighted_tardiness += instance_.job(j_next).weight * (child->time - d);
-        for (JobId j = 0; j < instance_.number_of_jobs(); ++j) {
-            if (!child->available_jobs[j])
+            child->weighted_tardiness += instance_.job(job_id_next).weight * (child->time - d);
+        for (JobId job_id = 0; job_id < instance_.number_of_jobs(); ++job_id) {
+            if (!child->available_jobs[job_id])
                 continue;
             if (child->time
-                    + instance_.setup_time(j_next, j)
-                    + instance_.job(j).processing_time
-                    > instance_.job(j).deadline)
-                child->available_jobs[j] = false;
+                    + instance_.setup_time(job_id_next, job_id)
+                    + instance_.job(job_id).processing_time
+                    > instance_.job(job_id).deadline)
+                child->available_jobs[job_id] = false;
         }
         // Guide.
         child->guide =
@@ -222,7 +225,7 @@ public:
                 const std::shared_ptr<Node>& node_1,
                 const std::shared_ptr<Node>& node_2) const
         {
-            if (node_1->j != node_2->j)
+            if (node_1->job_id != node_2->job_id)
                 return false;
             if (node_1->available_jobs != node_2->available_jobs)
                 return false;
@@ -232,7 +235,7 @@ public:
         inline std::size_t operator()(
                 const std::shared_ptr<Node>& node) const
         {
-            size_t hash = hasher_1(node->j);
+            size_t hash = hasher_1(node->job_id);
             optimizationtools::hash_combine(hash, hasher_2(node->available_jobs));
             return hash;
         }
@@ -276,14 +279,14 @@ public:
                 << " t " << node_tmp->time
                 << " p " << node_tmp->profit
                 << " w " << node_tmp->weighted_tardiness
-                << " j " << node_tmp->j
-                << " rj " << instance_.job(node_tmp->j).release_date
-                << " dj " << instance_.job(node_tmp->j).due_date
-                << " dj " << instance_.job(node_tmp->j).deadline
-                << " pj " << instance_.job(node_tmp->j).processing_time
-                << " vj " << instance_.job(node_tmp->j).profit
-                << " wj " << instance_.job(node_tmp->j).weight
-                << " sij " << instance_.setup_time(node_tmp->father->j, node_tmp->j)
+                << " j " << node_tmp->job_id
+                << " rj " << instance_.job(node_tmp->job_id).release_date
+                << " dj " << instance_.job(node_tmp->job_id).due_date
+                << " dj " << instance_.job(node_tmp->job_id).deadline
+                << " pj " << instance_.job(node_tmp->job_id).processing_time
+                << " vj " << instance_.job(node_tmp->job_id).profit
+                << " wj " << instance_.job(node_tmp->job_id).weight
+                << " sij " << instance_.setup_time(node_tmp->father->job_id, node_tmp->job_id)
                 << std::endl;
         return os;
     }
@@ -301,12 +304,13 @@ public:
         }
 
         std::vector<JobId> jobs;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father)
-            jobs.push_back(node_tmp->j);
+            jobs.push_back(node_tmp->job_id);
         std::reverse(jobs.begin(), jobs.end());
-        for (JobId j: jobs)
-            cert << j << " ";
+        for (JobId job_id: jobs)
+            cert << job_id << " ";
     }
 
 

@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * Traveling Repairman Problem.
  *
@@ -10,6 +8,8 @@
  * - forward branching
  *
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -42,7 +42,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> visited;
-        LocationId j = 0;
+        LocationId location_id = 0;
         LocationId number_of_locations = 1;
         Time current_time = 0;
         double total_completion_time = 0;
@@ -52,23 +52,34 @@ public:
         LocationPos next_child_pos = 0;
     };
 
-    BranchingSchemeForward(const Instance& instance, const Parameters& parameters):
+    BranchingSchemeForward(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_locations_(instance.number_of_locations()),
         generator_(0)
     {
         // Initialize sorted_locations_.
-        for (LocationId j = 0; j < instance_.number_of_locations(); ++j) {
-            sorted_locations_[j].reset(instance.number_of_locations());
-            for (LocationId j2 = 0; j2 < instance_.number_of_locations(); ++j2)
-                sorted_locations_[j].set_cost(j2, instance_.travel_time(j, j2));
+        for (LocationId location_id = 0;
+                location_id < instance_.number_of_locations();
+                ++location_id) {
+            sorted_locations_[location_id].reset(instance.number_of_locations());
+            for (LocationId location_id_2 = 0;
+                    location_id_2 < instance_.number_of_locations();
+                    ++location_id_2) {
+                sorted_locations_[location_id].set_cost(
+                        location_id_2,
+                        instance_.travel_time(location_id, location_id_2));
+            }
         }
     }
 
-    inline LocationId neighbor(LocationId j, LocationPos pos) const
+    inline LocationId neighbor(
+            LocationId location_id,
+            LocationPos pos) const
     {
-        return sorted_locations_[j].get(pos, generator_);
+        return sorted_locations_[location_id].get(pos, generator_);
     }
 
     inline const std::shared_ptr<Node> root() const
@@ -86,27 +97,27 @@ public:
         assert(!leaf(father));
         LocationId n = instance_.number_of_locations();
 
-        LocationId j_next = neighbor(father->j, father->next_child_pos);
-        Time t = instance_.travel_time(father->j, j_next);
+        LocationId location_id_next = neighbor(father->location_id, father->next_child_pos);
+        Time t = instance_.travel_time(father->location_id, location_id_next);
         // Update father
         father->next_child_pos++;
         if (father->next_child_pos != n) {
             Time t_next = instance_.travel_time(
-                    father->j,
-                    neighbor(father->j, father->next_child_pos));
+                    father->location_id,
+                    neighbor(father->location_id, father->next_child_pos));
             father->bound = father->bound
                 + (n - father->number_of_locations) * (t_next - t);
             father->guide = father->bound;
         }
-        if (father->visited[j_next])
+        if (father->visited[location_id_next])
             return nullptr;
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingSchemeForward::Node());
         child->father = father;
         child->visited = father->visited;
-        child->visited[j_next] = true;
-        child->j = j_next;
+        child->visited[location_id_next] = true;
+        child->location_id = location_id_next;
         child->number_of_locations = father->number_of_locations + 1;
         child->current_time = father->current_time + t;
         child->total_completion_time = father->total_completion_time
@@ -195,7 +206,7 @@ public:
                 const std::shared_ptr<Node>& node_1,
                 const std::shared_ptr<Node>& node_2) const
         {
-            if (node_1->j != node_2->j)
+            if (node_1->location_id != node_2->location_id)
                 return false;
             return node_1->visited == node_2->visited;
         }
@@ -203,7 +214,7 @@ public:
         inline std::size_t operator()(
                 const std::shared_ptr<Node>& node) const
         {
-            size_t hash = hasher_1(node->j);
+            size_t hash = hasher_1(node->location_id);
             optimizationtools::hash_combine(hash, hasher_2(node->visited));
             return hash;
         }
@@ -246,9 +257,9 @@ public:
                 << " tct " << node_tmp->total_completion_time
                 << " bndo " << node_tmp->bound_orig
                 << " bnd " << node_tmp->bound
-                << " j " << node_tmp->j
-                << " j_pred " << node_tmp->father->j
-                << " tj " << instance_.travel_time(node_tmp->father->j, node_tmp->j)
+                << " j " << node_tmp->location_id
+                << " j_pred " << node_tmp->father->location_id
+                << " tj " << instance_.travel_time(node_tmp->father->location_id, node_tmp->location_id)
                 << std::endl;
         }
         return os;
@@ -267,12 +278,14 @@ public:
         }
 
         std::vector<LocationId> locations;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
-            locations.push_back(node_tmp->j);
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            locations.push_back(node_tmp->location_id);
+        }
         std::reverse(locations.begin(), locations.end());
-        for (LocationId j: locations)
-            cert << j << " ";
+        for (LocationId location_id: locations)
+            cert << location_id << " ";
     }
 
 private:

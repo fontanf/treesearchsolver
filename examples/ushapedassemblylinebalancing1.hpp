@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * U-shaped Assembly Line Balancing Problem of Type 1.
  *
@@ -9,6 +7,8 @@
  * TODO
  *
  */
+
+#pragma once
 
 #include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
@@ -40,7 +40,7 @@ public:
     {
         std::shared_ptr<Node> father = nullptr;
         std::vector<bool> jobs;
-        JobId j = -1;
+        JobId job_id = -1;
         JobId number_of_jobs = 0;
         StationId number_of_stations = 0;
         Time current_station_time = 0;
@@ -51,7 +51,9 @@ public:
         bool added_in_current_station = false;
     };
 
-    BranchingScheme(const Instance& instance, const Parameters& parameters):
+    BranchingScheme(
+            const Instance& instance,
+            Parameters parameters):
         instance_(instance),
         parameters_(parameters),
         sorted_jobs_(instance.number_of_jobs())
@@ -59,9 +61,10 @@ public:
         // Initialize sorted_jobs_.
         std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
         sort(sorted_jobs_.begin(), sorted_jobs_.end(),
-                [&instance](JobId j1, JobId j2) -> bool
+                [&instance](JobId job_id_1, JobId job_id_2) -> bool
                 {
-                    return instance.job(j1).processing_time < instance.job(j2).processing_time;
+                    return instance.job(job_id_1).processing_time
+                        < instance.job(job_id_2).processing_time;
                 });
     }
 
@@ -79,21 +82,21 @@ public:
         assert(!infertile(father));
         assert(!leaf(father));
 
-        JobId j_next = sorted_jobs_[father->next_child_pos];
+        JobId job_id_next = sorted_jobs_[father->next_child_pos];
         // Update father
         father->next_child_pos++;
 
-        if (father->jobs[j_next])
+        if (father->jobs[job_id_next])
             return nullptr;
-        for (JobId j_pred: instance_.job(j_next).predecessors) {
-            if (!father->jobs[j_pred]) {
-                for (JobId j_succ: instance_.job(j_next).successors)
-                    if (!father->jobs[j_succ])
+        for (JobId job_id_pred: instance_.job(job_id_next).predecessors) {
+            if (!father->jobs[job_id_pred]) {
+                for (JobId job_id_succ: instance_.job(job_id_next).successors)
+                    if (!father->jobs[job_id_succ])
                         return nullptr;
                 break;
             }
         }
-        Time p = instance_.job(j_next).processing_time;
+        Time p = instance_.job(job_id_next).processing_time;
         if (father->added_in_current_station
                && father->current_station_time + p > instance_.cycle_time()) {
             father->next_child_pos = instance_.number_of_jobs();
@@ -105,10 +108,10 @@ public:
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
         child->father = father;
-        child->j = j_next;
+        child->job_id = job_id_next;
         child->number_of_jobs = father->number_of_jobs + 1;
         child->jobs = father->jobs;
-        child->jobs[j_next] = true;
+        child->jobs[job_id_next] = true;
         child->processing_time_sum = father->processing_time_sum + p;
         if (father->current_station_time + p <= instance_.cycle_time()) {
             child->current_station_time = father->current_station_time + p;
@@ -253,15 +256,17 @@ public:
         StationId m = node->number_of_stations;
         std::vector<std::vector<JobId>> stations(m);
         std::vector<Time> times(m, 0);
-        for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father) {
-            stations[node_tmp->number_of_stations - 1].push_back(node_tmp->j);
-            times[node_tmp->number_of_stations - 1] += instance_.job(node_tmp->j).processing_time;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
+                node_tmp = node_tmp->father) {
+            stations[node_tmp->number_of_stations - 1].push_back(node_tmp->job_id);
+            times[node_tmp->number_of_stations - 1] += instance_.job(node_tmp->job_id).processing_time;
         }
-        for (ushapedassemblylinebalancing1::StationId i = 0; i < m; ++i) {
-            os << "Station " << i << " " << times[i] << "/" << instance_.cycle_time() << ":";
-            std::reverse(stations[i].begin(), stations[i].end());
-            for (ushapedassemblylinebalancing1::JobId j: stations[i])
-                os << " " << j;
+        for (StationId station_id = 0; station_id < m; ++station_id) {
+            os << "Station " << station_id << " " << times[station_id] << "/" << instance_.cycle_time() << ":";
+            std::reverse(stations[station_id].begin(), stations[station_id].end());
+            for (JobId job_id: stations[station_id])
+                os << " " << job_id;
             os << std::endl;
         }
         return os;
@@ -281,14 +286,15 @@ public:
 
         StationId m = node->number_of_stations;
         std::vector<std::vector<JobId>> stations(m);
-        for (auto node_tmp = node; node_tmp->father != nullptr;
+        for (auto node_tmp = node;
+                node_tmp->father != nullptr;
                 node_tmp = node_tmp->father)
-            stations[node_tmp->number_of_stations - 1].push_back(node_tmp->j);
-        for (StationId i = 0; i < m; ++i) {
-            std::reverse(stations[i].begin(), stations[i].end());
-            cert << stations[i].size();
-            for (JobId j: stations[i])
-                cert << " " << j;
+            stations[node_tmp->number_of_stations - 1].push_back(node_tmp->job_id);
+        for (StationId station_id = 0; station_id < m; ++station_id) {
+            std::reverse(stations[station_id].begin(), stations[station_id].end());
+            cert << stations[station_id].size();
+            for (JobId job_id: stations[station_id])
+                cert << " " << job_id;
             cert << std::endl;
         }
     }
@@ -296,7 +302,7 @@ public:
 private:
 
     const Instance& instance_;
-    const Parameters& parameters_;
+    Parameters parameters_;
 
     mutable std::vector<JobId> sorted_jobs_;
 
