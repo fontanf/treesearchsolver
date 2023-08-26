@@ -14,11 +14,11 @@ Solving a problem only requires a couple hundred lines of code (see examples).
 
 Algorithms:
 * Greedy `greedy`
-* Best First Search `best_first_search`
-* Iterative Beam Search `iterative_beam_search`
-* Iterative Beam Search 2 `iterative_beam_search_2`
-* Iterative Memory Bounded Best First Search `iterative_memory_bounded_best_first_search`
-* Anytime Column Search `anytime_column_search`
+* Best first search `best_first_search`
+* Iterative beam search `iterative_beam_search`
+* Iterative beam search 2 `iterative_beam_search_2`
+* Iterative memory bounded best first search `iterative_memory_bounded_best_first_search`
+* Anytime column search `anytime_column_search`
 
 ## Examples
 

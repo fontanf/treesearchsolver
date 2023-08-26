@@ -5,15 +5,6 @@
 namespace treesearchsolver
 {
 
-struct BestFirstSearchOptionalParameters
-{
-    NodeId maximum_size_of_the_solution_pool = 1;
-
-    NodeId maximum_number_of_nodes = -1;
-
-    optimizationtools::Info info = optimizationtools::Info();
-};
-
 template <typename BranchingScheme>
 struct BestFirstSearchOutput
 {
@@ -28,9 +19,29 @@ struct BestFirstSearchOutput
 };
 
 template <typename BranchingScheme>
+using BestFirstSearchCallback = std::function<void(const BestFirstSearchOutput<BranchingScheme>&)>;
+
+template <typename BranchingScheme>
+struct BestFirstSearchOptionalParameters
+{
+    /** Maximum size of the solution pool. */
+    NodeId maximum_size_of_the_solution_pool = 1;
+
+    /** Maximum number of nodes. */
+    NodeId maximum_number_of_nodes = -1;
+
+    /** Callback function called when a new best solution is found. */
+    BestFirstSearchCallback<BranchingScheme> new_solution_callback
+        = [](const BestFirstSearchOutput<BranchingScheme>&) { };
+
+    /** Info structure. */
+    optimizationtools::Info info = optimizationtools::Info();
+};
+
+template <typename BranchingScheme>
 inline BestFirstSearchOutput<BranchingScheme> best_first_search(
         const BranchingScheme& branching_scheme,
-        BestFirstSearchOptionalParameters parameters = {})
+        BestFirstSearchOptionalParameters<BranchingScheme> parameters = {})
 {
     // Initial display.
     parameters.info.os()
@@ -92,6 +103,7 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
                 ss << "node " << output.number_of_nodes;
                 output.solution_pool.add(child, ss, parameters.info);
                 output.solution_pool.display(ss, parameters.info);
+                parameters.new_solution_callback(output);
             }
             // Add child to the queue.
             if (!branching_scheme.leaf(child)
