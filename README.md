@@ -40,6 +40,8 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 </p>
 </details>
 
+[1D knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/onedimensional/branching_scheme.hpp), [2D rectangle knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/rectangle/branching_scheme.hpp) and [3D box-stacks knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/boxstacks/branching_scheme.hpp) problems from [fontanf/packingsolver](https://github.com/fontanf/packingsolver/)
+
 ### Routing
 
 [Traveling Salesman Problem](examples/travelingsalesman.hpp)
@@ -77,19 +79,9 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 
 * Branching scheme: forward
 
-[Thief Orienteering Problem](examples/thieforienteering.hpp)
+[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/algorithms/tree_search.cpp) and [Thief Orienteering Problem](https://github.com/fontanf/travellingthiefsolver/blob/master/thieforienteeringsolver/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
 
-* Branching scheme: forward
-
-<details><summary>Benchmarks</summary>
-<p>
-
-* Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/thieforienteering_main --csv ../ordata/thieforienteering/data.csv -l thieforienteering -a "iterative_beam_search" --timelimitfield "Time limit"`
-  * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/thieforienteering/data.csv -l thieforienteering -b heuristiclong -t 1003`
-
-</p>
-</details>
+* Here, the library is used to implement an exact dynamic programming algorithm implemented as a tree search
 
 ### Scheduling
 

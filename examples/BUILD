@@ -79,26 +79,6 @@ cc_binary(
 
 
 cc_library(
-        name = "thieforienteering",
-        hdrs = ["thieforienteering.hpp"],
-        deps = [
-                "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:thieforienteering",
-        ],
-        visibility = ["//visibility:public"],
-)
-
-cc_binary(
-        name = "thieforienteering_main",
-        srcs = ["thieforienteering_main.cpp"],
-        deps = [
-                ":thieforienteering",
-                "//treesearchsolver:read_args",
-        ],
-)
-
-
-cc_library(
         name = "schedulingwithsdsttwt",
         hdrs = ["schedulingwithsdsttwt.hpp"],
         deps = [
