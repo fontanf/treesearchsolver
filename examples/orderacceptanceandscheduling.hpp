@@ -1,6 +1,6 @@
 /**
  * Single machine order acceptance and scheduling problem with
- * sequence-dependent setup times.
+ * sequence-dependent setup times
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/orderacceptanceandscheduling.hpp

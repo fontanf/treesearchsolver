@@ -1,5 +1,5 @@
 /**
- * Simple Assembly Line Balancing Problem of Type 1.
+ * Simple assembly line balancing problem of type 1
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/simpleassemblylinebalancing1.hpp

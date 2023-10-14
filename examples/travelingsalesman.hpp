@@ -1,5 +1,5 @@
 /**
- * Traveling Salesman Problem.
+ * Traveling salesman problem
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/travelingsalesman.hpp

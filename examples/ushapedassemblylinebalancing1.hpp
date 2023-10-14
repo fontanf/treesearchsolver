@@ -1,5 +1,5 @@
 /**
- * U-shaped Assembly Line Balancing Problem of Type 1.
+ * U-shaped assembly line balancing problem of type 1
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/ushapedassemblylinebalancing1.hpp

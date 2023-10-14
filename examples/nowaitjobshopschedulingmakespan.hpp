@@ -1,5 +1,5 @@
 /**
- * No-wait job shop scheduling problem, Makespan.
+ * No-wait job shop scheduling problem, makespan
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/nowaitjobshopschedulingmakespan.hpp

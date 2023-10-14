@@ -1,4 +1,4 @@
-# Tree Search Solver
+# Tree search solver
 
 A solver based on heuristic tree search.
 
@@ -26,7 +26,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 
 ### Packing
 
-[Knapsack Problem with Conflicts](examples/knapsackwithconflicts.hpp)
+[Knapsack problem with conflicts](examples/knapsackwithconflicts.hpp)
 
 * Branching scheme: forward
 
@@ -44,7 +44,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 
 ### Routing
 
-[Traveling Salesman Problem](examples/travelingsalesman.hpp)
+[Traveling salesman problem](examples/travelingsalesman.hpp)
 
 * Branching schemes: forward, insertion
 
@@ -58,7 +58,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 </p>
 </details>
 
-[Sequential Ordering Problem](examples/sequentialordering.hpp)
+[Sequential ordering problem](examples/sequentialordering.hpp)
 
 * Branching scheme: forward
 
@@ -75,11 +75,11 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[Traveling Repairman Problem / Minimum Latency Problem](examples/travelingrepairman.hpp)
+[Traveling repairman problem / minimum latency problem](examples/travelingrepairman.hpp)
 
 * Branching scheme: forward
 
-[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/algorithms/tree_search.cpp) and [Thief Orienteering Problem](https://github.com/fontanf/travellingthiefsolver/blob/master/thieforienteeringsolver/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
+[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/algorithms/tree_search.cpp) and [thief orienteering problem](https://github.com/fontanf/travellingthiefsolver/blob/master/thieforienteeringsolver/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
 
 * Here, the library is used to implement an exact dynamic programming algorithm implemented as a tree search
 
@@ -87,7 +87,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 
 #### Single machine scheduling
 
-[Single machine scheduling problem with sequence-dependent setup times, Total weighted tardiness](examples/schedulingwithsdsttwt.hpp)
+[Single machine scheduling problem with sequence-dependent setup times, total weighted tardiness](examples/schedulingwithsdsttwt.hpp)
 
 * Branching scheme: forward
 
@@ -101,7 +101,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[Single machine order acceptance and scheduling problem with time windows and sequence-dependent setup times, Total weighted tardiness](examples/orderacceptanceandscheduling.hpp)
+[Single machine order acceptance and scheduling problem with time windows and sequence-dependent setup times, total weighted tardiness](examples/orderacceptanceandscheduling.hpp)
 
 * Branching scheme: forward
 
@@ -115,7 +115,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[Single machine batch scheduling problem, Total weighted tardiness](examples/batchschedulingtotalweightedtardiness.hpp)
+[Single machine batch scheduling problem, total weighted tardiness](examples/batchschedulingtotalweightedtardiness.hpp)
 
 * Branching scheme: forward
 
@@ -131,7 +131,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 
 #### Flow shop scheduling
 
-[Permutation flow shop scheduling problem, Makespan](examples/permutationflowshopschedulingmakespan.hpp)
+[Permutation flow shop scheduling problem, makespan](examples/permutationflowshopschedulingmakespan.hpp)
 
 * Branching schemes: bidirectional, insertion
 
@@ -146,7 +146,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[Permutation flow shop scheduling problem, Total completion time](examples/permutationflowshopschedulingtct.hpp)
+[Permutation flow shop scheduling problem, total completion time](examples/permutationflowshopschedulingtct.hpp)
 
 * Branching scheme: forward
 
@@ -163,7 +163,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[Permutation flow shop scheduling problem, Total tardiness](examples/permutationflowshopschedulingtt.hpp)
+[Permutation flow shop scheduling problem, total tardiness](examples/permutationflowshopschedulingtt.hpp)
 
 * Branching schemes: forward, insertion
 
@@ -179,7 +179,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 
 #### Job shop scheduling
 
-[No-wait job shop scheduling problem, Makespan](examples/nowaitjobshopschedulingmakespan.hpp)
+[No-wait job shop scheduling problem, makespan](examples/nowaitjobshopschedulingmakespan.hpp)
 
 * Branching scheme: forward
 
@@ -193,9 +193,9 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-#### Assembly Line Balancing
+#### Assembly line balancing
 
-[Simple Assembly Line Balancing Problem of Type 1 (SALBP-1)](examples/simpleassemblylinebalancing1.hpp)
+[Simple assembly line balancing problem of type 1 (SALBP-1)](examples/simpleassemblylinebalancing1.hpp)
 
 * Branching scheme: forward
 
@@ -221,20 +221,20 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 </p>
 </details>
 
-[U-shaped Assembly Line Balancing Problem of Type 1 (UALBP-1)](examples/ushapedassemblylinebalancing1.hpp)
+[U-shaped assembly line balancing problem of type 1 (UALBP-1)](examples/ushapedassemblylinebalancing1.hpp)
 
 * Branching scheme: forward
 
 ### Others
 
 Pricing problems from [fontanf/columngenerationsolver](https://github.com/fontanf/columngenerationsolver)
-* [Elementary Shortest Path Problem with Resource Constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprc.hpp)
+* [Elementary shortest path problem with resource constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprc.hpp)
   * Branching scheme: forward
-* [Elementary Shortest Path Problem with Resource Constraint and Time Windows](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprctw.hpp)
+* [Elementary shortest path problem with resource constraint and time windows](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/espprctw.hpp)
   * Branching scheme: forward
-* [Elementary Open Shortest Path Problem with Resource Constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/eospprc.hpp)
+* [Elementary open shortest path problem with resource constraint](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/eospprc.hpp)
   * Branching scheme: forward
-* [Single machine order acceptance and scheduling problem with family setup times, Total weighted completion time](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/oaschedulingwithfamilysetuptimestwct.hpp)
+* [Single machine order acceptance and scheduling problem with family setup times, total weighted completion time](https://github.com/fontanf/columngenerationsolver/blob/master/examples/pricingsolver/oaschedulingwithfamilysetuptimestwct.hpp)
   * Branching scheme: forward
 
 ## Usage, running examples from command line

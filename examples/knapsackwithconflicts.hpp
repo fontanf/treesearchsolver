@@ -1,5 +1,5 @@
 /**
- * Knapsack Problem with Conflicts.
+ * Knapsack problem with conflicts
  *
  * Problem description:
  * See https://github.com/fontanf/orproblems/blob/main/orproblems/knapsackwithconflicts.hpp
