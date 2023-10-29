@@ -79,7 +79,7 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
     // Initial display.
     parameters.info.os()
             << "======================================" << std::endl
-            << "          Tree Search Solver          " << std::endl
+            << "           TreeSearchSolver           " << std::endl
             << "======================================" << std::endl
             << std::endl
             << "Algorithm" << std::endl

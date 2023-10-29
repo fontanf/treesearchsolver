@@ -69,11 +69,11 @@ int main(int argc, char *argv[])
         auto solution_pool =
             (strcmp(main_args.algorithm_argv[0], "greedy") == 0)?
             run_greedy(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "best_first_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "best-first-search") == 0)?
             run_best_first_search(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "iterative_beam_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "iterative-beam-search") == 0)?
             run_iterative_beam_search(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "anytime_column_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "anytime-column-search") == 0)?
             run_anytime_column_search(main_args, branching_scheme, main_args.info):
             run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
@@ -99,11 +99,11 @@ int main(int argc, char *argv[])
         auto solution_pool =
             (strcmp(main_args.algorithm_argv[0], "greedy") == 0)?
             run_greedy(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "best_first_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "best-first-search") == 0)?
             run_best_first_search(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "iterative_beam_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "iterative-beam-search") == 0)?
             run_iterative_beam_search(main_args, branching_scheme, main_args.info):
-            (strcmp(main_args.algorithm_argv[0], "anytime_column_search") == 0)?
+            (strcmp(main_args.algorithm_argv[0], "anytime-column-search") == 0)?
             run_anytime_column_search(main_args, branching_scheme, main_args.info):
             run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
             << "Checker" << std::endl
             << "-------" << std::endl;
         instance.check(
-               certificate_path,
+                certificate_path,
                 os,
                 main_args.print_checker);
     }

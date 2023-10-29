@@ -27,10 +27,11 @@ inline GreedyOptionalParameters read_greedy_args(
     return parameters;
 }
 
-inline BestFirstSearchOptionalParameters read_best_first_search_args(
+template <typename BranchingScheme>
+inline BestFirstSearchOptionalParameters<BranchingScheme> read_best_first_search_args(
         const std::vector<char*> argv)
 {
-    BestFirstSearchOptionalParameters parameters;
+    BestFirstSearchOptionalParameters<BranchingScheme> parameters;
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
@@ -135,7 +136,7 @@ MainArgs read_args(int argc, char *argv[])
     MainArgs main_args;
     std::string output_path = "";
     std::string certificate_path = "";
-    std::string algorithm = "iterative_beam_search";
+    std::string algorithm = "iterative-beam-search";
     std::string branching_scheme_parameters = "forward";
     int verbosity_level = 1;
     double time_limit = std::numeric_limits<double>::infinity();
@@ -210,7 +211,7 @@ SolutionPool<BranchingScheme> run_best_first_search(
         const BranchingScheme& branching_scheme,
         const optimizationtools::Info& info)
 {
-    auto parameters = read_best_first_search_args(main_args.algorithm_argv);
+    auto parameters = read_best_first_search_args<BranchingScheme>(main_args.algorithm_argv);
     parameters.info = info;
     return best_first_search(branching_scheme, parameters).solution_pool;
 }

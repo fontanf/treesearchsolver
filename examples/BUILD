@@ -19,26 +19,6 @@ cc_binary(
 
 
 cc_library(
-        name = "travelingsalesman",
-        hdrs = ["travelingsalesman.hpp"],
-        deps = [
-                "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:travelingsalesman",
-        ],
-        visibility = ["//visibility:public"],
-)
-
-cc_binary(
-        name = "travelingsalesman_main",
-        srcs = ["travelingsalesman_main.cpp"],
-        deps = [
-                ":travelingsalesman",
-                "//treesearchsolver:read_args",
-        ],
-)
-
-
-cc_library(
         name = "sequentialordering",
         hdrs = ["sequentialordering.hpp"],
         deps = [

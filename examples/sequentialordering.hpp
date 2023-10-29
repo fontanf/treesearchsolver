@@ -282,16 +282,15 @@ public:
 
     std::ostream& print_solution(
             std::ostream &os,
-            const std::shared_ptr<Node>& node)
+            const std::shared_ptr<Node>& node,
+            int verbosity_level)
     {
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father) {
-            os << "node_tmp"
-                << " n " << node_tmp->number_of_locations
-                << " l " << node_tmp->length
-                << " bnd " << node_tmp->bound
-                << " j " << node_tmp->location_id
-                << std::endl;
+        if (verbosity_level >= 1) {
+            os
+                << "Length:            " << node->length << std::endl
+                ;
+        }
+        if (verbosity_level >= 2) {
         }
         return os;
     }

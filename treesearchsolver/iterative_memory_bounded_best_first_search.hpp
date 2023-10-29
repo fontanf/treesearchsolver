@@ -43,7 +43,7 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
     // Initial display.
     parameters.info.os()
             << "======================================" << std::endl
-            << "          Tree Search Solver          " << std::endl
+            << "           TreeSearchSolver           " << std::endl
             << "======================================" << std::endl
             << std::endl
             << "Algorithm" << std::endl

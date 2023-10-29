@@ -1,4 +1,4 @@
-# Tree search solver
+# TreeSearchSolver
 
 A solver based on heuristic tree search.
 
@@ -14,11 +14,11 @@ Solving a problem only requires a couple hundred lines of code (see examples).
 
 Algorithms:
 * Greedy `greedy`
-* Best first search `best_first_search`
-* Iterative beam search `iterative_beam_search`
-* Iterative beam search 2 `iterative_beam_search_2`
-* Iterative memory bounded best first search `iterative_memory_bounded_best_first_search`
-* Anytime column search `anytime_column_search`
+* Best first search `best-first-search`
+* Iterative beam search `iterative-beam-search`
+* Iterative beam search 2 `iterative-beam-search-2`
+* Iterative memory bounded best first search `iterative-memory-bounded-best-first-search`
+* Anytime column search `anytime-column-search`
 
 ## Examples
 
@@ -34,7 +34,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/knapsackwithconflicts_main --csv ../ordata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -a iterative_beam_search -t 60`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/knapsackwithconflicts_main --csv ../ordata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -a iterative-beam-search -t 60`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/knapsackwithconflicts/data.csv -l knsapsackwithconflicts -b heuristiclong -t 62`
 
 </p>
@@ -52,7 +52,7 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/travelingsalesman_main --csv ../ordata/travelingsalesman/data.csv -l travelingsalesman -f "'pla85900.tsp' not in row['Path']" -a "iterative_beam_search" -t 60`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/travelingsalesman_main --csv ../ordata/travelingsalesman/data.csv -l travelingsalesman -f "'pla85900.tsp' not in row['Path']" -a "iterative-beam-search" -t 60`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/travelingsalesman/data.csv -l travelingsalesman -f "'pla85900.tsp' not in row['Path']" -b heuristiclong -t 62`
 
 </p>
@@ -95,7 +95,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/schedulingwithsdsttwt_main --csv ../ordata/schedulingwithsdsttwt/data.csv -l schedulingwithsdsttwt -a "iterative_beam_search" -t 30`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/schedulingwithsdsttwt_main --csv ../ordata/schedulingwithsdsttwt/data.csv -l schedulingwithsdsttwt -a "iterative-beam-search" -t 30`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/schedulingwithsdsttwt/data.csv -l schedulingwithsdsttwt -b heuristiclong -t 31`
 
 </p>
@@ -123,7 +123,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/orderacceptanceandscheduling_main --csv ../ordata/orderacceptanceandscheduling/data.csv -f "row['Dataset'] == 'cesaret2012'" -l orderacceptanceandscheduling -a "iterative_beam_search" -t 10`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/orderacceptanceandscheduling_main --csv ../ordata/orderacceptanceandscheduling/data.csv -f "row['Dataset'] == 'cesaret2012'" -l orderacceptanceandscheduling -a "iterative-beam-search" -t 10`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/orderacceptanceandscheduling/data.csv -f "row['Dataset'] == 'cesaret2012'" -l orderacceptanceandscheduling -b heuristiclong -t 11`
 
 </p>
@@ -171,7 +171,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 <p>
 
 * Benchmarks:
-  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingtt_main --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -a "iterative_beam_search" --timelimitfield "Time limit"`
+  * `python3 ../optimizationtools/optimizationtools/bench_run.py --main ./bazel-bin/examples/permutationflowshopschedulingtt_main --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -a "iterative-beam-search" --timelimitfield "Time limit"`
   * `python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/permutationflowshopscheduling/data_totaltardiness.csv -l permutationflowshopschedulingtt -b heuristiclong -t 500`
 
 </p>
@@ -246,15 +246,15 @@ bazel build -- //...
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/travelingsalesman_main -v 1 -a iterative_beam_search -i ../ordata/travelingsalesman/tsplib/a280.tsp -t 5 -c solution.txt
+./bazel-bin/examples/sequentialordering_main --verbosity-level 1 --input "../ordata/sequentialordering/soplib/R.700.1000.60.sop" --format soplib --algorithm iterative-beam-search --certificate solution.txt
 ```
 ```
 Instance
 --------
-Number of vertices:  280
+Number of locations:  700
 
 ======================================
-          Tree Search Solver          
+           TreeSearchSolver           
 ======================================
 
 Algorithm
@@ -268,43 +268,35 @@ Maximum size of the queue:   100000000
 Maximum number of nodes:     -1
 Growth factor:               2
 Maximum size of the pool:    1
-Time limit:                  5
+Time limit:                  inf
 
        Time                           Value                         Comment
        ----                           -----                         -------
-      0.003                                                             q 1
-      0.003                            3285                             q 2
-      0.003                            3285                             q 4
-      0.004                            3285                             q 8
-      0.006                            3285                            q 16
-      0.010                            3285                            q 32
-      0.018                            3285                            q 64
-      0.036                            3285                           q 128
-      0.075                            3285                           q 256
-      0.162                            3285                           q 512
-      0.339                            3285                          q 1024
-      0.745                            3275                          q 2048
-      1.581                            3275                          q 4096
-      3.608                            3258                          q 8192
+      0.069                                                             q 1
+      0.086                          277615                             q 2
+      0.105                          253795                             q 4
+      0.144                          246649                             q 8
+      0.209                          245634                            q 16
+      0.291                          245589                            q 32
 
 Final statistics
 ----------------
-Value:                      3258
-Time:                       5
-Number of nodes:            4064375
-Maximum size of the queue:  8192
+Value:                      245589
+Time:                       0.375687
+Number of nodes:            17144
+Maximum size of the queue:  64
 
 Solution
 --------
-Number of vertices:   280 / 280
-Distance:             3258
+Length:            245589
 
 Checker
 -------
-Number of vertices:     280 / 280
-Number of duplicates:   0
-Feasible:               1
-Total distance:         3258
+Number of Vertices:               700 / 700
+Number of duplicates:             0
+Number of precedence violations:  0
+Feasible:                         1
+Total distance:                   245589
 ```
 
 ## Usage, C++ library

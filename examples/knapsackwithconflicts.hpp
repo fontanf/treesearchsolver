@@ -262,7 +262,9 @@ public:
                 << std::setw(12) << "----------"
                 << std::setw(12) << "-----------"
                 << std::endl;
-            for (auto node_tmp = node; node_tmp->father != nullptr; node_tmp = node_tmp->father) {
+            for (auto node_tmp = node;
+                    node_tmp->father != nullptr;
+                    node_tmp = node_tmp->father) {
                 ItemId item_id = node_tmp->item_id;
                 const Item& item = instance_.item(item_id);
                 os
