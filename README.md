@@ -79,7 +79,7 @@ python3 ../optimizationtools/optimizationtools/bench_process.py --csv ../ordata/
 
 * Branching scheme: forward
 
-[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/algorithms/tree_search.cpp) and [thief orienteering problem](https://github.com/fontanf/travellingthiefsolver/blob/master/thieforienteeringsolver/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
+[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/travellingthief/algorithms/tree_search.cpp) and [thief orienteering problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/thieforienteering/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
 
 * Here, the library is used to implement an exact dynamic programming algorithm implemented as a tree search
 
