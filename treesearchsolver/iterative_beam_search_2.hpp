@@ -1,20 +1,60 @@
 #pragma once
 
-#include "treesearchsolver/common.hpp"
+#include "treesearchsolver/algorithm_formatter.hpp"
 
 namespace treesearchsolver
 {
 
 template <typename BranchingScheme>
-struct IterativeBeamSearch2Output
+struct IterativeBeamSearch2Parameters: Parameters<BranchingScheme>
+{
+    /** Growth factor of the size of the queue. */
+    double growth_factor = 2;
+
+    /** Minimum size of the queue. */
+    NodeId minimum_size_of_the_queue = 1;
+
+    /** Maximum size of the queue. */
+    NodeId maximum_size_of_the_queue = 100000000;
+
+    /** Maximum number of nodes expanded. */
+    NodeId maximum_number_of_nodes_expanded = -1;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Parameters<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Maximum number of nodes expanded: " << maximum_number_of_nodes_expanded << std::endl
+            << std::setw(width) << std::left << "Growth factor: " << growth_factor << std::endl
+            << std::setw(width) << std::left << "Minimum size of the queue: " << minimum_size_of_the_queue << std::endl
+            << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Parameters<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"MaximumNumberOfNodesExpanded", maximum_number_of_nodes_expanded},
+                {"GrowthFactor", growth_factor},
+                {"MinimumSizeOfTheQueue", minimum_size_of_the_queue},
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+        return json;
+    }
+};
+
+template <typename BranchingScheme>
+struct IterativeBeamSearch2Output: Output<BranchingScheme>
 {
     IterativeBeamSearch2Output(
             const BranchingScheme& branching_scheme,
             Counter maximum_size_of_the_solution_pool):
-        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
+       Output<BranchingScheme>(branching_scheme, maximum_size_of_the_solution_pool) { }
 
-    /** Solution pool. */
-    SolutionPool<BranchingScheme> solution_pool;
 
     /** Number of nodes generated. */
     NodeId number_of_nodes_generated = 0;
@@ -30,75 +70,51 @@ struct IterativeBeamSearch2Output
 
     /** Maximum size of the queue reached. */
     NodeId maximum_size_of_the_queue = 0;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Output<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Number of nodes generated: " << number_of_nodes_generated << std::endl
+            << std::setw(width) << std::left << "Number of nodes added: " << number_of_nodes_added << std::endl
+            << std::setw(width) << std::left << "Number of nodes processed: " << number_of_nodes_processed << std::endl
+            << std::setw(width) << std::left << "Number of nodes expanded: " << number_of_nodes_expanded << std::endl
+            << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Output<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"NumberOfNodesGenerated", number_of_nodes_generated},
+                {"NumberOfNodesAdded", number_of_nodes_added},
+                {"NumberOfNodesProcessed", number_of_nodes_processed},
+                {"NumberOfNodesExpanded", number_of_nodes_expanded},
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+        return json;
+    }
 };
 
 template <typename BranchingScheme>
-using IterativeBeamSearch2Callback = std::function<void(const IterativeBeamSearch2Output<BranchingScheme>&)>;
-
-template <typename BranchingScheme>
-struct IterativeBeamSearch2OptionalParameters
-{
-    using Node = typename BranchingScheme::Node;
-
-    /** Maximum size of the solution pool. */
-    NodeId maximum_size_of_the_solution_pool = 1;
-
-    /** Growth factor of the size of the queue. */
-    double growth_factor = 2;
-
-    /** Minimum size of the queue. */
-    NodeId minimum_size_of_the_queue = 1;
-
-    /** Maximum size of the queue. */
-    NodeId maximum_size_of_the_queue = 100000000;
-
-    /** Maximum number of nodes expanded. */
-    NodeId maximum_number_of_nodes_expanded = -1;
-
-    /**
-     * Goal.
-     *
-     * If not 'nullptr', The alglorithm stops as soon as a better node is
-     * found.
-     */
-    std::shared_ptr<Node> goal = nullptr;
-
-    /** Callback function called when a new best solution is found. */
-    IterativeBeamSearch2Callback<BranchingScheme> new_solution_callback
-        = [](const IterativeBeamSearch2Output<BranchingScheme>&) { };
-
-    /** Info structure. */
-    optimizationtools::Info info = optimizationtools::Info();
-};
-
-template <typename BranchingScheme>
-inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
+inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
         const BranchingScheme& branching_scheme,
-        IterativeBeamSearch2OptionalParameters<BranchingScheme> parameters = {})
+        const IterativeBeamSearch2Parameters<BranchingScheme>& parameters = {})
 {
     // Initial display.
-    parameters.info.os()
-            << "======================================" << std::endl
-            << "           TreeSearchSolver           " << std::endl
-            << "======================================" << std::endl
-            << std::endl
-            << "Algorithm" << std::endl
-            << "---------" << std::endl
-            << "Iterative Beam Search 2" << std::endl
-            << std::endl
-            << "Parameters" << std::endl
-            << "----------" << std::endl
-            << "Minimum size of the queue:          " << parameters.minimum_size_of_the_queue << std::endl
-            << "Maximum size of the queue:          " << parameters.maximum_size_of_the_queue << std::endl
-            << "Maximum number of nodes expadned:   " << parameters.maximum_number_of_nodes_expanded << std::endl
-            << "Growth factor:                      " << parameters.growth_factor << std::endl
-            << "Maximum size of the pool:           " << parameters.maximum_size_of_the_solution_pool << std::endl
-            << "Time limit:                         " << parameters.info.time_limit << std::endl
-            << std::endl;
-
     IterativeBeamSearch2Output<BranchingScheme> output(
-            branching_scheme, parameters.maximum_size_of_the_solution_pool);
-    output.solution_pool.display_init(parameters.info);
+            branching_scheme,
+            parameters.maximum_size_of_the_solution_pool);
+    AlgorithmFormatter<BranchingScheme> algorithm_formatter(
+            branching_scheme,
+            parameters,
+            output);
+    algorithm_formatter.start("Iterative beam search 2");
+    algorithm_formatter.print_header();
 
     // Initialize q and history.
     auto node_hasher = branching_scheme.node_hasher();
@@ -117,7 +133,7 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
         std::stringstream ss;
         ss << "q " << output.maximum_size_of_the_queue;
-        output.solution_pool.display(ss, parameters.info);
+        algorithm_formatter.print(ss);
 
         // Initialize queue.
         bool stop = true;
@@ -157,7 +173,7 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
                     output.number_of_nodes_generated++;
 
                     // Check time.
-                    if (parameters.info.needs_to_end())
+                    if (parameters.timer.needs_to_end())
                         goto ibsend;
 
                     // Check best known bound.
@@ -174,10 +190,7 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
 
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
-                        std::stringstream ss;
-                        ss << "q " << output.maximum_size_of_the_queue;
-                        output.solution_pool.add(child, ss, parameters.info);
-                        parameters.new_solution_callback(output);
+                        algorithm_formatter.update_solution(child);
                     }
 
                     // Add child to the queue.
@@ -281,17 +294,7 @@ inline IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2(
     }
 ibsend:
 
-    output.solution_pool.display_end(parameters.info);
-    parameters.info.os() << "Number of nodes generated:  " << output.number_of_nodes_generated << std::endl;
-    parameters.info.os() << "Number of nodes added:      " << output.number_of_nodes_added << std::endl;
-    parameters.info.os() << "Number of nodes processed:  " << output.number_of_nodes_processed << std::endl;
-    parameters.info.os() << "Number of nodes expanded:   " << output.number_of_nodes_expanded << std::endl;
-    parameters.info.os() << "Maximum size of the queue:  " << output.maximum_size_of_the_queue << std::endl;
-    parameters.info.add_to_json("Algorithm", "NumberOfNodesGenerated", output.number_of_nodes_generated);
-    parameters.info.add_to_json("Algorithm", "NumberOfNodesAdded", output.number_of_nodes_added);
-    parameters.info.add_to_json("Algorithm", "NumberOfNodesProcessed", output.number_of_nodes_processed);
-    parameters.info.add_to_json("Algorithm", "NumberOfNodesExpanded", output.number_of_nodes_expanded);
-    parameters.info.add_to_json("Algorithm", "MaximumSizeOfTheQueue", output.maximum_size_of_the_queue);
+    algorithm_formatter.end();
     return output;
 }
 

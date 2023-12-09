@@ -1,68 +1,86 @@
 #pragma once
 
-#include "treesearchsolver/common.hpp"
+#include "treesearchsolver/algorithm_formatter.hpp"
 
 namespace treesearchsolver
 {
 
 template <typename BranchingScheme>
-struct BestFirstSearchOutput
+struct BestFirstSearchParameters: Parameters<BranchingScheme>
+{
+    /** Maximum number of nodes. */
+    NodeId maximum_number_of_nodes = -1;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Parameters<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Maximum number of nodes: " << maximum_number_of_nodes << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Parameters<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"MaximumNumberOfNodes", maximum_number_of_nodes}});
+        return json;
+    }
+};
+
+template <typename BranchingScheme>
+struct BestFirstSearchOutput: Output<BranchingScheme>
 {
     BestFirstSearchOutput(
             const BranchingScheme& branching_scheme,
             Counter maximum_size_of_the_solution_pool):
-        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
+       Output<BranchingScheme>(branching_scheme, maximum_size_of_the_solution_pool) { }
 
-    SolutionPool<BranchingScheme> solution_pool;
 
+    /** Number of nodes processed. */
     Counter number_of_nodes = 0;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Output<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Number of nodes: " << number_of_nodes << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Output<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"NumberOfNodes", number_of_nodes}});
+        return json;
+    }
 };
 
 template <typename BranchingScheme>
-using BestFirstSearchCallback = std::function<void(const BestFirstSearchOutput<BranchingScheme>&)>;
-
-template <typename BranchingScheme>
-struct BestFirstSearchOptionalParameters
-{
-    /** Maximum size of the solution pool. */
-    NodeId maximum_size_of_the_solution_pool = 1;
-
-    /** Maximum number of nodes. */
-    NodeId maximum_number_of_nodes = -1;
-
-    /** Callback function called when a new best solution is found. */
-    BestFirstSearchCallback<BranchingScheme> new_solution_callback
-        = [](const BestFirstSearchOutput<BranchingScheme>&) { };
-
-    /** Info structure. */
-    optimizationtools::Info info = optimizationtools::Info();
-};
-
-template <typename BranchingScheme>
-inline BestFirstSearchOutput<BranchingScheme> best_first_search(
+inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
         const BranchingScheme& branching_scheme,
-        BestFirstSearchOptionalParameters<BranchingScheme> parameters = {})
+        const BestFirstSearchParameters<BranchingScheme>& parameters = {})
 {
     // Initial display.
-    parameters.info.os()
-            << "======================================" << std::endl
-            << "           TreeSearchSolver           " << std::endl
-            << "======================================" << std::endl
-            << std::endl
-            << "Algorithm" << std::endl
-            << "---------" << std::endl
-            << "Best First Search" << std::endl
-            << std::endl
-            << "Parameters" << std::endl
-            << "----------" << std::endl
-            << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
-            << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
-            << "Time limit:                  " << parameters.info.time_limit << std::endl
-            << std::endl;
-
     BestFirstSearchOutput<BranchingScheme> output(
-            branching_scheme, parameters.maximum_size_of_the_solution_pool);
-    output.solution_pool.display_init(parameters.info);
+            branching_scheme,
+            parameters.maximum_size_of_the_solution_pool);
+    AlgorithmFormatter<BranchingScheme> algorithm_formatter(
+            branching_scheme,
+            parameters,
+            output);
+    algorithm_formatter.start("Best first search");
+    algorithm_formatter.print_header();
+
     auto node_hasher = branching_scheme.node_hasher();
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
     NodeSet<BranchingScheme> q(branching_scheme);
@@ -73,7 +91,7 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
         output.number_of_nodes++;
 
         // Check time.
-        if (parameters.info.needs_to_end())
+        if (parameters.timer.needs_to_end())
             break;
 
         // Check node limit.
@@ -99,11 +117,10 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
         if (child != nullptr) {
             // Update best solution.
             if (branching_scheme.better(child, output.solution_pool.worst())) {
+                algorithm_formatter.update_solution(child);
                 std::stringstream ss;
                 ss << "node " << output.number_of_nodes;
-                output.solution_pool.add(child, ss, parameters.info);
-                output.solution_pool.display(ss, parameters.info);
-                parameters.new_solution_callback(output);
+                algorithm_formatter.print(ss);
             }
             // Add child to the queue.
             if (!branching_scheme.leaf(child)
@@ -122,9 +139,7 @@ inline BestFirstSearchOutput<BranchingScheme> best_first_search(
 
     }
 
-    output.solution_pool.display_end(parameters.info);
-    parameters.info.os() << "Number of nodes:            " << output.number_of_nodes << std::endl;
-    parameters.info.add_to_json("Algorithm", "NumberOfNodes", output.number_of_nodes);
+    algorithm_formatter.end();
     return output;
 }
 

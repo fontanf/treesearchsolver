@@ -1,10 +1,11 @@
 #pragma once
 
-#include "optimizationtools/utils/info.hpp"
+#include "optimizationtools/utils/output.hpp"
 #include "optimizationtools/utils/utils.hpp"
 
 #include <cstdint>
 #include <set>
+#include <iomanip>
 
 namespace treesearchsolver
 {
@@ -15,7 +16,6 @@ using Depth = int64_t;
 using Value = double;
 
 enum class ObjectiveSense { Min, Max };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// depth /////////////////////////////////////
@@ -81,7 +81,6 @@ Depth depth(
                 Depth(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// goal_node ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +145,6 @@ std::shared_ptr<typename BranchingScheme::Node> goal_node(
                 std::shared_ptr<typename BranchingScheme::Node>(double)>::value>());
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Solution Pool /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,6 +172,9 @@ struct SolutionPoolComparator
     }
 };
 
+/**
+ * Solution pool class.
+ */
 template <typename BranchingScheme>
 class SolutionPool
 {
@@ -181,7 +182,10 @@ class SolutionPool
 
 public:
 
-    SolutionPool(const BranchingScheme& branching_scheme, Counter size_max):
+    /** Constructor. */
+    SolutionPool(
+            const BranchingScheme& branching_scheme,
+            Counter size_max):
         branching_scheme_(branching_scheme),
         size_max_(size_max),
         solution_pool_comparator_(branching_scheme),
@@ -190,91 +194,141 @@ public:
         solutions_.insert(branching_scheme.root());
     }
 
-    virtual ~SolutionPool() { }
+    /** Get the branching scheme. */
+    const BranchingScheme& branching_scheme() const { return branching_scheme_; }
 
+    /** Get solutions. */
     const std::set<std::shared_ptr<Node>, SolutionPoolComparator<BranchingScheme>>& solutions() const { return solutions_; };
+
+    /** Get the best solution of the pool. */
     const std::shared_ptr<Node>& best() const { return *solutions_.begin(); }
+
+    /** Get the worst solution of the pool. */
     const std::shared_ptr<Node>& worst() const { return *std::prev(solutions_.end()); }
 
-    bool add(
-            const std::shared_ptr<Node>& node,
-            const std::stringstream& ss,
-            optimizationtools::Info& info)
+    /** Add a solution to the pool. */
+    int add(
+            const std::shared_ptr<Node>& node)
     {
         // If the solution is worse than the worst solution of the pool, stop.
         if ((Counter)solutions_.size() >= size_max_)
             if (!branching_scheme_.better(node, *std::prev(solutions_.end())))
-                return false;
+                return 0;
         // If new best solution, display.
         bool d = branching_scheme_.better(node, *solutions_.begin());
         // Add new solution to solution pool.
         auto res = solutions_.insert(node);
-        if (d) {
-            info.output->number_of_solutions++;
-            double t = info.elapsed_time();
-            std::string sol_str = "Solution" + std::to_string(info.output->number_of_solutions);
-            info.add_to_json(sol_str, "Value", branching_scheme_.display(node));
-            info.add_to_json(sol_str, "Time", t);
-            info.add_to_json(sol_str, "Comment", ss.str());
-            if (!info.output->only_write_at_the_end) {
-                info.write_json_output();
-                //write(info);
-            }
-        }
         // If the pool size is now above its maximum allowed size, remove worst
         // solutions from it.
         if ((Counter)solutions_.size() > size_max_)
             solutions_.erase(std::prev(solutions_.end()));
+        if (d)
+            return 2;
         return res.second;
-    }
-
-    void display_init(optimizationtools::Info& info)
-    {
-        info.os()
-                << std::setw(11) << "Time"
-                << std::setw(32) << "Value"
-                << std::setw(32) << "Comment" << std::endl
-                << std::setw(11) << "----"
-                << std::setw(32) << "-----"
-                << std::setw(32) << "-------" << std::endl;
-    }
-
-    void display(const std::stringstream& ss, optimizationtools::Info& info)
-    {
-        double t = info.elapsed_time();
-        std::streamsize precision = info.os().precision();
-        info.os()
-                << std::setw(11) << std::fixed << std::setprecision(3) << t << std::defaultfloat << std::setprecision(precision)
-                << std::setw(32) << branching_scheme_.display(best())
-                << std::setw(32) << ss.str()
-                << std::endl;
-    }
-
-    void display_end(optimizationtools::Info& info)
-    {
-        double t = info.elapsed_time();
-        info.os() << std::defaultfloat
-                << std::endl
-                << "Final statistics" << std::endl
-                << "----------------" << std::endl
-                << "Value:                      " << branching_scheme_.display(*solutions_.begin()) << std::endl
-                << "Time:                       " << t << std::endl;
-
-        std::string sol_str = "Solution";
-        info.add_to_json(sol_str, "Time", t);
-        info.add_to_json(sol_str, "Value", branching_scheme_.display(*solutions_.begin()));
-        info.write_json_output();
-        //write(info);
     }
 
 private:
 
+    /** Branching scheme. */
     const BranchingScheme& branching_scheme_;
+
+    /** Maximum size of the pool. */
     Counter size_max_;
+
+    /** Comparator. */
     SolutionPoolComparator<BranchingScheme> solution_pool_comparator_;
+
+    /** Solutions. */
     std::set<std::shared_ptr<Node>, SolutionPoolComparator<BranchingScheme>> solutions_;
 
 };
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename BranchingScheme>
+struct Output: optimizationtools::Output
+{
+    /** Constructor. */
+    Output(
+            const BranchingScheme& branching_scheme,
+            int maximum_size_of_the_solution_pool = 10):
+        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
+
+
+    /** Solution. */
+    SolutionPool<BranchingScheme> solution_pool;
+
+    /** Elapsed time. */
+    double time = 0.0;
+
+
+    virtual nlohmann::json to_json() const
+    {
+        return {
+            {"Value", solution_pool.branching_scheme().display(solution_pool.best())},
+            {"Time", time}};
+    }
+
+    virtual int format_width() const { return 30; }
+
+    virtual void format(std::ostream& os) const
+    {
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Value: " << solution_pool.branching_scheme().display(solution_pool.best()) << std::endl
+            << std::setw(width) << std::left << "Time: " << time << std::endl
+            ;
+    }
+};
+
+template <typename BranchingScheme>
+using NewSolutionCallback = std::function<void(const Output<BranchingScheme>&)>;
+
+template <typename BranchingScheme>
+struct Parameters: optimizationtools::Parameters
+{
+    using Node = typename BranchingScheme::Node;
+
+    /** Maximum size of the solution pool. */
+    NodeId maximum_size_of_the_solution_pool = 1;
+
+    /** Callback function called when a new best solution is found. */
+    NewSolutionCallback<BranchingScheme> new_solution_callback = [](const Output<BranchingScheme>&) { };
+
+    /**
+     * Goal.
+     *
+     * If not 'nullptr', The alglorithm stops as soon as a better node is
+     * found.
+     */
+    std::shared_ptr<Node> goal = nullptr;
+
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = optimizationtools::Parameters::to_json();
+        json.merge_patch({
+                {"MaximumSizeOfTheSolutionPool", maximum_size_of_the_solution_pool}});
+        return json;
+    }
+
+    virtual int format_width() const override { return 23; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        optimizationtools::Parameters::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Maximum size of the solution pool: " << maximum_size_of_the_solution_pool << std::endl
+            ;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename BranchingScheme>
 using NodeMap = std::unordered_map<
@@ -361,6 +415,75 @@ inline void remove_from_history_and_queue(
     remove_from_history(branching_scheme, history, *node);
     // Remove from queue.
     q.erase(node);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////// branching_scheme_solution_write ////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename, typename T>
+struct HasSolutionWriteMethod
+{
+    static_assert(
+        std::integral_constant<T, false>::value,
+        "Second template parameter needs to be of function type.");
+};
+
+template<typename C, typename Ret, typename... Args>
+struct HasSolutionWriteMethod<C, Ret(Args...)>
+{
+
+private:
+
+    template<typename T>
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().solution_write(std::declval<Args>()...)), Ret>::type;
+
+    template<typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<C>(0)) type;
+
+public:
+
+    static constexpr bool value = type::value;
+
+};
+
+template<typename BranchingScheme>
+void solution_write(
+        const BranchingScheme&,
+        const std::shared_ptr<typename BranchingScheme::Node>&,
+        const std::string&,
+        std::false_type)
+{
+}
+
+template<typename BranchingScheme>
+void solution_write(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& solution,
+        const std::string& certificate_path,
+        std::true_type)
+{
+    return branching_scheme.solution_write(
+            solution,
+            certificate_path);
+}
+
+template<typename BranchingScheme>
+void solution_write(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& solution,
+        const std::string& certificate_path)
+{
+    return solution_write(
+            branching_scheme,
+            solution,
+            certificate_path,
+            std::integral_constant<
+                bool,
+                HasSolutionWriteMethod<BranchingScheme,
+                void(const BranchingScheme&, const std::shared_ptr<typename BranchingScheme::Node>&, const std::string&)>::value>());
 }
 
 }

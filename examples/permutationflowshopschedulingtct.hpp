@@ -15,15 +15,15 @@
 
 #pragma once
 
-#include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
 #include "optimizationtools/containers/indexed_set.hpp"
 
 #include "orproblems/permutationflowshopschedulingtct.hpp"
 
+#include <memory>
+
 namespace treesearchsolver
 {
-
 namespace permutationflowshopschedulingtct
 {
 
@@ -38,16 +38,37 @@ public:
 
     struct Node
     {
-        std::shared_ptr<Node> father = nullptr;
+        /** Parent node. */
+        std::shared_ptr<Node> parent = nullptr;
+
+        /** Array indicating for each job, if it still available. */
         std::vector<bool> available_jobs;
+
+        /** Last job added to the partial solution. */
         JobId job_id = -1;
+
+        /** Number of jobs in the partial solution. */
         JobId number_of_jobs = 0;
+
+        /** For each machine, the current time. */
         std::vector<Time> times;
+
+        /** Total completion time of the partial solution. */
         Time total_completion_time = 0;
+
+        /** Idle time. */
         Time idle_time = 0;
+
+        /** Weighted idle time. */
         double weighted_idle_time = 0;
+
+        /** Bound. */
         Time bound = 0;
+
+        /** Guide. */
         double guide = 0;
+
+        /** Next child to generate. */
         JobId next_child_pos = 0;
     };
 
@@ -81,78 +102,81 @@ public:
             const std::shared_ptr<Node>& node) const
     {
         MachineId m = instance_.number_of_machines();
-        auto father = node->father;
-        node->available_jobs = father->available_jobs;
+        auto parent = node->parent;
+        node->available_jobs = parent->available_jobs;
         node->available_jobs[node->job_id] = false;
-        node->times = father->times;
-        node->times[0] = father->times[0]
+        node->times = parent->times;
+        node->times[0] = parent->times[0]
             + instance_.processing_time(node->job_id, 0);
         for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
-            if (node->times[machine_id - 1] > father->times[machine_id]) {
+            if (node->times[machine_id - 1] > parent->times[machine_id]) {
                 node->times[machine_id] = node->times[machine_id - 1]
                     + instance_.processing_time(node->job_id, machine_id);
             } else {
-                node->times[machine_id] = father->times[machine_id]
+                node->times[machine_id] = parent->times[machine_id]
                     + instance_.processing_time(node->job_id, machine_id);
             }
         }
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node>& father) const
+            const std::shared_ptr<Node>& parent) const
     {
-        assert(!infertile(father));
-        assert(!leaf(father));
+        assert(!infertile(parent));
+        assert(!leaf(parent));
 
-        // Compute father's structures.
-        if (father->times.empty())
-            compute_structures(father);
+        // Compute parent's structures.
+        if (parent->times.empty())
+            compute_structures(parent);
 
-        //if (father->next_child_pos == 0)
-        //    std::cout << "father"
-        //        << " j " << father->j
-        //        << " n " << father->number_of_jobs
-        //        << " ct " << father->total_completion_time
-        //        << " it " << father->idle_time
-        //        << " wit " << father->weighted_idle_time
-        //        << " guide " << father->guide
+        //if (parent->next_child_pos == 0)
+        //    std::cout << "parent"
+        //        << " j " << parent->j
+        //        << " n " << parent->number_of_jobs
+        //        << " ct " << parent->total_completion_time
+        //        << " it " << parent->idle_time
+        //        << " wit " << parent->weighted_idle_time
+        //        << " guide " << parent->guide
         //        << std::endl;
 
-        JobId job_id_next = father->next_child_pos;
-        // Update father
-        father->next_child_pos++;
+        // Get the next job to process.
+        JobId job_id_next = parent->next_child_pos;
+
+        // Update parent
+        parent->next_child_pos++;
+
         // Check job availibility.
-        if (!father->available_jobs[job_id_next])
+        if (!parent->available_jobs[job_id_next])
             return nullptr;
 
         // Compute new child.
         MachineId m = instance_.number_of_machines();
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-        child->father = father;
+        child->parent = parent;
         child->job_id = job_id_next;
-        child->number_of_jobs = father->number_of_jobs + 1;
-        child->idle_time = father->idle_time;
-        child->weighted_idle_time = father->weighted_idle_time;
-        Time t_prec = father->times[0]
+        child->number_of_jobs = parent->number_of_jobs + 1;
+        child->idle_time = parent->idle_time;
+        child->weighted_idle_time = parent->weighted_idle_time;
+        Time t_prec = parent->times[0]
             + instance_.processing_time(job_id_next, 0);
         Time t = 0;
         for (MachineId machine_id = 1; machine_id < m; ++machine_id) {
-            if (t_prec > father->times[machine_id]) {
-                Time idle_time = t_prec - father->times[machine_id];
+            if (t_prec > parent->times[machine_id]) {
+                Time idle_time = t_prec - parent->times[machine_id];
                 t = t_prec + instance_.processing_time(job_id_next, machine_id);
                 child->idle_time += idle_time;
-                child->weighted_idle_time += ((double)father->number_of_jobs / n + 1) * (m - machine_id) * idle_time;
+                child->weighted_idle_time += ((double)parent->number_of_jobs / n + 1) * (m - machine_id) * idle_time;
             } else {
-                t = father->times[machine_id]
+                t = parent->times[machine_id]
                     + instance_.processing_time(job_id_next, machine_id);
             }
             t_prec = t;
         }
-        child->total_completion_time = father->total_completion_time + t;
+        child->total_completion_time = parent->total_completion_time + t;
         // Compute bound.
-        child->bound = father->bound
-            + (n - father->number_of_jobs) * (t - father->times[m - 1])
+        child->bound = parent->bound
+            + (n - parent->number_of_jobs) * (t - parent->times[m - 1])
             - instance_.processing_time(job_id_next, m - 1);
         // Compute guide.
         double alpha = (double)child->number_of_jobs / instance_.number_of_jobs();
@@ -302,8 +326,15 @@ public:
     }
 
     /*
-     * Outputs.
+     * Outputs
      */
+
+    void instance_format(
+            std::ostream& os,
+            int verbosity_level) const
+    {
+        instance_.print(os, verbosity_level);
+    }
 
     std::string display(const std::shared_ptr<Node>& node) const
     {
@@ -314,58 +345,55 @@ public:
         return ss.str();
     }
 
-    std::ostream& print_solution(
-            std::ostream &os,
-            const std::shared_ptr<Node>& node)
+    void solution_format(
+            const std::shared_ptr<Node>& node,
+            std::ostream& os,
+            int verbosity_level) const
     {
         if (node->times.empty())
             compute_structures(node);
-        for (auto node_tmp = node;
-                node_tmp->father != nullptr;
-                node_tmp = node_tmp->father) {
-            os << "node_tmp"
-                << " n " << node_tmp->number_of_jobs
-                << " c " << node_tmp->times[instance_.number_of_machines() - 1]
-                << " tct " << node_tmp->total_completion_time
-                << " bnd " << node_tmp->bound
-                << " j " << node_tmp->job_id
-                << std::endl;
+
+        if (verbosity_level >= 1) {
+            os
+                << "Total completion time:  " << node->total_completion_time << std::endl
+                << "Idle time:              " << node->idle_time << std::endl
+                ;
         }
-        return os;
     }
 
-    inline void write(
+    inline void solution_write(
             const std::shared_ptr<Node>& node,
             std::string certificate_path) const
     {
         if (certificate_path.empty())
             return;
-        std::ofstream cert(certificate_path);
-        if (!cert.good()) {
+        std::ofstream file(certificate_path);
+        if (!file.good()) {
             throw std::runtime_error(
                     "Unable to open file \"" + certificate_path + "\".");
         }
 
         std::vector<JobId> jobs;
         for (auto node_tmp = node;
-                node_tmp->father != nullptr;
-                node_tmp = node_tmp->father) {
+                node_tmp->parent != nullptr;
+                node_tmp = node_tmp->parent) {
             jobs.push_back(node_tmp->job_id);
         }
         std::reverse(jobs.begin(), jobs.end());
         for (JobId job_id: jobs)
-            cert << job_id << " ";
+            file << job_id << " ";
     }
 
 
 private:
 
+    /** Instance. */
     const Instance& instance_;
+
+    /** Parameters. */
     Parameters parameters_;
 
 };
 
 }
-
 }
-

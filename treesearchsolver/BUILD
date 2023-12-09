@@ -2,6 +2,7 @@ cc_library(
         name = "treesearchsolver",
         hdrs = [
                 "common.hpp",
+                "algorithm_formatter.hpp",
                 "greedy.hpp",
                 "best_first_search.hpp",
                 "iterative_beam_search.hpp",
@@ -10,7 +11,6 @@ cc_library(
                 "anytime_column_search.hpp",
         ],
         deps = [
-                "@optimizationtools//optimizationtools/utils:info",
                 "@optimizationtools//optimizationtools/utils:utils",
                 "@optimizationtools//optimizationtools/containers:containers",
         ],

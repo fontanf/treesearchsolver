@@ -1,68 +1,106 @@
 #pragma once
 
-#include "treesearchsolver/common.hpp"
+#include "treesearchsolver/algorithm_formatter.hpp"
 
 namespace treesearchsolver
 {
 
-struct IterativeMemoryBoundedBestFirstSearchOptionalParameters
+template <typename BranchingScheme>
+struct IterativeMemoryBoundedBestFirstSearchParameters: Parameters<BranchingScheme>
 {
-    NodeId maximum_size_of_the_solution_pool = 1;
-
+    /** Maximum number of nodes expanded. */
     NodeId maximum_number_of_nodes = -1;
 
+    /** Growth factor of the size of the queue. */
     double growth_factor = 1.5;
 
+    /** Minimum size of the queue. */
     NodeId minimum_size_of_the_queue = 0;
 
+    /** Maximum size of the queue. */
     NodeId maximum_size_of_the_queue = 100000000;
 
-    optimizationtools::Info info = optimizationtools::Info();
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Parameters<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Maximum number of nodes: " << maximum_number_of_nodes << std::endl
+            << std::setw(width) << std::left << "Growth factor: " << growth_factor << std::endl
+            << std::setw(width) << std::left << "Minimum size of the queue: " << minimum_size_of_the_queue << std::endl
+            << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Parameters<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"MaximumNumberOfNodes", maximum_number_of_nodes},
+                {"GrowthFactor", growth_factor},
+                {"MinimumSizeOfTheQueue", minimum_size_of_the_queue},
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+        return json;
+    }
 };
 
 template <typename BranchingScheme>
-struct IterativeMemoryBoundedBestFirstSearchOutput
+struct IterativeMemoryBoundedBestFirstSearchOutput: Output<BranchingScheme>
 {
     IterativeMemoryBoundedBestFirstSearchOutput(
             const BranchingScheme& branching_scheme,
             Counter maximum_size_of_the_solution_pool):
-        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
+       Output<BranchingScheme>(branching_scheme, maximum_size_of_the_solution_pool) { }
 
-    SolutionPool<BranchingScheme> solution_pool;
 
+    /** Number of nodes explored. */
     Counter number_of_nodes = 0;
 
+    /** Maximum size of the queue reached. */
     NodeId maximum_size_of_the_queue = 0;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Output<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Number of nodes: " << number_of_nodes << std::endl
+            << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Output<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"NumberOfNodes", number_of_nodes},
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+        return json;
+    }
 };
 
 template <typename BranchingScheme>
-inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_memory_bounded_best_first_search(
+inline const IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_memory_bounded_best_first_search(
         const BranchingScheme& branching_scheme,
-        IterativeMemoryBoundedBestFirstSearchOptionalParameters parameters = {})
+        const IterativeMemoryBoundedBestFirstSearchParameters<BranchingScheme>& parameters = {})
 {
     // Initial display.
-    parameters.info.os()
-            << "======================================" << std::endl
-            << "           TreeSearchSolver           " << std::endl
-            << "======================================" << std::endl
-            << std::endl
-            << "Algorithm" << std::endl
-            << "---------" << std::endl
-            << "Iterative Memory Bounded Best First Search" << std::endl
-            << std::endl
-            << "Parameters" << std::endl
-            << "----------" << std::endl
-            << "Minimum size of the queue:   " << parameters.minimum_size_of_the_queue << std::endl
-            << "Maximum size of the queue:   " << parameters.maximum_size_of_the_queue << std::endl
-            << "Maximum number of nodes:     " << parameters.maximum_number_of_nodes << std::endl
-            << "Growth factor:               " << parameters.growth_factor << std::endl
-            << "Maximum size of the pool:    " << parameters.maximum_size_of_the_solution_pool << std::endl
-            << "Time limit:                  " << parameters.info.time_limit << std::endl
-            << std::endl;
-
     IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> output(
-            branching_scheme, parameters.maximum_size_of_the_solution_pool);
-    output.solution_pool.display_init(parameters.info);
+            branching_scheme,
+            parameters.maximum_size_of_the_solution_pool);
+    AlgorithmFormatter<BranchingScheme> algorithm_formatter(
+            branching_scheme,
+            parameters,
+            output);
+    algorithm_formatter.start("Iterative memory bounded best first search");
+    algorithm_formatter.print_header();
+
     auto node_hasher = branching_scheme.node_hasher();
     NodeSet<BranchingScheme> q(branching_scheme);
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
@@ -76,7 +114,7 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
 
         std::stringstream ss;
         ss << "q " << output.maximum_size_of_the_queue;
-        output.solution_pool.display(ss, parameters.info);
+        algorithm_formatter.print(ss);
 
         q.clear();
         history.clear();
@@ -88,7 +126,7 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
             output.number_of_nodes++;
 
             // Check time.
-            if (parameters.info.needs_to_end())
+            if (parameters.timer.needs_to_end())
                 goto imbastarend;
 
             // Check node limit.
@@ -115,10 +153,9 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
             if (child != nullptr) {
                 // Update best solution.
                 if (branching_scheme.better(child, output.solution_pool.worst())) {
-                    std::stringstream ss;
-                    ss << "q " << output.maximum_size_of_the_queue;
-                    output.solution_pool.add(child, ss, parameters.info);
+                    algorithm_formatter.update_solution(child);
                 }
+
                 // Add child to the queue.
                 if (!branching_scheme.leaf(child)
                         && !branching_scheme.bound(child, output.solution_pool.worst())) {
@@ -157,9 +194,7 @@ inline IterativeMemoryBoundedBestFirstSearchOutput<BranchingScheme> iterative_me
     }
 imbastarend:
 
-    output.solution_pool.display_end(parameters.info);
-    parameters.info.os() << "Number of nodes:            " << output.number_of_nodes << std::endl;
-    parameters.info.add_to_json("Algorithm", "NumberOfNodes", output.number_of_nodes);
+    algorithm_formatter.end();
     return output;
 }
 

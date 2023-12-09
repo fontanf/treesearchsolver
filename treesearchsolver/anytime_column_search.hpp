@@ -1,39 +1,13 @@
 #pragma once
 
-#include "treesearchsolver/common.hpp"
+#include "treesearchsolver/algorithm_formatter.hpp"
 
 namespace treesearchsolver
 {
 
 template <typename BranchingScheme>
-struct AnytimeColumnSearchOutput
+struct AnytimeColumnSearchParameters: Parameters<BranchingScheme>
 {
-    AnytimeColumnSearchOutput(
-            const BranchingScheme& branching_scheme,
-            Counter maximum_size_of_the_solution_pool):
-        solution_pool(branching_scheme, maximum_size_of_the_solution_pool) { }
-
-    /** Solution pool. */
-    SolutionPool<BranchingScheme> solution_pool;
-
-    /** Number of nodes explored. */
-    Counter number_of_nodes = 0;
-
-    /** Number of iterations. */
-    Counter number_of_iterations = 0;
-};
-
-template <typename BranchingScheme>
-using AnytimeColumnSearchCallback = std::function<void(const AnytimeColumnSearchOutput<BranchingScheme>&)>;
-
-template <typename BranchingScheme>
-struct AnytimeColumnSearchOptionalParameters
-{
-    using Node = typename BranchingScheme::Node;
-
-    /** Maximum size of the solution pool. */
-    NodeId maximum_size_of_the_solution_pool = 1;
-
     /** Initial size of the column. */
     Counter initial_column_size = 1;
 
@@ -46,52 +20,88 @@ struct AnytimeColumnSearchOptionalParameters
     /** Maximum number of iterations. */
     NodeId maximum_number_of_iterations = -1;
 
-    /**
-     * Goal.
-     *
-     * If not 'nullptr', The alglorithm stops as soon as a better node is
-     * found.
-     */
-    std::shared_ptr<Node> goal = nullptr;
 
-    /** Callback function called when a new best solution is found. */
-    AnytimeColumnSearchCallback<BranchingScheme> new_solution_callback
-        = [](const AnytimeColumnSearchOutput<BranchingScheme>&) { };
+    virtual int format_width() const override { return 37; }
 
-    /** Info structure. */
-    optimizationtools::Info info = optimizationtools::Info();
+    virtual void format(std::ostream& os) const override
+    {
+        Parameters<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Initial column size: " << initial_column_size << std::endl
+            << std::setw(width) << std::left << "Growth factor: " << column_size_growth_factor << std::endl
+            << std::setw(width) << std::left << "Maximum number of nodes: " << maximum_number_of_nodes << std::endl
+            << std::setw(width) << std::left << "Maximum number of iterations: " << maximum_number_of_iterations << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Parameters<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"InitialColumnSize", initial_column_size},
+                {"GrowthFactor", column_size_growth_factor},
+                {"MaximumNumberOfNodes", maximum_number_of_nodes},
+                {"MaximumNumberOfIterations", maximum_number_of_iterations}});
+        return json;
+    }
 };
 
 template <typename BranchingScheme>
-inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
+struct AnytimeColumnSearchOutput: Output<BranchingScheme>
+{
+    AnytimeColumnSearchOutput(
+            const BranchingScheme& branching_scheme,
+            Counter maximum_size_of_the_solution_pool):
+       Output<BranchingScheme>(branching_scheme, maximum_size_of_the_solution_pool) { }
+
+
+    /** Number of nodes explored. */
+    Counter number_of_nodes = 0;
+
+    /** Number of iterations. */
+    Counter number_of_iterations = 0;
+
+
+    virtual int format_width() const override { return 37; }
+
+    virtual void format(std::ostream& os) const override
+    {
+        Output<BranchingScheme>::format(os);
+        int width = format_width();
+        os
+            << std::setw(width) << std::left << "Number of nodes: " << number_of_nodes << std::endl
+            << std::setw(width) << std::left << "Number of iterations: " << number_of_iterations << std::endl
+            ;
+    }
+
+    virtual nlohmann::json to_json() const override
+    {
+        nlohmann::json json = Output<BranchingScheme>::to_json();
+        json.merge_patch({
+                {"NumberOfNodes", number_of_nodes},
+                {"NumberOfIterations", number_of_iterations}});
+        return json;
+    }
+};
+
+template <typename BranchingScheme>
+inline const AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
         const BranchingScheme& branching_scheme,
-        AnytimeColumnSearchOptionalParameters<BranchingScheme> parameters = {})
+        const AnytimeColumnSearchParameters<BranchingScheme>& parameters = {})
 {
     using Node = typename BranchingScheme::Node;
 
     // Initial display.
-    parameters.info.os()
-            << "======================================" << std::endl
-            << "           TreeSearchSolver           " << std::endl
-            << "======================================" << std::endl
-            << std::endl
-            << "Algorithm" << std::endl
-            << "---------" << std::endl
-            << "Anytime Column Search" << std::endl
-            << std::endl
-            << "Parameters" << std::endl
-            << "----------" << std::endl
-            << "Initial column size:           " << parameters.initial_column_size << std::endl
-            << "Column size growth factor:     " << parameters.column_size_growth_factor << std::endl
-            << "Maximum number of nodes:       " << parameters.maximum_number_of_nodes << std::endl
-            << "Maximum number of iterations:  " << parameters.maximum_number_of_iterations << std::endl
-            << "Maximum size of the pool:      " << parameters.maximum_size_of_the_solution_pool << std::endl
-            << "Time limit:                    " << parameters.info.time_limit << std::endl
-            << std::endl;
-
     AnytimeColumnSearchOutput<BranchingScheme> output(
-            branching_scheme, parameters.maximum_size_of_the_solution_pool);
-    output.solution_pool.display_init(parameters.info);
+            branching_scheme,
+            parameters.maximum_size_of_the_solution_pool);
+    AlgorithmFormatter<BranchingScheme> algorithm_formatter(
+            branching_scheme,
+            parameters,
+            output);
+    algorithm_formatter.start("Anytime column search");
+    algorithm_formatter.print_header();
 
     // Initialize q and history.
     auto node_hasher = branching_scheme.node_hasher();
@@ -112,7 +122,7 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
         // Display.
         std::stringstream ss;
         ss << "iteration " << output.number_of_iterations;
-        output.solution_pool.display(ss, parameters.info);
+        algorithm_formatter.print(ss);
 
         NodeId number_of_nodes_back = output.number_of_nodes;
         for (Counter current_depth = 0; current_depth < (Counter)q.size(); ++current_depth) {
@@ -143,7 +153,7 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
                     output.number_of_nodes++;
 
                     // Check time.
-                    if (parameters.info.needs_to_end())
+                    if (parameters.timer.needs_to_end())
                         goto acsend;
 
                     // Check node limit.
@@ -165,11 +175,7 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
 
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
-                        std::stringstream ss;
-                        ss << "iteration " << output.number_of_iterations;
-                        output.solution_pool.add(child, ss, parameters.info);
-                        parameters.new_solution_callback(output);
-                        //output.solution_pool.display(ss, parameters.info);
+                        algorithm_formatter.update_solution(child);
                     }
 
                     // Add child to the queue.
@@ -219,11 +225,7 @@ inline AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
     }
 acsend:
 
-    output.solution_pool.display_end(parameters.info);
-    parameters.info.os() << "Number of nodes:            " << output.number_of_nodes << std::endl;
-    parameters.info.os() << "Number of iterations:       " << output.number_of_iterations << std::endl;
-    parameters.info.add_to_json("Algorithm", "NumberOfNodes", output.number_of_nodes);
-    parameters.info.add_to_json("Algorithm", "NumberOfIterations", output.number_of_iterations);
+    algorithm_formatter.end();
     return output;
 }
 

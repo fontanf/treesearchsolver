@@ -9,248 +9,163 @@
 namespace treesearchsolver
 {
 
-inline GreedyOptionalParameters read_greedy_args(
-        const std::vector<char*> argv)
+boost::program_options::options_description setup_args()
 {
-    GreedyOptionalParameters parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
-
-template <typename BranchingScheme>
-inline BestFirstSearchOptionalParameters<BranchingScheme> read_best_first_search_args(
-        const std::vector<char*> argv)
-{
-    BestFirstSearchOptionalParameters<BranchingScheme> parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
-
-template <typename BranchingScheme>
-inline IterativeBeamSearchOptionalParameters<BranchingScheme> read_iterative_beam_search_args(
-        const std::vector<char*> argv)
-{
-    IterativeBeamSearchOptionalParameters<BranchingScheme> parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
-        ("growth-factor,f", boost::program_options::value<double>(&parameters.growth_factor), "")
-        ("minimum-size-of-the-queue,m", boost::program_options::value<NodeId>(&parameters.minimum_size_of_the_queue), "")
-        ("maximum-size-of-the-queue,M", boost::program_options::value<NodeId>(&parameters.maximum_size_of_the_queue), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
-
-inline IterativeMemoryBoundedBestFirstSearchOptionalParameters read_iterative_memory_bounded_best_first_search_args(
-        const std::vector<char*> argv)
-{
-    IterativeMemoryBoundedBestFirstSearchOptionalParameters parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
-        ("growth-factor,f", boost::program_options::value<double>(&parameters.growth_factor), "")
-        ("minimum-size-of-the-queue,m", boost::program_options::value<NodeId>(&parameters.minimum_size_of_the_queue), "")
-        ("maximum-size-of-the-queue,M", boost::program_options::value<NodeId>(&parameters.maximum_size_of_the_queue), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
-
-template <typename BranchingScheme>
-inline AnytimeColumnSearchOptionalParameters<BranchingScheme> read_anytime_column_search_args(
-        const std::vector<char*> argv)
-{
-    AnytimeColumnSearchOptionalParameters<BranchingScheme> parameters;
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("initial-column-size,s", boost::program_options::value<Counter>(&parameters.initial_column_size), "")
-        ("column-size-growth-factor,f", boost::program_options::value<double>(&parameters.column_size_growth_factor), "")
-        ("maximum-number-of-nodes,n", boost::program_options::value<NodeId>(&parameters.maximum_number_of_nodes), "")
-        ("minimum-number-of-iterations,i", boost::program_options::value<NodeId>(&parameters.maximum_number_of_iterations), "")
-        ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-    return parameters;
-}
-
-struct MainArgs
-{
-    std::string instance_path = "";
-    std::string format = "";
-    std::vector<std::string> algorithm_args;
-    std::vector<char*> algorithm_argv;
-    std::vector<std::string> branching_scheme_args;
-    std::vector<char*> branching_scheme_argv;
-    optimizationtools::Info info = optimizationtools::Info();
-    int print_instance = 1;
-    int print_solution = 1;
-    int print_checker = 1;
-    bool has_goal = false;
-    double goal = 0;
-};
-
-MainArgs read_args(int argc, char *argv[])
-{
-    MainArgs main_args;
-    std::string output_path = "";
-    std::string certificate_path = "";
-    std::string algorithm = "iterative-beam-search";
-    std::string branching_scheme_parameters = "forward";
-    int verbosity_level = 1;
-    double time_limit = std::numeric_limits<double>::infinity();
-
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "produce help message")
-        ("input,i", boost::program_options::value<std::string>(&main_args.instance_path)->required(), "set input path (required)")
-        ("output,o", boost::program_options::value<std::string>(&output_path), "set JSON output path")
-        ("certificate,c", boost::program_options::value<std::string>(&certificate_path), "set certificate path")
-        ("format,f", boost::program_options::value<std::string>(&main_args.format), "set input file format (default: orlibrary)")
-        ("goal,g", boost::program_options::value<double>(&main_args.goal), "set goal")
-        ("algorithm,a", boost::program_options::value<std::string>(&algorithm), "set algorithm")
-        ("branching-scheme,b", boost::program_options::value<std::string>(&branching_scheme_parameters), "set branchingscheme parameters")
-        ("time-limit,t", boost::program_options::value<double>(&time_limit), "Time limit in seconds\n  ex: 3600")
-        ("only-write-at-the-end,e", "Only write output and certificate files at the end")
-        ("verbosity-level,v", boost::program_options::value<int>(&verbosity_level), "set verbosity level")
-        ("print-instance", boost::program_options::value<int>(&main_args.print_instance), "print instance")
-        ("print-solution", boost::program_options::value<int>(&main_args.print_solution), "print solution")
-        ("print-checker", boost::program_options::value<int>(&main_args.print_checker), "print checker")
+        ("input,i", boost::program_options::value<std::string>()->required(), "set input path (required)")
+        ("output,o", boost::program_options::value<std::string>()->default_value(""), "set JSON output path")
+        ("certificate,c", boost::program_options::value<std::string>()->default_value(""), "set certificate path")
+        ("format,f", boost::program_options::value<std::string>()->default_value(""), "set input file format (default: orlibrary)")
+        ("algorithm,a", boost::program_options::value<std::string>()->default_value("iterative-beam-search"), "set algorithm")
+        ("time-limit,t", boost::program_options::value<double>(), "set time limit in seconds\n  ex: 3600")
+        ("verbosity-level,v", boost::program_options::value<int>(), "set verbosity level")
+        ("only-write-at-the-end,e", "only write output and certificate files at the end")
+        ("log,l", boost::program_options::value<std::string>(), "set log file")
+        ("log-to-stderr", "write log to stderr")
+        ("print-checker", boost::program_options::value<int>()->default_value(1), "print checker")
+
+        ("maximum-number-of-nodes", boost::program_options::value<int>(), "set the maximum number of nodes")
+        ("growth-factor", boost::program_options::value<double>(), "set the growth factor")
+        ("minimum-size-of-the-queue", boost::program_options::value<int>(), "set the minimum size of the queue")
+        ("maximum-size-of-the-queue", boost::program_options::value<int>(), "set the maximum size of the queue")
+        ("initial-column-size", boost::program_options::value<int>(), "set the initial column size")
+        ("maximum-number-of-iterations", boost::program_options::value<int>(), "set the maximum number of iterations")
         ;
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-    if (vm.count("help")) {
-        std::cout << desc << std::endl;;
-        throw "";
+    return desc;
+}
+
+template <typename BranchingScheme>
+void read_args(
+        Parameters<BranchingScheme>& parameters,
+        const boost::program_options::variables_map& vm)
+{
+    parameters.timer.set_sigint_handler();
+    parameters.messages_to_stdout = true;
+    if (vm.count("time-limit"))
+        parameters.timer.set_time_limit(vm["time-limit"].as<double>());
+    if (vm.count("verbosity-level"))
+        parameters.verbosity_level = vm["verbosity-level"].as<int>();
+    if (vm.count("log"))
+        parameters.log_path = vm["log"].as<std::string>();
+    parameters.log_to_stderr = vm.count("log-to-stderr");
+    bool only_write_at_the_end = vm.count("only-write-at-the-end");
+    if (!only_write_at_the_end) {
+        std::string certificate_path = vm["certificate"].as<std::string>();
+        std::string json_output_path = vm["output"].as<std::string>();
+        parameters.new_solution_callback = [
+            json_output_path,
+            certificate_path](
+                    const Output<BranchingScheme>& output)
+        {
+            output.write_json_output(json_output_path);
+            solution_write(
+                    output.solution_pool.branching_scheme(),
+                    output.solution_pool.best(),
+                    certificate_path);
+        };
     }
-    try {
-        boost::program_options::notify(vm);
-    } catch (const boost::program_options::required_option& e) {
-        std::cout << desc << std::endl;;
-        throw "";
-    }
-
-    main_args.has_goal = (vm.count("goal"));
-
-    main_args.algorithm_args = boost::program_options::split_unix(algorithm);
-    for (std::string& s: main_args.algorithm_args)
-        main_args.algorithm_argv.push_back(const_cast<char*>(s.c_str()));
-
-    main_args.branching_scheme_args = boost::program_options::split_unix(branching_scheme_parameters);
-    for (std::string& s: main_args.branching_scheme_args)
-        main_args.branching_scheme_argv.push_back(const_cast<char*>(s.c_str()));
-
-    main_args.info = optimizationtools::Info()
-        .set_verbosity_level(verbosity_level)
-        .set_time_limit(time_limit)
-        .set_certificate_path(certificate_path)
-        .set_json_output_path(output_path)
-        .set_only_write_at_the_end(vm.count("only-write-at-the-end"))
-        .set_only_write_at_the_end(true)
-        .set_sigint_handler()
-        ;
-
-    return main_args;
 }
 
 template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_greedy(
-        const MainArgs& main_args,
+void write_output(
         const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
+        const boost::program_options::variables_map& vm,
+        const Output<BranchingScheme>& output)
 {
-    auto parameters = read_greedy_args(main_args.algorithm_argv);
-    parameters.info = info;
-    return greedy(branching_scheme, parameters).solution_pool;
+    std::string certificate_path = vm["certificate"].as<std::string>();
+    std::string json_output_path = vm["output"].as<std::string>();
+    output.write_json_output(json_output_path);
+    solution_write(
+            branching_scheme,
+            output.solution_pool.best(),
+            certificate_path);
 }
 
 template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_best_first_search(
-        const MainArgs& main_args,
+const Output<BranchingScheme> run_greedy(
         const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
+        const boost::program_options::variables_map& vm)
 {
-    auto parameters = read_best_first_search_args<BranchingScheme>(main_args.algorithm_argv);
-    parameters.info = info;
-    return best_first_search(branching_scheme, parameters).solution_pool;
+    Parameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    const Output<BranchingScheme> output = greedy(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
 }
 
 template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_iterative_beam_search(
-        const MainArgs& main_args,
+const Output<BranchingScheme> run_best_first_search(
         const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
+        const boost::program_options::variables_map& vm)
 {
-    auto parameters = read_iterative_beam_search_args<BranchingScheme>(main_args.algorithm_argv);
-    parameters.info = info;
-    if (main_args.has_goal)
-        parameters.goal = goal_node(branching_scheme, main_args.goal);
-    return iterative_beam_search(branching_scheme, parameters).solution_pool;
+    BestFirstSearchParameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    if (vm.count("maximum-number-of-nodes"))
+        parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
+    const Output<BranchingScheme> output = best_first_search(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
 }
 
 template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_iterative_memory_bounded_best_first_search(
-        const MainArgs& main_args,
+const Output<BranchingScheme> run_iterative_beam_search(
         const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
+        const boost::program_options::variables_map& vm)
 {
-    auto parameters = read_iterative_memory_bounded_best_first_search_args(main_args.algorithm_argv);
-    parameters.info = info;
-    return iterative_memory_bounded_best_first_search(branching_scheme, parameters).solution_pool;
+    IterativeBeamSearchParameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    if (vm.count("growth-factor"))
+        parameters.growth_factor = vm["growth-factor"].as<double>();
+    if (vm.count("minimum-size-of-the-queue"))
+        parameters.minimum_size_of_the_queue = vm["minimum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-size-of-the-queue"))
+        parameters.maximum_size_of_the_queue = vm["maximum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-number-of-nodes"))
+        parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
+    const Output<BranchingScheme> output = iterative_beam_search(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
 }
 
 template <typename BranchingScheme>
-SolutionPool<BranchingScheme> run_anytime_column_search(
-        const MainArgs& main_args,
+const Output<BranchingScheme> run_iterative_memory_bounded_best_first_search(
         const BranchingScheme& branching_scheme,
-        const optimizationtools::Info& info)
+        const boost::program_options::variables_map& vm)
 {
-    auto parameters = read_anytime_column_search_args<BranchingScheme>(main_args.algorithm_argv);
-    parameters.info = info;
-    if (main_args.has_goal)
-        parameters.goal = goal_node(branching_scheme, main_args.goal);
-    return anytime_column_search(branching_scheme, parameters).solution_pool;
+    IterativeMemoryBoundedBestFirstSearchParameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    if (vm.count("growth-factor"))
+        parameters.growth_factor = vm["growth-factor"].as<double>();
+    if (vm.count("minimum-size-of-the-queue"))
+        parameters.minimum_size_of_the_queue = vm["minimum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-size-of-the-queue"))
+        parameters.maximum_size_of_the_queue = vm["maximum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-number-of-nodes"))
+        parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
+    const Output<BranchingScheme> output = iterative_memory_bounded_best_first_search(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
+}
+
+template <typename BranchingScheme>
+const Output<BranchingScheme> run_anytime_column_search(
+        const BranchingScheme& branching_scheme,
+        const boost::program_options::variables_map& vm)
+{
+    AnytimeColumnSearchParameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    parameters.initial_column_size = vm["initial-column-size"].as<int>();
+    if (vm.count("growth-factor"))
+        parameters.column_size_growth_factor = vm["growth-factor"].as<double>();
+    if (vm.count("maximum-number-of-nodes"))
+        parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
+    if (vm.count("maximum-number-of-iterations"))
+        parameters.maximum_number_of_iterations = vm["maximum-number-of-iterations"].as<int>();
+    const Output<BranchingScheme> output = anytime_column_search(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
 }
 
 }

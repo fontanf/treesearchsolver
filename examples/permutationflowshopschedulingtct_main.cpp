@@ -4,76 +4,60 @@
 using namespace treesearchsolver;
 using namespace permutationflowshopschedulingtct;
 
-inline BranchingScheme::Parameters read_branching_scheme_args(
-        const std::vector<char*> argv)
+int main(int argc, char *argv[])
 {
-    BranchingScheme::Parameters parameters;
-    boost::program_options::options_description desc("Allowed options");
+    // Setup options.
+    boost::program_options::options_description desc = setup_args();
     desc.add_options()
-        ("guide,g", boost::program_options::value<GuideId>(&parameters.guide_id), "")
+        ("guide,g", boost::program_options::value<GuideId>(), "")
         ;
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line((Counter)argv.size(), argv.data(), desc), vm);
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
     try {
         boost::program_options::notify(vm);
     } catch (const boost::program_options::required_option& e) {
         std::cout << desc << std::endl;;
         throw "";
     }
-    return parameters;
-}
-
-int main(int argc, char *argv[])
-{
-    auto main_args = read_args(argc, argv);
-    auto& os = main_args.info.os();
 
     // Create instance.
-    Instance instance(main_args.instance_path, main_args.format);
-    if (main_args.print_instance > 0) {
-        os
-            << "Instance" << std::endl
-            << "--------" << std::endl;
-        instance.print(os, main_args.print_instance);
-        os << std::endl;
-    }
+    Instance instance(
+            vm["input"].as<std::string>(),
+            vm["format"].as<std::string>());
 
     // Create branching scheme.
-    auto parameters = read_branching_scheme_args(main_args.branching_scheme_argv);
+    BranchingScheme::Parameters parameters;
+    if (vm.count("guide"))
+        parameters.guide_id = vm["guide"].as<GuideId>();
     BranchingScheme branching_scheme(instance, parameters);
 
     // Run algorithm.
-    auto solution_pool =
-        (strcmp(main_args.algorithm_argv[0], "greedy") == 0)?
-        run_greedy(main_args, branching_scheme, main_args.info):
-        (strcmp(main_args.algorithm_argv[0], "best-first-search") == 0)?
-        run_best_first_search(main_args, branching_scheme, main_args.info):
-        (strcmp(main_args.algorithm_argv[0], "iterative-beam-search") == 0)?
-        run_iterative_beam_search(main_args, branching_scheme, main_args.info):
-        (strcmp(main_args.algorithm_argv[0], "anytime-column-search") == 0)?
-        run_anytime_column_search(main_args, branching_scheme, main_args.info):
-        run_iterative_memory_bounded_best_first_search(main_args, branching_scheme, main_args.info);
-
-    // Write solution.
-    std::string certificate_path = main_args.info.output->certificate_path;
-    branching_scheme.write(solution_pool.best(), certificate_path);
-    if (main_args.print_solution) {
-        os << std::endl
-            << "Solution" << std::endl
-            << "--------" << std::endl;
-        branching_scheme.print_solution(os, solution_pool.best());
-    }
+    std::string algorithm = vm["algorithm"].as<std::string>();
+    Output<BranchingScheme> output =
+        (algorithm == "greedy")?
+        run_greedy(branching_scheme, vm):
+        (algorithm == "best-first-search")?
+        run_best_first_search(branching_scheme, vm):
+        (algorithm == "iterative-beam-search")?
+        run_iterative_beam_search(branching_scheme, vm):
+        (algorithm == "anytime-column-search")?
+        run_anytime_column_search(branching_scheme, vm):
+        run_iterative_memory_bounded_best_first_search(branching_scheme, vm);
 
     // Run checker.
-    if (main_args.print_checker > 0
-            && certificate_path != "") {
-        os << std::endl
+    if (vm["print-checker"].as<int>() > 0
+            && vm["certificate"].as<std::string>() != "") {
+        std::cout << std::endl
             << "Checker" << std::endl
             << "-------" << std::endl;
         instance.check(
-                certificate_path,
-                os,
-                main_args.print_checker);
+                vm["certificate"].as<std::string>(),
+                std::cout,
+                vm["print-checker"].as<int>());
     }
 
     return 0;

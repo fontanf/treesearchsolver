@@ -18,15 +18,15 @@
 
 #pragma once
 
-#include "optimizationtools/utils/info.hpp"
 #include "optimizationtools/utils/utils.hpp"
 #include "optimizationtools/containers/indexed_set.hpp"
 
 #include "orproblems/knapsackwithconflicts.hpp"
 
+#include <memory>
+
 namespace treesearchsolver
 {
-
 namespace knapsackwithconflicts
 {
 
@@ -46,17 +46,37 @@ public:
 
     struct Node
     {
-        std::shared_ptr<Node> father = nullptr;
+        /** Parent node. */
+        std::shared_ptr<Node> parent = nullptr;
+
+        /** Array indicating for each item, if it still available. */
         std::vector<bool> available_items;
+
+        /** Last item added to the partial solution. */
         ItemId item_id = -1;
-        ItemPos item_pos = -1;
+
+        /** Number of items in the partial solution. */
         ItemId number_of_items = 0;
+
+        /** Number of remaining available items. */
         ItemId number_of_remaining_items = -1;
+
+        /** Weight of the remaining available items. */
         Profit remaining_weight = 0;
+
+        /** Profit of the remaining available items. */
         Profit remaining_profit = 0;
+
+        /** Weight of the partial solution. */
         Weight weight = 0;
+
+        /** Profit of the partial solution. */
         Profit profit = 0;
+
+        /** Guide. */
         double guide = 0;
+
+        /** Next child to generate. */
         ItemPos next_child_pos = 0;
     };
 
@@ -81,28 +101,32 @@ public:
     }
 
     inline std::shared_ptr<Node> next_child(
-            const std::shared_ptr<Node>& father) const
+            const std::shared_ptr<Node>& parent) const
     {
-        ItemId item_id_next = father->next_child_pos;
-        // Update father
-        father->next_child_pos++;
+        // Get the next item to add.
+        ItemId item_id_next = parent->next_child_pos;
 
-        if (!father->available_items[item_id_next])
+        // Update parent
+        parent->next_child_pos++;
+
+        // Check if the item is still available.
+        if (!parent->available_items[item_id_next])
             return nullptr;
-        if (father->weight + instance_.item(item_id_next).weight > instance_.capacity())
+
+        // Check if the item fit in the knapsack.
+        if (parent->weight + instance_.item(item_id_next).weight > instance_.capacity())
             return nullptr;
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-        child->father = father;
+        child->parent = parent;
         child->item_id = item_id_next;
-        child->item_pos = father->next_child_pos - 1;
-        child->number_of_items = father->number_of_items + 1;
-        child->available_items = father->available_items;
+        child->number_of_items = parent->number_of_items + 1;
+        child->available_items = parent->available_items;
         child->available_items[item_id_next] = false;
-        child->number_of_remaining_items = father->number_of_remaining_items - 1;
-        child->remaining_weight = father->remaining_weight - instance_.item(item_id_next).weight;
-        child->remaining_profit = father->remaining_profit - instance_.item(item_id_next).profit;
+        child->number_of_remaining_items = parent->number_of_remaining_items - 1;
+        child->remaining_weight = parent->remaining_weight - instance_.item(item_id_next).weight;
+        child->remaining_profit = parent->remaining_profit - instance_.item(item_id_next).profit;
         for (ItemId item_id: instance_.item(item_id_next).neighbors) {
             if (child->available_items[item_id]) {
                 child->available_items[item_id] = false;
@@ -111,8 +135,8 @@ public:
                 child->remaining_profit -= instance_.item(item_id).profit;
             }
         }
-        child->weight = father->weight + instance_.item(item_id_next).weight;
-        child->profit = father->profit + instance_.item(item_id_next).profit;
+        child->weight = parent->weight + instance_.item(item_id_next).weight;
+        child->profit = parent->profit + instance_.item(item_id_next).profit;
         child->guide =
             (parameters_.guide_id == 0)? (double)child->weight / child->profit:
             (parameters_.guide_id == 1)? (double)child->weight / child->profit / child->remaining_profit:
@@ -175,9 +199,9 @@ public:
         if (node_1->number_of_items != node_2->number_of_items)
             return false;
         std::vector<bool> v(instance_.number_of_items(), false);
-        for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
+        for (auto node_tmp = node_1; node_tmp->parent != nullptr; node_tmp = node_tmp->parent)
             v[node_tmp->item_id] = true;
-        for (auto node_tmp = node_1; node_tmp->father != nullptr; node_tmp = node_tmp->father)
+        for (auto node_tmp = node_1; node_tmp->parent != nullptr; node_tmp = node_tmp->parent)
             if (!v[node_tmp->item_id])
                 return false;
         return true;
@@ -235,18 +259,27 @@ public:
     }
 
     /*
-     * Outputs.
+     * Outputs
      */
 
-    std::ostream& print_solution(
+    void instance_format(
+            std::ostream& os,
+            int verbosity_level) const
+    {
+        instance_.print(os, verbosity_level);
+    }
+
+    void solution_format(
             const std::shared_ptr<Node>& node,
-            std::ostream &os,
-            int verbosity_level)
+            std::ostream& os,
+            int verbosity_level) const
     {
         if (verbosity_level >= 1) {
-            os << "Profit:            " << node->profit << std::endl;
-            os << "Weight:            " << node->weight << " / " << instance_.capacity() << std::endl;
-            os << "Number of items:   " << node->number_of_items << " / " << instance_.number_of_items() << std::endl;
+            os
+                << "Profit:           " << node->profit << std::endl
+                << "Weight:           " << node->weight << " / " << instance_.capacity() << std::endl
+                << "Number of items:  " << node->number_of_items << " / " << instance_.number_of_items() << std::endl
+                ;
         }
         if (verbosity_level >= 2) {
             os << std::endl
@@ -263,8 +296,8 @@ public:
                 << std::setw(12) << "-----------"
                 << std::endl;
             for (auto node_tmp = node;
-                    node_tmp->father != nullptr;
-                    node_tmp = node_tmp->father) {
+                    node_tmp->parent != nullptr;
+                    node_tmp = node_tmp->parent) {
                 ItemId item_id = node_tmp->item_id;
                 const Item& item = instance_.item(item_id);
                 os
@@ -276,38 +309,38 @@ public:
                     << std::endl;
             }
         }
-        return os;
     }
 
-    inline void write(
+    inline void solution_write(
             const std::shared_ptr<Node>& node,
             std::string certificate_path) const
     {
         if (certificate_path.empty())
             return;
-        std::ofstream cert(certificate_path);
-        if (!cert.good()) {
+        std::ofstream file(certificate_path);
+        if (!file.good()) {
             throw std::runtime_error(
                     "Unable to open file \"" + certificate_path + "\".");
         }
 
         std::vector<ItemId> items;
-        for (auto node_tmp = node; node_tmp->father != nullptr;
-                node_tmp = node_tmp->father)
+        for (auto node_tmp = node; node_tmp->parent != nullptr;
+                node_tmp = node_tmp->parent)
             items.push_back(node_tmp->item_id);
         std::reverse(items.begin(), items.end());
         for (ItemId item_id: items)
-            cert << item_id << " ";
+            file << item_id << " ";
     }
 
 private:
 
+    /** Instance. */
     const Instance& instance_;
+
+    /** Parameters. */
     Parameters parameters_;
 
 };
 
 }
-
 }
-
