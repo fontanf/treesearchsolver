@@ -296,6 +296,8 @@ void AlgorithmFormatter<BranchingScheme>::start(
 template <typename BranchingScheme>
 void AlgorithmFormatter<BranchingScheme>::print_header()
 {
+    if (parameters_.verbosity_level == 0)
+        return;
     *os_
         << std::endl
         << std::right
