@@ -166,7 +166,7 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                             && output.number_of_nodes > parameters.maximum_number_of_nodes)
                         goto ibsend;
 
-                    // Check best known bound.
+                    // Check goal.
                     if (parameters.goal != nullptr
                             && !branching_scheme.better(
                                 parameters.goal,

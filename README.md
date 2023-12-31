@@ -14,6 +14,7 @@ Solving a problem only requires a couple hundred lines of code (see examples).
 
 Algorithms:
 * Greedy `greedy`
+* Depth first search `depth-first-search`
 * Best first search `best-first-search`
 * Iterative beam search `iterative-beam-search`
 * Iterative beam search 2 `iterative-beam-search-2`

@@ -85,9 +85,9 @@ inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
     NodeMap<BranchingScheme> history{0, node_hasher, node_hasher};
     NodeSet<BranchingScheme> q(branching_scheme);
 
-    auto node_cur = branching_scheme.root();
+    auto current_node = branching_scheme.root();
 
-    while (node_cur != nullptr || !q.empty()) {
+    while (current_node != nullptr || !q.empty()) {
         output.number_of_nodes++;
 
         // Check time.
@@ -96,23 +96,32 @@ inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
 
         // Check node limit.
         if (parameters.maximum_number_of_nodes != -1
-                && output.number_of_nodes > parameters.maximum_number_of_nodes)
+                && output.number_of_nodes > parameters.maximum_number_of_nodes) {
             break;
+        }
+
+        // Check goal.
+        if (parameters.goal != nullptr
+                && !branching_scheme.better(
+                    parameters.goal,
+                    output.solution_pool.best())) {
+            break;
+        }
 
         // Get node from the queue.
-        if (node_cur == nullptr) {
-            node_cur = *q.begin();
+        if (current_node == nullptr) {
+            current_node = *q.begin();
             q.erase(q.begin());
         }
 
         // Bound.
-        if (branching_scheme.bound(node_cur, output.solution_pool.worst())) {
-            node_cur = nullptr;
+        if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
+            current_node = nullptr;
             continue;
         }
 
         // Get next child.
-        auto child = branching_scheme.next_child(node_cur);
+        auto child = branching_scheme.next_child(current_node);
         // Bound.
         if (child != nullptr) {
             // Update best solution.
@@ -128,13 +137,13 @@ inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
                 add_to_history_and_queue(branching_scheme, history, q, child);
         }
 
-        // If node_cur still has children, put it back to the queue.
-        if (branching_scheme.infertile(node_cur)) {
-            node_cur = nullptr;
+        // If current_node still has children, put it back to the queue.
+        if (branching_scheme.infertile(current_node)) {
+            current_node = nullptr;
         } else if ((Counter)q.size() != 0
-                && branching_scheme(*(q.begin()), node_cur)) {
-            q.insert(node_cur);
-            node_cur = nullptr;
+                && branching_scheme(*(q.begin()), current_node)) {
+            q.insert(current_node);
+            current_node = nullptr;
         }
 
     }

@@ -4,6 +4,7 @@ cc_library(
                 "common.hpp",
                 "algorithm_formatter.hpp",
                 "greedy.hpp",
+                "depth_first_search.hpp",
                 "best_first_search.hpp",
                 "iterative_beam_search.hpp",
                 "iterative_beam_search_2.hpp",

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "optimizationtools/utils/output.hpp"
-#include "optimizationtools/utils/utils.hpp"
 
 #include <cstdint>
 #include <set>
@@ -305,12 +304,21 @@ struct Parameters: optimizationtools::Parameters
      */
     std::shared_ptr<Node> goal = nullptr;
 
+    /**
+     * Cutoff.
+     *
+     * If not 'nullptr', the algorithm won't consider worse solutions.
+     */
+    std::shared_ptr<Node> cutoff = nullptr;
+
 
     virtual nlohmann::json to_json() const override
     {
         nlohmann::json json = optimizationtools::Parameters::to_json();
         json.merge_patch({
-                {"MaximumSizeOfTheSolutionPool", maximum_size_of_the_solution_pool}});
+                {"MaximumSizeOfTheSolutionPool", maximum_size_of_the_solution_pool},
+                {"HasGoal", (goal != nullptr)},
+                {"HasCutoff", (cutoff != nullptr)}});
         return json;
     }
 
@@ -322,6 +330,8 @@ struct Parameters: optimizationtools::Parameters
         int width = format_width();
         os
             << std::setw(width) << std::left << "Maximum size of the solution pool: " << maximum_size_of_the_solution_pool << std::endl
+            << std::setw(width) << std::left << "Has goal: " << (goal != nullptr) << std::endl
+            << std::setw(width) << std::left << "Has cutoff: " << (cutoff != nullptr) << std::endl
             ;
     }
 };
