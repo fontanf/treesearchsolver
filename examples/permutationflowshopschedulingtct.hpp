@@ -333,7 +333,7 @@ public:
             std::ostream& os,
             int verbosity_level) const
     {
-        instance_.print(os, verbosity_level);
+        instance_.format(os, verbosity_level);
     }
 
     std::string display(const std::shared_ptr<Node>& node) const

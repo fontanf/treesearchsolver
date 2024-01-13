@@ -18,9 +18,6 @@
 
 #pragma once
 
-#include "optimizationtools/utils/utils.hpp"
-#include "optimizationtools/containers/indexed_set.hpp"
-
 #include "orproblems/knapsackwithconflicts.hpp"
 
 #include <memory>
@@ -266,7 +263,7 @@ public:
             std::ostream& os,
             int verbosity_level) const
     {
-        instance_.print(os, verbosity_level);
+        instance_.format(os, verbosity_level);
     }
 
     void solution_format(
