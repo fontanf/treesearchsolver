@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     instance_builder.read(
             vm["input"].as<std::string>(),
             vm["format"].as<std::string>());
-    Instance instance = instance_builder.build();
+    const Instance instance = instance_builder.build();
 
     // Create branching scheme.
     BranchingSchemeBidirectional::Parameters parameters;
