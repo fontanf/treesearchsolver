@@ -6,12 +6,10 @@ cc_library(
                 "greedy.hpp",
                 "depth_first_search.hpp",
                 "best_first_search.hpp",
-                "best_first_search_2.hpp",
                 "iterative_beam_search.hpp",
                 "iterative_beam_search_2.hpp",
                 "iterative_memory_bounded_best_first_search.hpp",
                 "anytime_column_search.hpp",
-                "nested_best_first_breadth_first_search.hpp",
         ],
         deps = [
                 "@optimizationtools//optimizationtools/utils:utils",
