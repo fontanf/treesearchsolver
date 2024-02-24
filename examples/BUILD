@@ -1,98 +1,98 @@
 cc_library(
-        name = "knapsackwithconflicts",
-        hdrs = ["knapsackwithconflicts.hpp"],
+        name = "knapsack_with_conflicts",
+        hdrs = ["knapsack_with_conflicts.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:knapsackwithconflicts",
+                "@orproblems//orproblems:knapsack_with_conflicts",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "knapsackwithconflicts_main",
-        srcs = ["knapsackwithconflicts_main.cpp"],
+        name = "knapsack_with_conflicts_main",
+        srcs = ["knapsack_with_conflicts_main.cpp"],
         deps = [
-                ":knapsackwithconflicts",
+                ":knapsack_with_conflicts",
                 "//treesearchsolver:read_args",
         ],
 )
 
 
 cc_library(
-        name = "sequentialordering",
-        hdrs = ["sequentialordering.hpp"],
+        name = "sequential_ordering",
+        hdrs = ["sequential_ordering.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:sequentialordering",
+                "@orproblems//orproblems:sequential_ordering",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "sequentialordering_main",
-        srcs = ["sequentialordering_main.cpp"],
+        name = "sequential_ordering_main",
+        srcs = ["sequential_ordering_main.cpp"],
         deps = [
-                ":sequentialordering",
+                ":sequential_ordering",
                 "//treesearchsolver:read_args",
         ],
 )
 
 
 cc_library(
-        name = "permutationflowshopschedulingmakespan",
-        hdrs = ["permutationflowshopschedulingmakespan.hpp"],
+        name = "permutation_flowshop_scheduling_makespan",
+        hdrs = ["permutation_flowshop_scheduling_makespan.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:permutationflowshopschedulingmakespan",
+                "@orproblems//orproblems:permutation_flowshop_scheduling_makespan",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "permutationflowshopschedulingmakespan_main",
-        srcs = ["permutationflowshopschedulingmakespan_main.cpp"],
+        name = "permutation_flowshop_scheduling_makespan_main",
+        srcs = ["permutation_flowshop_scheduling_makespan_main.cpp"],
         deps = [
-                ":permutationflowshopschedulingmakespan",
+                ":permutation_flowshop_scheduling_makespan",
                 "//treesearchsolver:read_args",
         ],
 )
 
 
 cc_library(
-        name = "permutationflowshopschedulingtct",
-        hdrs = ["permutationflowshopschedulingtct.hpp"],
+        name = "permutation_flowshop_scheduling_tct",
+        hdrs = ["permutation_flowshop_scheduling_tct.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:permutationflowshopschedulingtct",
+                "@orproblems//orproblems:permutation_flowshop_scheduling_tct",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "permutationflowshopschedulingtct_main",
-        srcs = ["permutationflowshopschedulingtct_main.cpp"],
+        name = "permutation_flowshop_scheduling_tct_main",
+        srcs = ["permutation_flowshop_scheduling_tct_main.cpp"],
         deps = [
-                ":permutationflowshopschedulingtct",
+                ":permutation_flowshop_scheduling_tct",
                 "//treesearchsolver:read_args",
         ],
 )
 
 
 cc_library(
-        name = "simpleassemblylinebalancing1",
-        hdrs = ["simpleassemblylinebalancing1.hpp"],
+        name = "simple_assembly_line_balancing_1",
+        hdrs = ["simple_assembly_line_balancing_1.hpp"],
         deps = [
                 "//treesearchsolver:treesearchsolver",
-                "@orproblems//orproblems:simpleassemblylinebalancing1",
+                "@orproblems//orproblems:simple_assembly_line_balancing_1",
         ],
         visibility = ["//visibility:public"],
 )
 
 cc_binary(
-        name = "simpleassemblylinebalancing1_main",
-        srcs = ["simpleassemblylinebalancing1_main.cpp"],
+        name = "simple_assembly_line_balancing_1_main",
+        srcs = ["simple_assembly_line_balancing_1_main.cpp"],
         deps = [
-                ":simpleassemblylinebalancing1",
+                ":simple_assembly_line_balancing_1",
                 "//treesearchsolver:read_args",
         ],
 )

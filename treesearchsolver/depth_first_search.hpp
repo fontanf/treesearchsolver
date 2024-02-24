@@ -142,7 +142,15 @@ inline const DepthFirstSearchOutput<BranchingScheme> depth_first_search(
         }
 
         // Sort children.
-        std::sort(children.begin(), children.end(), branching_scheme);
+        std::sort(
+                children.begin(),
+                children.end(),
+                [&branching_scheme](
+                    const std::shared_ptr<Node>& node_1,
+                    const std::shared_ptr<Node>& node_2)
+                {
+                    return branching_scheme(node_1, node_2);
+                });
 
         // Add children to the queue.
         for (const auto& child: children)

@@ -114,6 +114,9 @@ inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
             q.erase(q.begin());
         }
 
+        if (output.number_of_nodes % 1000000 == 0)
+            std::cout << branching_scheme.display(current_node) << std::endl;
+
         // Bound.
         if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
             current_node = nullptr;
@@ -153,4 +156,3 @@ inline const BestFirstSearchOutput<BranchingScheme> best_first_search(
 }
 
 }
-
