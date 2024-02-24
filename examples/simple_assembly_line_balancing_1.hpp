@@ -21,6 +21,7 @@ namespace simple_assembly_line_balancing_1
 
 using namespace orproblems::simple_assembly_line_balancing_1;
 
+using NodeId = int64_t;
 using GuideId = int64_t;
 
 class BranchingScheme
@@ -65,6 +66,9 @@ public:
          * has been processed at the current station.
          */
         bool next_child_added_in_current_station = false;
+
+        /** Unique id of the node. */
+        NodeId node_id = -1;
     };
 
     BranchingScheme(
@@ -85,6 +89,8 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        r->node_id = node_id_;
+        node_id_++;
         r->jobs.resize(instance_.number_of_jobs(), false);
         r->current_station_time = instance_.cycle_time();
         return r;
@@ -129,6 +135,8 @@ public:
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        child->node_id = node_id_;
+        node_id_++;
         child->parent = parent;
         child->job_id = job_id_next;
         child->number_of_jobs = parent->number_of_jobs + 1;
@@ -174,7 +182,7 @@ public:
         //    return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1.get() < node_2.get();
+        return node_1->node_id < node_2->node_id;
     }
 
     inline bool leaf(
@@ -363,6 +371,8 @@ private:
 
     /** Jobs sorted by increasing processing time. */
     mutable std::vector<JobId> sorted_jobs_;
+
+    mutable NodeId node_id_ = 0;
 
 };
 

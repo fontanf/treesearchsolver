@@ -26,6 +26,7 @@ namespace permutation_flowshop_scheduling_tct
 
 using namespace orproblems::permutation_flowshop_scheduling_tct;
 
+using NodeId = int64_t;
 using GuideId = int64_t;
 
 class BranchingScheme
@@ -67,6 +68,9 @@ public:
 
         /** Next child to generate. */
         JobId next_child_pos = 0;
+
+        /** Unique id of the node. */
+        NodeId node_id = -1;
     };
 
     struct Parameters
@@ -87,6 +91,8 @@ public:
         MachineId m = instance_.number_of_machines();
         JobId n = instance_.number_of_jobs();
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        r->node_id = node_id_;
+        node_id_++;
         r->available_jobs.resize(n, true);
         r->times.resize(m, 0);
         r->bound = 0;
@@ -150,6 +156,8 @@ public:
         MachineId m = instance_.number_of_machines();
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        child->node_id = node_id_;
+        node_id_++;
         child->parent = parent;
         child->job_id = job_id_next;
         child->number_of_jobs = parent->number_of_jobs + 1;
@@ -217,7 +225,7 @@ public:
             return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1.get() < node_2.get();
+        return node_1->node_id < node_2->node_id;
     }
 
     inline bool leaf(
@@ -389,6 +397,8 @@ private:
 
     /** Parameters. */
     Parameters parameters_;
+
+    mutable NodeId node_id_ = 0;
 
 };
 

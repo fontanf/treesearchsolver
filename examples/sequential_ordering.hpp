@@ -26,6 +26,8 @@ namespace sequential_ordering
 
 using namespace orproblems::sequential_ordering;
 
+using NodeId = int64_t;
+
 class BranchingScheme
 {
 
@@ -64,6 +66,9 @@ public:
 
         /** Next child to generate. */
         LocationPos next_child_pos = 0;
+
+        /** Unique id of the node. */
+        NodeId node_id = -1;
     };
 
     BranchingScheme(
@@ -97,6 +102,8 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        r->node_id = node_id_;
+        node_id_++;
         r->visited.resize(instance_.number_of_locations(), false);
 
         // Bound.
@@ -154,6 +161,8 @@ public:
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        child->node_id = node_id_;
+        node_id_++;
         child->parent = parent;
         child->visited = parent->visited;
         child->visited[parent->last_location_id] = true;
@@ -184,7 +193,7 @@ public:
         assert(!infertile(node_2));
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1.get() < node_2.get();
+        return node_1->node_id < node_2->node_id;
     }
 
     inline bool leaf(
@@ -338,6 +347,8 @@ private:
 
     /** Generator. */
     mutable std::mt19937_64 generator_;
+
+    mutable NodeId node_id_ = 0;
 
 };
 

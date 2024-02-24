@@ -29,6 +29,7 @@ namespace knapsack_with_conflicts
 
 using namespace orproblems::knapsack_with_conflicts;
 
+using NodeId = int64_t;
 using GuideId = int64_t;
 
 class BranchingScheme
@@ -75,6 +76,9 @@ public:
 
         /** Next child to generate. */
         ItemPos next_child_pos = 0;
+
+        /** Unique id of the node. */
+        NodeId node_id = -1;
     };
 
     BranchingScheme(
@@ -86,6 +90,8 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
+        r->node_id = node_id_;
+        node_id_++;
         r->available_items.resize(instance_.number_of_items(), true);
         r->number_of_remaining_items = instance_.number_of_items();
         for (ItemId item_id = 0;
@@ -116,6 +122,8 @@ public:
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
+        child->node_id = node_id_;
+        node_id_++;
         child->parent = parent;
         child->item_id = item_id_next;
         child->number_of_items = parent->number_of_items + 1;
@@ -155,7 +163,7 @@ public:
             return node_1->number_of_items < node_2->number_of_items;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1.get() < node_2.get();
+        return node_1->node_id < node_2->node_id;
     }
 
     inline bool leaf(
@@ -336,6 +344,8 @@ private:
 
     /** Parameters. */
     Parameters parameters_;
+
+    mutable NodeId node_id_ = 0;
 
 };
 
