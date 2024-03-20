@@ -1,6 +1,7 @@
 #include "treesearchsolver/greedy.hpp"
 #include "treesearchsolver/best_first_search.hpp"
 #include "treesearchsolver/iterative_beam_search.hpp"
+#include "treesearchsolver/iterative_beam_search_2.hpp"
 #include "treesearchsolver/iterative_memory_bounded_best_first_search.hpp"
 #include "treesearchsolver/anytime_column_search.hpp"
 
@@ -128,6 +129,26 @@ const Output<BranchingScheme> run_iterative_beam_search(
     if (vm.count("maximum-number-of-nodes"))
         parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
     const Output<BranchingScheme> output = iterative_beam_search(branching_scheme, parameters);
+    write_output(branching_scheme, vm, output);
+    return output;
+}
+
+template <typename BranchingScheme>
+const Output<BranchingScheme> run_iterative_beam_search_2(
+        const BranchingScheme& branching_scheme,
+        const boost::program_options::variables_map& vm)
+{
+    IterativeBeamSearch2Parameters<BranchingScheme> parameters;
+    read_args(parameters, vm);
+    if (vm.count("growth-factor"))
+        parameters.growth_factor = vm["growth-factor"].as<double>();
+    if (vm.count("minimum-size-of-the-queue"))
+        parameters.minimum_size_of_the_queue = vm["minimum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-size-of-the-queue"))
+        parameters.maximum_size_of_the_queue = vm["maximum-size-of-the-queue"].as<int>();
+    if (vm.count("maximum-number-of-nodes"))
+        parameters.maximum_number_of_nodes_expanded = vm["maximum-number-of-nodes"].as<int>();
+    const Output<BranchingScheme> output = iterative_beam_search_2(branching_scheme, parameters);
     write_output(branching_scheme, vm, output);
     return output;
 }
