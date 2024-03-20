@@ -336,7 +336,7 @@ public:
 
     inline void solution_write(
             const std::shared_ptr<Node>& node,
-            std::string certificate_path) const
+            const std::string& certificate_path) const
     {
         if (certificate_path.empty())
             return;

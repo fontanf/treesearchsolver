@@ -493,8 +493,7 @@ void solution_write(
             std::integral_constant<
                 bool,
                 HasSolutionWriteMethod<BranchingScheme,
-                void(const BranchingScheme&, const std::shared_ptr<typename BranchingScheme::Node>&, const std::string&)>::value>());
+                void(const std::shared_ptr<typename BranchingScheme::Node>&, const std::string&)>::value>());
 }
 
 }
-

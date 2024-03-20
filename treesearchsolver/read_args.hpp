@@ -74,13 +74,16 @@ void write_output(
         const boost::program_options::variables_map& vm,
         const Output<BranchingScheme>& output)
 {
-    std::string certificate_path = vm["certificate"].as<std::string>();
-    std::string json_output_path = vm["output"].as<std::string>();
-    output.write_json_output(json_output_path);
-    solution_write(
-            branching_scheme,
-            output.solution_pool.best(),
-            certificate_path);
+    // Write solution.
+    if (vm.count("certificate")) {
+        solution_write(
+                branching_scheme,
+                output.solution_pool.best(),
+                vm["certificate"].as<std::string>());
+    }
+    // Write JSON output.
+    if (vm.count("output"))
+        output.write_json_output(vm["output"].as<std::string>());
 }
 
 template <typename BranchingScheme>
