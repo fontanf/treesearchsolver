@@ -64,17 +64,8 @@ public:
 
     BranchingScheme(
             const Instance& instance):
-        instance_(instance),
-        sorted_jobs_(instance.number_of_jobs())
+        instance_(instance)
     {
-        // Initialize sorted_jobs_.
-        std::iota(sorted_jobs_.begin(), sorted_jobs_.end(), 0);
-        sort(sorted_jobs_.begin(), sorted_jobs_.end(),
-                [&instance](JobId job_id_1, JobId job_id_2) -> bool
-                {
-                    return instance.job(job_id_1).processing_time
-                        < instance.job(job_id_2).processing_time;
-                });
     }
 
     inline const std::shared_ptr<Node> root() const
@@ -156,6 +147,8 @@ public:
         // Longest valid remaining job. Valid in the sense that all its
         // predecessors have been scheduled.
         JobId longest_valid_remaining_job = -1;
+        // Detect if there is a job with successors (for successor rule).
+        bool has_job_with_successors = false;
         for (JobId job_id = 0;
                 job_id < instance_.number_of_jobs();
                 ++job_id) {
@@ -178,6 +171,9 @@ public:
             if (!ok)
                 continue;
 
+            if (!instance_.job(job_id).successors.empty())
+                has_job_with_successors = true;
+
             if (longest_valid_remaining_job == -1
                     || instance_.job(longest_valid_remaining_job).processing_time
                     < instance_.job(job_id).processing_time) {
@@ -185,6 +181,8 @@ public:
             }
         }
 
+        // If a solitary task has been found, only generate the child node
+        // corresponding to its insertion in a new station.
         Time p = instance_.job(longest_valid_remaining_job).processing_time;
         if (instance_.job(longest_valid_remaining_job).processing_time
                 + smallest_remaining_processing_time
@@ -223,6 +221,12 @@ public:
             // Check if the job has already been processed.
             if (parent->jobs[job_id])
                 continue;
+
+            // Apply successor rule.
+            if (has_job_with_successors
+                    && instance_.job(job_id).successors.empty()) {
+                continue;
+            }
 
             // Check if the predecessors of the job have already been processed.
             bool ok = true;
@@ -461,9 +465,6 @@ private:
 
     /** Instance. */
     const Instance& instance_;
-
-    /** Jobs sorted by increasing processing time. */
-    mutable std::vector<JobId> sorted_jobs_;
 
     mutable NodeId node_id_ = 0;
 
