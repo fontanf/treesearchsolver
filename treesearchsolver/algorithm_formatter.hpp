@@ -315,6 +315,7 @@ template <typename BranchingScheme>
 void AlgorithmFormatter<BranchingScheme>::print(
         const std::stringstream& s)
 {
+    output_.time = parameters_.timer.elapsed_time();
     if (parameters_.verbosity_level == 0)
         return;
     std::streamsize precision = std::cout.precision();
@@ -330,7 +331,6 @@ void AlgorithmFormatter<BranchingScheme>::update_solution(
         const std::shared_ptr<Node>& node)
 {
     if (output_.solution_pool.add(node) == 2) {
-        output_.time = parameters_.timer.elapsed_time();
         output_.json["IntermediaryOutputs"].push_back(output_.to_json());
         parameters_.new_solution_callback(output_);
     }

@@ -117,10 +117,6 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
 
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
 
-        std::stringstream ss;
-        ss << "q " << output.maximum_size_of_the_queue;
-        algorithm_formatter.print(ss);
-
         // Initialize queue.
         bool stop = true;
         auto current_node = branching_scheme.root();
@@ -271,6 +267,10 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
             q[d]->clear();
             history[d]->clear();
         }
+
+        std::stringstream ss;
+        ss << "q " << output.maximum_size_of_the_queue;
+        algorithm_formatter.print(ss);
 
         // Increase the size of the queue.
         output.maximum_size_of_the_queue = std::max(
