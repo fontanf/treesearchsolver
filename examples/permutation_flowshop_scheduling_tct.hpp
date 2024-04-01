@@ -18,6 +18,7 @@
 #include "orproblems/scheduling//permutation_flowshop_scheduling_tct.hpp"
 
 #include <memory>
+#include <sstream>
 
 namespace treesearchsolver
 {

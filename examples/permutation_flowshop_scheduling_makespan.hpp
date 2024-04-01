@@ -19,6 +19,7 @@
 #include "orproblems/scheduling/permutation_flowshop_scheduling_makespan.hpp"
 
 #include <memory>
+#include <sstream>
 
 namespace treesearchsolver
 {

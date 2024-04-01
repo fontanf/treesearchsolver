@@ -18,6 +18,7 @@
 #include "orproblems/scheduling/sequential_ordering.hpp"
 
 #include <memory>
+#include <sstream>
 
 namespace treesearchsolver
 {

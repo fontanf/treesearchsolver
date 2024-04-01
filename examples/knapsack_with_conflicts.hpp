@@ -21,6 +21,7 @@
 #include "orproblems/packing/knapsack_with_conflicts.hpp"
 
 #include <memory>
+#include <sstream>
 
 namespace treesearchsolver
 {
