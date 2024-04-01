@@ -2,6 +2,7 @@
 
 #include "treesearchsolver/common.hpp"
 
+#include <sstream>
 #include <iomanip>
 
 namespace treesearchsolver

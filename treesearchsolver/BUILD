@@ -11,6 +11,10 @@ cc_library(
                 "iterative_memory_bounded_best_first_search.hpp",
                 "anytime_column_search.hpp",
         ],
+        srcs = [
+                "common.cpp",
+                "algorithm_formatter.cpp",
+        ],
         deps = [
                 "@optimizationtools//optimizationtools/utils:utils",
                 "@optimizationtools//optimizationtools/containers:containers",
