@@ -177,8 +177,6 @@ public:
     inline std::shared_ptr<Node> next_child(
             const std::shared_ptr<Node>& parent) const
     {
-        assert(!infertile(parent));
-        assert(!leaf(parent));
 
         // Compute parent's structures.
         if (parent->next_child_pos == 0 && parent->parent != nullptr)
@@ -421,7 +419,6 @@ public:
     inline bool infertile(
             const std::shared_ptr<Node>& node) const
     {
-        assert(node != nullptr);
         return (node->next_child_pos == instance_.number_of_jobs());
     }
 
@@ -429,8 +426,6 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        assert(!infertile(node_1));
-        assert(!infertile(node_2));
         if (node_1->number_of_jobs != node_2->number_of_jobs)
             return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)

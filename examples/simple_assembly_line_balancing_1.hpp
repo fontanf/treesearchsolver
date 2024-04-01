@@ -81,8 +81,6 @@ public:
     inline std::vector<std::shared_ptr<Node>> children(
             const std::shared_ptr<Node>& parent) const
     {
-        assert(!leaf(parent));
-
         std::vector<std::shared_ptr<Node>> c;
 
         // Try to add a job in the current workstation.
@@ -273,8 +271,6 @@ public:
             const std::shared_ptr<Node>& node_1,
             const std::shared_ptr<Node>& node_2) const
     {
-        assert(node_1 != nullptr);
-        assert(node_2 != nullptr);
         //if (node_1->number_of_jobs != node_2->number_of_jobs)
         //    return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
