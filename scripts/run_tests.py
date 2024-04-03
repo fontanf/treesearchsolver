@@ -39,7 +39,7 @@ if args.tests is None or "knapsack-with-conflicts" in args.tests:
                 "knapsack_with_conflicts",
                 instance)
         json_output_path = os.path.join(
-                test_results_directory,
+                args.directory,
                 "knapsack_with_conflicts",
                 instance + ".json")
         if not os.path.exists(os.path.dirname(json_output_path)):
@@ -86,7 +86,7 @@ if args.tests is None or "permutation-flowshop-scheduling-tct" in args.tests:
                 "flowshop_scheduling",
                 instance)
         json_output_path = os.path.join(
-                test_results_directory,
+                args.directory,
                 "permutation_flowshop_scheduling_tct",
                 instance + ".json")
         if not os.path.exists(os.path.dirname(json_output_path)):
@@ -133,7 +133,7 @@ if args.tests is None or "permutation-flowshop-scheduling-makespan" in args.test
                 "flowshop_scheduling",
                 instance)
         json_output_path = os.path.join(
-                test_results_directory,
+                args.directory,
                 "permutation_flowshop_scheduling_makespan",
                 instance + ".json")
         if not os.path.exists(os.path.dirname(json_output_path)):
@@ -178,7 +178,7 @@ if args.tests is None or "sequential-ordering-problem" in args.tests:
                 "sequential_ordering",
                 instance)
         json_output_path = os.path.join(
-                test_results_directory,
+                args.directory,
                 "sequential_ordering",
                 instance + ".json")
         if not os.path.exists(os.path.dirname(json_output_path)):
@@ -225,7 +225,7 @@ if args.tests is None or "simple-assembly-line-balancing-1" in args.tests:
                 "simple_assembly_line_balancing_1",
                 instance)
         json_output_path = os.path.join(
-                test_results_directory,
+                args.directory,
                 "simple_assembly_line_balancing_1",
                 instance + ".json")
         if not os.path.exists(os.path.dirname(json_output_path)):
