@@ -54,7 +54,9 @@ if args.tests is None or "knapsack-with-conflicts" in args.tests:
                 + " --maximum-size-of-the-queue 1024"
                 + "  --output \"" + json_output_path + "\"")
         print(command)
-        os.system(command)
+        status = os.system(command)
+        if status != 0:
+            sys.exit(1)
         print()
     print()
     print()
@@ -101,7 +103,9 @@ if args.tests is None or "permutation-flowshop-scheduling-tct" in args.tests:
                 + " --maximum-size-of-the-queue 2048"
                 + "  --output \"" + json_output_path + "\"")
         print(command)
-        os.system(command)
+        status = os.system(command)
+        if status != 0:
+            sys.exit(1)
         print()
     print()
     print()
@@ -148,7 +152,9 @@ if args.tests is None or "permutation-flowshop-scheduling-makespan" in args.test
                 + " --maximum-size-of-the-queue 2048"
                 + "  --output \"" + json_output_path + "\"")
         print(command)
-        os.system(command)
+        status = os.system(command)
+        if status != 0:
+            sys.exit(1)
         print()
     print()
     print()
@@ -193,7 +199,9 @@ if args.tests is None or "sequential-ordering-problem" in args.tests:
                 + " --maximum-size-of-the-queue 2048"
                 + "  --output \"" + json_output_path + "\"")
         print(command)
-        os.system(command)
+        status = os.system(command)
+        if status != 0:
+            sys.exit(1)
         print()
     print()
     print()
@@ -240,7 +248,9 @@ if args.tests is None or "simple-assembly-line-balancing-1" in args.tests:
                 + " --maximum-size-of-the-queue 4096"
                 + "  --output \"" + json_output_path + "\"")
         print(command)
-        os.system(command)
+        status = os.system(command)
+        if status != 0:
+            sys.exit(1)
         print()
     print()
     print()
