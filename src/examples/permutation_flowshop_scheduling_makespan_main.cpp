@@ -1,5 +1,5 @@
-#include "examples/permutation_flowshop_scheduling_makespan.hpp"
-#include "treesearchsolver/read_args.hpp"
+#include "treesearchsolver/examples/permutation_flowshop_scheduling_makespan.hpp"
+#include "read_args.hpp"
 
 using namespace treesearchsolver;
 using namespace permutation_flowshop_scheduling_makespan;

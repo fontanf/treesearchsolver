@@ -1,8 +1,8 @@
-#include "examples/sequential_ordering.hpp"
-#include "treesearchsolver/read_args.hpp"
+#include "treesearchsolver/examples/simple_assembly_line_balancing_1.hpp"
+#include "read_args.hpp"
 
 using namespace treesearchsolver;
-using namespace sequential_ordering;
+using namespace simple_assembly_line_balancing_1;
 
 int main(int argc, char *argv[])
 {
@@ -33,16 +33,7 @@ int main(int argc, char *argv[])
 
     // Run algorithm.
     std::string algorithm = vm["algorithm"].as<std::string>();
-    Output<BranchingScheme> output =
-        (algorithm == "greedy")?
-        run_greedy(branching_scheme, vm):
-        (algorithm == "best-first-search")?
-        run_best_first_search(branching_scheme, vm):
-        (algorithm == "iterative-beam-search")?
-        run_iterative_beam_search(branching_scheme, vm):
-        (algorithm == "anytime-column-search")?
-        run_anytime_column_search(branching_scheme, vm):
-        run_iterative_memory_bounded_best_first_search(branching_scheme, vm);
+    Output<BranchingScheme> output = run_iterative_beam_search_2(branching_scheme, vm);
 
     // Run checker.
     if (vm["print-checker"].as<int>() > 0
@@ -58,4 +49,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-

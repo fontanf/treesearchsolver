@@ -1,13 +1,16 @@
-#include "examples/simple_assembly_line_balancing_1.hpp"
-#include "treesearchsolver/read_args.hpp"
+#include "treesearchsolver/examples/permutation_flowshop_scheduling_tct.hpp"
+#include "read_args.hpp"
 
 using namespace treesearchsolver;
-using namespace simple_assembly_line_balancing_1;
+using namespace permutation_flowshop_scheduling_tct;
 
 int main(int argc, char *argv[])
 {
     // Setup options.
     boost::program_options::options_description desc = setup_args();
+    desc.add_options()
+        ("guide,g", boost::program_options::value<GuideId>(), "")
+        ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     if (vm.count("help")) {
@@ -29,11 +32,23 @@ int main(int argc, char *argv[])
     const Instance instance = instance_builder.build();
 
     // Create branching scheme.
-    BranchingScheme branching_scheme(instance);
+    BranchingScheme::Parameters parameters;
+    if (vm.count("guide"))
+        parameters.guide_id = vm["guide"].as<GuideId>();
+    BranchingScheme branching_scheme(instance, parameters);
 
     // Run algorithm.
     std::string algorithm = vm["algorithm"].as<std::string>();
-    Output<BranchingScheme> output = run_iterative_beam_search_2(branching_scheme, vm);
+    Output<BranchingScheme> output =
+        (algorithm == "greedy")?
+        run_greedy(branching_scheme, vm):
+        (algorithm == "best-first-search")?
+        run_best_first_search(branching_scheme, vm):
+        (algorithm == "iterative-beam-search")?
+        run_iterative_beam_search(branching_scheme, vm):
+        (algorithm == "anytime-column-search")?
+        run_anytime_column_search(branching_scheme, vm):
+        run_iterative_memory_bounded_best_first_search(branching_scheme, vm);
 
     // Run checker.
     if (vm["print-checker"].as<int>() > 0
@@ -49,3 +64,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
