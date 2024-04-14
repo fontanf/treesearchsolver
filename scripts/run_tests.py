@@ -212,7 +212,7 @@ if args.tests is None or "simple-assembly-line-balancing-1" in args.tests:
     print("-----------------------------------------")
     print()
 
-    simple_assembly_line_balancing_1_data_dir = os.environ['"SIMPLE_ASSEMBLY_LINE_BALANCING_1_DATA"']
+    simple_assembly_line_balancing_1_data_dir = os.environ['SIMPLE_ASSEMBLY_LINE_BALANCING_1_DATA']
     simple_assembly_line_balancing_1_data = [
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_50.alb"), "otto2013"),
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_100.alb"), "otto2013"),
