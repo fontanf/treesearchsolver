@@ -18,6 +18,7 @@ if args.tests is None or "knapsack-with-conflicts" in args.tests:
     print("-------------------------------")
     print()
 
+    knapsack_with_conflicts_data_dir = os.environ['KNAPSACK_WITH_CONFLICTS_DATA']
     knapsack_with_conflicts_data = [
             (os.path.join("hifi2006", "I1 - I10", "1I1"), "hifi2006"),
             (os.path.join("hifi2006", "I1 - I10", "2I2"), "hifi2006"),
@@ -30,13 +31,12 @@ if args.tests is None or "knapsack-with-conflicts" in args.tests:
             (os.path.join("hifi2006", "I1 - I10", "9I4"), "hifi2006"),
             (os.path.join("hifi2006", "I1 - I10", "10I5"), "hifi2006")]
     knapsack_with_conflicts_main = os.path.join(
-            "bazel-bin",
-            "examples",
-            "knapsack_with_conflicts_main")
+            "install",
+            "bin",
+            "treesearchsolver_knapsack_with_conflicts")
     for instance, instance_format in knapsack_with_conflicts_data:
         instance_path = os.path.join(
-                "data",
-                "knapsack_with_conflicts",
+                knapsack_with_conflicts_data_dir,
                 instance)
         json_output_path = os.path.join(
                 args.directory,
@@ -67,6 +67,7 @@ if args.tests is None or "permutation-flowshop-scheduling-tct" in args.tests:
     print("--------------------------------------------------------------")
     print()
 
+    flowshop_scheduling_data_dir = os.environ['FLOWSHOP_SCHEDULING_DATA']
     permutation_flowshop_scheduling_tct_data = [
             (os.path.join("taillard1993", "tai20_5_0.txt"), "default"),
             (os.path.join("taillard1993", "tai20_5_1.txt"), "default"),
@@ -79,13 +80,12 @@ if args.tests is None or "permutation-flowshop-scheduling-tct" in args.tests:
             (os.path.join("taillard1993", "tai20_5_8.txt"), "default"),
             (os.path.join("taillard1993", "tai20_5_9.txt"), "default")]
     permutation_flowshop_scheduling_tct_main = os.path.join(
-            "bazel-bin",
-            "examples",
-            "permutation_flowshop_scheduling_tct_main")
+            "install",
+            "bin",
+            "treesearchsolver_permutation_flowshop_scheduling_tct")
     for instance, instance_format in permutation_flowshop_scheduling_tct_data:
         instance_path = os.path.join(
-                "data",
-                "flowshop_scheduling",
+                flowshop_scheduling_data_dir,
                 instance)
         json_output_path = os.path.join(
                 args.directory,
@@ -116,6 +116,7 @@ if args.tests is None or "permutation-flowshop-scheduling-makespan" in args.test
     print("-------------------------------------------------")
     print()
 
+    flowshop_scheduling_data_dir = os.environ['FLOWSHOP_SCHEDULING_DATA']
     permutation_flowshop_scheduling_makespan_data = [
             (os.path.join("vallada2015", "Small", "VFR10_5_1_Gap.txt"), "default"),
             (os.path.join("vallada2015", "Small", "VFR10_5_2_Gap.txt"), "default"),
@@ -128,13 +129,12 @@ if args.tests is None or "permutation-flowshop-scheduling-makespan" in args.test
             (os.path.join("vallada2015", "Small", "VFR10_5_9_Gap.txt"), "default"),
             (os.path.join("vallada2015", "Small", "VFR10_5_10_Gap.txt"), "default")]
     permutation_flowshop_scheduling_makespan_main = os.path.join(
-            "bazel-bin",
-            "examples",
-            "permutation_flowshop_scheduling_makespan_main")
+            "install",
+            "bin",
+            "treesearchsolver_permutation_flowshop_scheduling_makespan")
     for instance, instance_format in permutation_flowshop_scheduling_makespan_data:
         instance_path = os.path.join(
-                "data",
-                "flowshop_scheduling",
+                flowshop_scheduling_data_dir,
                 instance)
         json_output_path = os.path.join(
                 args.directory,
@@ -165,6 +165,7 @@ if args.tests is None or "sequential-ordering-problem" in args.tests:
     print("---------------------------")
     print()
 
+    sequential_ordering_data_dir = os.environ['SEQUENTIAL_ORDERING_DATA']
     sequential_ordering_data = [
             (os.path.join("soplib", "R.200.100.1.sop"), "soplib"),
             (os.path.join("soplib", "R.200.100.15.sop"), "soplib"),
@@ -175,13 +176,12 @@ if args.tests is None or "sequential-ordering-problem" in args.tests:
             (os.path.join("soplib", "R.200.1000.30.sop"), "soplib"),
             (os.path.join("soplib", "R.200.1000.60.sop"), "soplib")]
     sequential_ordering_main = os.path.join(
-            "bazel-bin",
-            "examples",
-            "sequential_ordering_main")
+            "install",
+            "bin",
+            "treesearchsolver_sequential_ordering")
     for instance, instance_format in sequential_ordering_data:
         instance_path = os.path.join(
-                "data",
-                "sequential_ordering",
+                sequential_ordering_data_dir,
                 instance)
         json_output_path = os.path.join(
                 args.directory,
@@ -212,6 +212,7 @@ if args.tests is None or "simple-assembly-line-balancing-1" in args.tests:
     print("-----------------------------------------")
     print()
 
+    simple_assembly_line_balancing_1_data_dir = os.environ['"SIMPLE_ASSEMBLY_LINE_BALANCING_1_DATA"']
     simple_assembly_line_balancing_1_data = [
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_50.alb"), "otto2013"),
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_100.alb"), "otto2013"),
@@ -224,13 +225,12 @@ if args.tests is None or "simple-assembly-line-balancing-1" in args.tests:
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_450.alb"), "otto2013"),
             (os.path.join("otto2013", "medium data set_n=50", "instance_n=50_500.alb"), "otto2013")]
     simple_assembly_line_balancing_1_main = os.path.join(
-            "bazel-bin",
-            "examples",
-            "simple_assembly_line_balancing_1_main")
+            "install",
+            "bin",
+            "treesearchsolver_simple_assembly_line_balancing_1")
     for instance, instance_format in simple_assembly_line_balancing_1_data:
         instance_path = os.path.join(
-                "data",
-                "simple_assembly_line_balancing_1",
+                simple_assembly_line_balancing_1_data_dir,
                 instance)
         json_output_path = os.path.join(
                 args.directory,

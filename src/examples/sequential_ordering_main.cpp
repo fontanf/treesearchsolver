@@ -1,16 +1,13 @@
-#include "examples/knapsack_with_conflicts.hpp"
-#include "treesearchsolver/read_args.hpp"
+#include "treesearchsolver/examples/sequential_ordering.hpp"
+#include "read_args.hpp"
 
 using namespace treesearchsolver;
-using namespace knapsack_with_conflicts;
+using namespace sequential_ordering;
 
 int main(int argc, char *argv[])
 {
     // Setup options.
     boost::program_options::options_description desc = setup_args();
-    desc.add_options()
-        ("guide,g", boost::program_options::value<GuideId>(), "")
-        ;
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     if (vm.count("help")) {
@@ -32,10 +29,7 @@ int main(int argc, char *argv[])
     const Instance instance = instance_builder.build();
 
     // Create branching scheme.
-    BranchingScheme::Parameters parameters;
-    if (vm.count("guide"))
-        parameters.guide_id = vm["guide"].as<GuideId>();
-    BranchingScheme branching_scheme(instance, parameters);
+    BranchingScheme branching_scheme(instance);
 
     // Run algorithm.
     std::string algorithm = vm["algorithm"].as<std::string>();
@@ -64,3 +58,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+

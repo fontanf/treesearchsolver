@@ -56,7 +56,9 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 
 Compile:
 ```shell
-bazel build -- //...
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --parallel
+cmake --install build --config Release --prefix install
 ```
 
 Download data:
@@ -66,7 +68,7 @@ python3 scripts/download_data.py
 
 Then, examples can be executed as follows:
 ```shell
-./bazel-bin/examples/sequential_ordering_main --verbosity-level 1 --input "./data/sequential_ordering/soplib/R.700.1000.60.sop" --format soplib --algorithm iterative-beam-search --certificate solution.txt
+./instance/bin/treesearchsolver_sequential_ordering --verbosity-level 1 --input "./data/sequential_ordering/soplib/R.700.1000.60.sop" --format soplib --algorithm iterative-beam-search --certificate solution.txt
 ```
 ```
 ======================================

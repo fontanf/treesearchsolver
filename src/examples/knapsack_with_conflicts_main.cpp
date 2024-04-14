@@ -1,8 +1,8 @@
-#include "examples/permutation_flowshop_scheduling_tct.hpp"
-#include "treesearchsolver/read_args.hpp"
+#include "treesearchsolver/examples/knapsack_with_conflicts.hpp"
+#include "read_args.hpp"
 
 using namespace treesearchsolver;
-using namespace permutation_flowshop_scheduling_tct;
+using namespace knapsack_with_conflicts;
 
 int main(int argc, char *argv[])
 {
@@ -64,4 +64,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
