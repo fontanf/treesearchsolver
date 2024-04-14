@@ -16,7 +16,7 @@ jobs:
 
     env:
       KNAPSACK_WITH_CONFLICTS_DATA: ${{ github.workspace }}/data/knapsack_with_conflicts
-      SEQUENTIAL_ORDERING: ${{ github.workspace }}/data/sequential_ordering
+      SEQUENTIAL_ORDERING_DATA: ${{ github.workspace }}/data/sequential_ordering
       FLOWSHOP_SCHEDULING_DATA: ${{ github.workspace }}/data/flowshop_scheduling
       SIMPLE_ASSEMBLY_LINE_BALANCING_1_DATA: ${{ github.workspace }}/data/simple_assembly_line_balancing_1
 
