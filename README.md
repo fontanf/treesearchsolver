@@ -25,14 +25,14 @@ Algorithms:
 
 Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orproblems)
 
-[Sequential ordering problem](include/examples/sequential_ordering.hpp)
+[Sequential ordering problem](include/treesearchsolver/examples/sequential_ordering.hpp)
 
 * The branching scheme is taken from "Tree search for the sequential ordering problem" (Libralesso et al., 2020) [PDF](https://ecai2020.eu/papers/1126_paper.pdf).
 * It is a forward branching scheme.
 * The guide of a node is its bound.
 * This implementation returns state-of-the-art results on the instances of the scientific literature with a dense precedence graph.
 
-[Permutation flow shop scheduling problem, makespan](include/examples/permutation_flowshop_scheduling_makespan.hpp) and [Permutation flow shop scheduling problem, total completion time](include/examples/permutationflowshopschedulingtct.hpp)
+[Permutation flow shop scheduling problem, makespan](include/treesearchsolver/examples/permutation_flowshop_scheduling_makespan.hpp) and [Permutation flow shop scheduling problem, total completion time](include/treesearchsolver/examples/permutationflowshopschedulingtct.hpp)
 
 * The branching schemes are taken from "Iterative beam search algorithms for the permutation flowshop" (Libralesso et al., 2022) [DOI](https://doi.org/10.1016/j.ejor.2021.10.015).
 * For the makespan variant, it is a bidirectional branching scheme.
@@ -48,9 +48,9 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 
 * Here, the library is used to implement an exact dynamic programming algorithm implemented as a tree search
 
-[Knapsack problem with conflicts](include/examples/knapsack_with_conflicts.hpp)
+[Knapsack problem with conflicts](include/treesearchsolver/examples/knapsack_with_conflicts.hpp)
 
-[Simple assembly line balancing problem of type 1 (SALBP-1)](include/examples/simple_assembly_line_balancing_1.hpp)
+[Simple assembly line balancing problem of type 1 (SALBP-1)](include/treesearchsolver/examples/simple_assembly_line_balancing_1.hpp)
 
 ## Usage, running examples from command line
 
