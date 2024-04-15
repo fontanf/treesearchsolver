@@ -68,7 +68,7 @@ python3 scripts/download_data.py
 
 Then, examples can be executed as follows:
 ```shell
-./instance/bin/treesearchsolver_sequential_ordering --verbosity-level 1 --input "./data/sequential_ordering/soplib/R.700.1000.60.sop" --format soplib --algorithm iterative-beam-search --certificate solution.txt
+./install/bin/treesearchsolver_sequential_ordering --verbosity-level 1 --input "./data/sequential_ordering/soplib/R.700.1000.60.sop" --format soplib --algorithm iterative-beam-search --certificate solution.txt
 ```
 ```
 ======================================
