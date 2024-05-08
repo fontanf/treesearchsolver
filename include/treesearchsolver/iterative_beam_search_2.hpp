@@ -155,12 +155,6 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                     continue;
                 }
 
-                if ((NodeId)q[current_depth + 1]->size() == output.maximum_size_of_the_queue
-                        && branching_scheme(*(std::prev(q[current_depth + 1]->end())), current_node)) {
-                    stop = false;
-                    break;
-                }
-
                 // Get next child.
                 auto children = branching_scheme.children(current_node);
                 output.number_of_nodes_expanded++;
