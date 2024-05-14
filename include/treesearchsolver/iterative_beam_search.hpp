@@ -273,11 +273,12 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
         algorithm_formatter.print(ss);
 
         // Increase the size of the queue.
-        output.maximum_size_of_the_queue = std::max(
+        NodeId maximum_size_of_the_queue_next = std::max(
                 output.maximum_size_of_the_queue + 1,
                 (NodeId)(output.maximum_size_of_the_queue * parameters.growth_factor));
-        if (output.maximum_size_of_the_queue > parameters.maximum_size_of_the_queue)
+        if (maximum_size_of_the_queue_next > parameters.maximum_size_of_the_queue)
             break;
+        output.maximum_size_of_the_queue = maximum_size_of_the_queue_next;
 
         // Stop if no nodes has been pruned.
         if (stop)
