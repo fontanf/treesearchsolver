@@ -76,8 +76,9 @@ Depth depth(
             node,
             std::integral_constant<
                 bool,
-                HasDepthMethod<BranchingScheme,
-                Depth(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
+                HasDepthMethod<
+                    BranchingScheme,
+                    Depth(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

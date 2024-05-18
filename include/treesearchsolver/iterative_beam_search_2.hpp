@@ -155,24 +155,24 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                     continue;
                 }
 
+                // Check time.
+                if (parameters.timer.needs_to_end())
+                    goto ibsend;
+
+                // Check best known bound.
+                if (parameters.goal != nullptr
+                        && !branching_scheme.better(
+                            parameters.goal,
+                            output.solution_pool.best()))
+                    goto ibsend;
+
                 // Get next child.
                 auto children = branching_scheme.children(current_node);
                 output.number_of_nodes_expanded++;
 
-                for (auto child: children) {
+                for (const auto& child: children) {
 
                     output.number_of_nodes_generated++;
-
-                    // Check time.
-                    if (parameters.timer.needs_to_end())
-                        goto ibsend;
-
-                    // Check best known bound.
-                    if (parameters.goal != nullptr
-                            && !branching_scheme.better(
-                                parameters.goal,
-                                output.solution_pool.best()))
-                        goto ibsend;
 
                     // Get child depth.
                     Depth child_depth = depth(branching_scheme, child);
