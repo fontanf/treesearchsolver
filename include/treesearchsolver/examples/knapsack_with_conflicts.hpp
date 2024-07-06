@@ -2,7 +2,7 @@
  * Knapsack problem with conflicts
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/knapsack_with_conflicts.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/include/orproblems/packing/knapsack_with_conflicts.hpp
  *
  * Branching scheme:
  * - Root node: empty solution, no item

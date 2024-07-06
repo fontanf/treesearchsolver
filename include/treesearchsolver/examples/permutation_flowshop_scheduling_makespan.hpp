@@ -2,7 +2,7 @@
  * Permutation flow shop scheduling problem, makespan
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/permutation_flowshop_scheduling_makespan.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/include/orproblems/scheduling/permutation_flowshop_scheduling_makespan.hpp
  *
  * Tree search:
  * - Bidirectional branching

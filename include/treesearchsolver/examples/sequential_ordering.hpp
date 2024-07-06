@@ -2,7 +2,7 @@
  * Sequential ordering problem
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/sequential_ordering.hpp
+ * https://github.com/fontanf/orproblems/blob/main/include/orproblems/scheduling/sequential_ordering.hpp
  *
  * Tree search:
  * - forward branching
