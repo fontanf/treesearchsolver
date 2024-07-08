@@ -2,7 +2,7 @@
  * Permutation flow shop scheduling problem, total completion time
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/permutation_flowshop_scheduling_tct.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/include/orproblems/scheduling/permutation_flowshop_scheduling_tct.hpp
  *
  * Tree search:
  * - Forward branching

@@ -32,19 +32,19 @@ Data can be downloaded from [fontanf/orproblems](https://github.com/fontanf/orpr
 * The guide of a node is its bound.
 * This implementation returns state-of-the-art results on the instances of the scientific literature with a dense precedence graph.
 
-[Permutation flow shop scheduling problem, makespan](include/treesearchsolver/examples/permutation_flowshop_scheduling_makespan.hpp) and [Permutation flow shop scheduling problem, total completion time](include/treesearchsolver/examples/permutationflowshopschedulingtct.hpp)
+[Permutation flow shop scheduling problem, makespan](include/treesearchsolver/examples/permutation_flowshop_scheduling_makespan.hpp) and [Permutation flow shop scheduling problem, total completion time](include/treesearchsolver/examples/permutation_flowshop_scheduling_tct.hpp)
 
 * The branching schemes are taken from "Iterative beam search algorithms for the permutation flowshop" (Libralesso et al., 2022) [DOI](https://doi.org/10.1016/j.ejor.2021.10.015).
 * For the makespan variant, it is a bidirectional branching scheme.
 * For the total completion time variant, it is a forward branching scheme.
 * These implementations return state-of-the-art results on the instances of the scientific literature.
 
-[1D knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/onedimensional/branching_scheme.hpp), [2D rectangle knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/rectangle/branching_scheme.hpp) and [3D box-stacks knapsack](https://github.com/fontanf/packingsolver/blob/master/packingsolver/boxstacks/branching_scheme.hpp) problems from [fontanf/packingsolver](https://github.com/fontanf/packingsolver/)
+[1D packing](https://github.com/fontanf/packingsolver/blob/master/src/onedimensional/branching_scheme.hpp), [2D rectangle packing](https://github.com/fontanf/packingsolver/blob/master/src/rectangle/branching_scheme.hpp), [2D rectangle guillotine packing](https://github.com/fontanf/packingsolver/blob/master/src/rectangleguillotine/branching_scheme.hpp), [2D irregular packing](https://github.com/fontanf/packingsolver/blob/master/src/irregular/branching_scheme.hpp) and [3D box-stacks packing](https://github.com/fontanf/packingsolver/blob/master/src/boxstacks/branching_scheme.hpp) problems from [fontanf/packingsolver](https://github.com/fontanf/packingsolver/)
 
-* These are all forward branching scheme.
+* These are all forward branching schemes.
 * These implementations have been used in the winning algorithm of the [Challenge ROADEF/EURO 2022 : Trucks Loading Problem](https://www.roadef.org/challenge/2022/en/).
 
-[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/travellingthief/algorithms/tree_search.cpp) and [thief orienteering problem](https://github.com/fontanf/travellingthiefsolver/blob/master/travellingthiefsolver/thieforienteering/algorithms/tree_search.cpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
+[Travelling thief problem](https://github.com/fontanf/travellingthiefsolver/blob/master/include/travellingthiefsolver/travelling_thief/algorithms/tree_search.hpp) and [thief orienteering problem](https://github.com/fontanf/travellingthiefsolver/blob/master/include/travellingthiefsolver/thief_orienteering/algorithms/tree_search.hpp) from [fontanf/travellingthiefsolver](https://github.com/fontanf/travellingthiefsolver/)
 
 * Here, the library is used to implement an exact dynamic programming algorithm implemented as a tree search
 

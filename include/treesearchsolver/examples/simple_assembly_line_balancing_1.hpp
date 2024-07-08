@@ -2,7 +2,7 @@
  * Simple assembly line balancing problem of type 1
  *
  * Problem description:
- * See https://github.com/fontanf/orproblems/blob/main/orproblems/simple_assembly_line_balancing_1.hpp
+ * See https://github.com/fontanf/orproblems/blob/main/include/orproblems/scheduling/simple_assembly_line_balancing_1.hpp
  *
  * TODO
  *
