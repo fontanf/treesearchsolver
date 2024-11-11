@@ -71,6 +71,9 @@ struct IterativeBeamSearch2Output: Output<BranchingScheme>
     /** Maximum size of the queue reached. */
     NodeId maximum_size_of_the_queue = 0;
 
+    /** True if all nodes have been explored. */
+    bool optimal = false;
+
 
     virtual int format_width() const override { return 37; }
 
@@ -272,6 +275,11 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
             history[d]->clear();
         }
 
+        if (stop) {
+            output.optimal = true;
+            parameters.new_solution_callback(output);
+        }
+
         std::stringstream ss;
         ss << "q " << output.maximum_size_of_the_queue;
         algorithm_formatter.print(ss);
@@ -295,4 +303,3 @@ ibsend:
 }
 
 }
-
