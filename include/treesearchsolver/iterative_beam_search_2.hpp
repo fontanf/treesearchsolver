@@ -138,6 +138,10 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
         // Initialize queue.
         bool stop = true;
         auto current_node = branching_scheme.root();
+        if (parameters.write_json_search_tree) {
+            output.json_search_tree[current_node->id]
+                = node_export(branching_scheme, current_node);
+        }
         output.number_of_nodes_generated++;
         q[0]->insert(current_node);
         output.number_of_nodes_added++;
@@ -185,6 +189,11 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                     // Update best solution.
                     if (branching_scheme.better(child, output.solution_pool.worst())) {
                         algorithm_formatter.update_solution(child);
+                    }
+
+                    if (parameters.write_json_search_tree) {
+                        output.json_search_tree[child->id]
+                            = node_export(branching_scheme, child);
                     }
 
                     // Add child to the queue.

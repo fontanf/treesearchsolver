@@ -263,6 +263,7 @@ struct Output: optimizationtools::Output
     /** Elapsed time. */
     double time = 0.0;
 
+    nlohmann::json json_search_tree;
 
     virtual nlohmann::json to_json() const
     {
@@ -311,6 +312,8 @@ struct Parameters: optimizationtools::Parameters
      * If not 'nullptr', the algorithm won't consider worse solutions.
      */
     std::shared_ptr<Node> cutoff = nullptr;
+
+    bool write_json_search_tree = false;
 
 
     virtual nlohmann::json to_json() const override
@@ -495,6 +498,70 @@ void solution_write(
                 bool,
                 HasSolutionWriteMethod<BranchingScheme,
                 void(const std::shared_ptr<typename BranchingScheme::Node>&, const std::string&)>::value>());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///////////////////////// branching_scheme_node_export /////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename, typename T>
+struct HasNodeExportMethod
+{
+    static_assert(
+        std::integral_constant<T, false>::value,
+        "Second template parameter needs to be of function type.");
+};
+
+template<typename C, typename Ret, typename... Args>
+struct HasNodeExportMethod<C, Ret(Args...)>
+{
+
+private:
+
+    template<typename T>
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().node_export(std::declval<Args>()...)), Ret>::type;
+
+    template<typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<C>(0)) type;
+
+public:
+
+    static constexpr bool value = type::value;
+
+};
+
+template<typename BranchingScheme>
+nlohmann::json node_export(
+        const BranchingScheme&,
+        const std::shared_ptr<typename BranchingScheme::Node>&,
+        std::false_type)
+{
+    return nlohmann::json{};
+}
+
+template<typename BranchingScheme>
+nlohmann::json node_export(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& node,
+        std::true_type)
+{
+    return branching_scheme.node_export(node);
+}
+
+template<typename BranchingScheme>
+nlohmann::json node_export(
+        const BranchingScheme& branching_scheme,
+        const std::shared_ptr<typename BranchingScheme::Node>& node)
+{
+    return node_export(
+            branching_scheme,
+            node,
+            std::integral_constant<
+                bool,
+                HasNodeExportMethod<BranchingScheme,
+                nlohmann::json(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
 }
 
 }
