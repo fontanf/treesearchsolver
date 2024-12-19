@@ -501,11 +501,11 @@ void solution_write(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-///////////////////////// branching_scheme_node_export /////////////////////////
+///////////////////////// branching_scheme_json_export /////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename, typename T>
-struct HasNodeExportMethod
+struct HasJsonExportInitMethod
 {
     static_assert(
         std::integral_constant<T, false>::value,
@@ -513,13 +513,13 @@ struct HasNodeExportMethod
 };
 
 template<typename C, typename Ret, typename... Args>
-struct HasNodeExportMethod<C, Ret(Args...)>
+struct HasJsonExportInitMethod<C, Ret(Args...)>
 {
 
 private:
 
     template<typename T>
-    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().node_export(std::declval<Args>()...)), Ret>::type;
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().json_export_init(std::declval<Args>()...)), Ret>::type;
 
     template<typename>
     static constexpr std::false_type check(...);
@@ -533,7 +533,63 @@ public:
 };
 
 template<typename BranchingScheme>
-nlohmann::json node_export(
+nlohmann::json json_export_init(
+        const BranchingScheme&,
+        std::false_type)
+{
+    return nlohmann::json{};
+}
+
+template<typename BranchingScheme>
+nlohmann::json json_export_init(
+        const BranchingScheme& branching_scheme,
+        std::true_type)
+{
+    return branching_scheme.json_export_init();
+}
+
+template<typename BranchingScheme>
+nlohmann::json json_export_init(
+        const BranchingScheme& branching_scheme)
+{
+    return json_export_init(
+            branching_scheme,
+            std::integral_constant<
+                bool,
+                HasJsonExportInitMethod<BranchingScheme,
+                nlohmann::json()>::value>());
+}
+
+template<typename, typename T>
+struct HasJsonExportMethod
+{
+    static_assert(
+        std::integral_constant<T, false>::value,
+        "Second template parameter needs to be of function type.");
+};
+
+template<typename C, typename Ret, typename... Args>
+struct HasJsonExportMethod<C, Ret(Args...)>
+{
+
+private:
+
+    template<typename T>
+    static constexpr auto check(T*) -> typename std::is_same<decltype(std::declval<T>().json_export(std::declval<Args>()...)), Ret>::type;
+
+    template<typename>
+    static constexpr std::false_type check(...);
+
+    typedef decltype(check<C>(0)) type;
+
+public:
+
+    static constexpr bool value = type::value;
+
+};
+
+template<typename BranchingScheme>
+nlohmann::json json_export(
         const BranchingScheme&,
         const std::shared_ptr<typename BranchingScheme::Node>&,
         std::false_type)
@@ -542,25 +598,25 @@ nlohmann::json node_export(
 }
 
 template<typename BranchingScheme>
-nlohmann::json node_export(
+nlohmann::json json_export(
         const BranchingScheme& branching_scheme,
         const std::shared_ptr<typename BranchingScheme::Node>& node,
         std::true_type)
 {
-    return branching_scheme.node_export(node);
+    return branching_scheme.json_export(node);
 }
 
 template<typename BranchingScheme>
-nlohmann::json node_export(
+nlohmann::json json_export(
         const BranchingScheme& branching_scheme,
         const std::shared_ptr<typename BranchingScheme::Node>& node)
 {
-    return node_export(
+    return json_export(
             branching_scheme,
             node,
             std::integral_constant<
                 bool,
-                HasNodeExportMethod<BranchingScheme,
+                HasJsonExportMethod<BranchingScheme,
                 nlohmann::json(const std::shared_ptr<typename BranchingScheme::Node>&)>::value>());
 }
 

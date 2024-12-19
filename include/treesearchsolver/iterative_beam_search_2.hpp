@@ -133,14 +133,18 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
             new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     Depth number_of_queues = 2;
 
+    if (parameters.write_json_search_tree) {
+        output.json_search_tree["Init"] = json_export_init(branching_scheme);
+    }
+
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
 
         // Initialize queue.
         bool stop = true;
         auto current_node = branching_scheme.root();
         if (parameters.write_json_search_tree) {
-            output.json_search_tree[current_node->id]
-                = node_export(branching_scheme, current_node);
+            output.json_search_tree["Nodes"][current_node->id]
+                = json_export(branching_scheme, current_node);
         }
         output.number_of_nodes_generated++;
         q[0]->insert(current_node);
@@ -192,8 +196,8 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                     }
 
                     if (parameters.write_json_search_tree) {
-                        output.json_search_tree[child->id]
-                            = node_export(branching_scheme, child);
+                        output.json_search_tree["Nodes"][child->id]
+                            = json_export(branching_scheme, child);
                     }
 
                     // Add child to the queue.
