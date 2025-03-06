@@ -14,18 +14,14 @@
  *   - 4: gap, bound and weighted idle time
  */
 
-#pragma once
+#include "read_args.hpp"
 
 #include "orproblems/scheduling/permutation_flowshop_scheduling_makespan.hpp"
 
 #include <memory>
 #include <sstream>
 
-namespace treesearchsolver
-{
-namespace permutation_flowshop_scheduling_makespan
-{
-
+using namespace treesearchsolver;
 using namespace orproblems::permutation_flowshop_scheduling_makespan;
 
 using NodeId = int64_t;
@@ -81,7 +77,7 @@ public:
         JobId next_child_pos = 0;
 
         /** Unique id of the node. */
-        NodeId node_id = -1;
+        NodeId id = -1;
     };
 
     struct Parameters
@@ -106,7 +102,7 @@ public:
         MachineId m = instance_.number_of_machines();
         JobId n = instance_.number_of_jobs();
         auto r = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
-        r->node_id = node_id_;
+        r->id = node_id_;
         node_id_++;
         r->available_jobs.resize(n, true);
         r->machines.resize(m);
@@ -298,7 +294,7 @@ public:
         MachineId m = instance_.number_of_machines();
         JobId n = instance_.number_of_jobs();
         auto child = std::shared_ptr<Node>(new BranchingSchemeBidirectional::Node());
-        child->node_id = node_id_;
+        child->id = node_id_;
         node_id_++;
         child->parent = parent;
         child->job_id = job_id_next;
@@ -431,7 +427,7 @@ public:
             return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1->node_id < node_2->node_id;
+        return node_1->id < node_2->id;
     }
 
     inline bool leaf(
@@ -605,5 +601,66 @@ private:
 
 };
 
-}
+int main(int argc, char *argv[])
+{
+    // Setup options.
+    boost::program_options::options_description desc = setup_args();
+    desc.add_options()
+        ("bidirectional,b", boost::program_options::value<bool>(), "")
+        ("guide,g", boost::program_options::value<GuideId>(), "")
+        ;
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+
+    // Create instance.
+    InstanceBuilder instance_builder;
+    instance_builder.read(
+            vm["input"].as<std::string>(),
+            vm["format"].as<std::string>());
+    const Instance instance = instance_builder.build();
+
+    // Create branching scheme.
+    BranchingSchemeBidirectional::Parameters parameters;
+    if (vm.count("guide"))
+        parameters.guide_id = vm["guide"].as<GuideId>();
+    if (vm.count("bidirectional"))
+        parameters.bidirectional = vm["bidirectional"].as<bool>();
+    BranchingSchemeBidirectional branching_scheme(instance, parameters);
+
+    // Run algorithm.
+    std::string algorithm = vm["algorithm"].as<std::string>();
+    Output<BranchingSchemeBidirectional> output =
+        (algorithm == "greedy")?
+        run_greedy(branching_scheme, vm):
+        (algorithm == "best-first-search")?
+        run_best_first_search(branching_scheme, vm):
+        (algorithm == "iterative-beam-search")?
+        run_iterative_beam_search(branching_scheme, vm):
+        (algorithm == "anytime-column-search")?
+        run_anytime_column_search(branching_scheme, vm):
+        run_iterative_memory_bounded_best_first_search(branching_scheme, vm);
+
+    // Run checker.
+    if (vm["print-checker"].as<int>() > 0
+            && vm["certificate"].as<std::string>() != "") {
+        std::cout << std::endl
+            << "Checker" << std::endl
+            << "-------" << std::endl;
+        instance.check(
+                vm["certificate"].as<std::string>(),
+                std::cout,
+                vm["print-checker"].as<int>());
+    }
+
+    return 0;
 }

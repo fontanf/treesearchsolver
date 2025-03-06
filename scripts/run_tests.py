@@ -13,55 +13,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-if args.tests is None or "knapsack-with-conflicts" in args.tests:
-    print("Knapsack problem with conflicts")
-    print("-------------------------------")
-    print()
-
-    data_dir = os.environ['KNAPSACK_WITH_CONFLICTS_DATA']
-    data = [
-            (os.path.join("hifi2006", "I1 - I10", "1I1"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "2I2"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "3I3"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "4I4"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "5I5"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "6I1"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "7I2"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "8I3"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "9I4"), "hifi2006"),
-            (os.path.join("hifi2006", "I1 - I10", "10I5"), "hifi2006")]
-    main = os.path.join(
-            "install",
-            "bin",
-            "treesearchsolver_knapsack_with_conflicts")
-    for instance, instance_format in data:
-        instance_path = os.path.join(
-                data_dir,
-                instance)
-        json_output_path = os.path.join(
-                args.directory,
-                "knapsack_with_conflicts",
-                instance + ".json")
-        if not os.path.exists(os.path.dirname(json_output_path)):
-            os.makedirs(os.path.dirname(json_output_path))
-        command = (
-                main
-                + "  --verbosity-level 1"
-                + "  --input \"" + instance_path + "\""
-                + " --format \"" + instance_format + "\""
-                + "  --algorithm iterative-beam-search"
-                + " --minimum-size-of-the-queue 1024"
-                + " --maximum-size-of-the-queue 1024"
-                + "  --output \"" + json_output_path + "\"")
-        print(command)
-        status = os.system(command)
-        if status != 0:
-            sys.exit(1)
-        print()
-    print()
-    print()
-
-
 if args.tests is None or "permutation-flowshop-scheduling-tct" in args.tests:
     print("Permutation flowshop scheduling problem, total completion time")
     print("--------------------------------------------------------------")
