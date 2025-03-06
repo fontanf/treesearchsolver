@@ -8,17 +8,13 @@
  *
  */
 
-#pragma once
+#include "read_args.hpp"
 
 #include "orproblems/scheduling/simple_assembly_line_balancing_1.hpp"
 
 #include <memory>
 
-namespace treesearchsolver
-{
-namespace simple_assembly_line_balancing_1
-{
-
+using namespace treesearchsolver;
 using namespace orproblems::simple_assembly_line_balancing_1;
 
 using NodeId = int64_t;
@@ -59,7 +55,7 @@ public:
         double guide = 0;
 
         /** Unique id of the node. */
-        NodeId node_id = -1;
+        NodeId id = -1;
     };
 
     BranchingScheme(
@@ -71,7 +67,7 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->node_id = node_id_;
+        r->id = node_id_;
         node_id_++;
         r->jobs.resize(instance_.number_of_jobs(), false);
         r->current_station_time = instance_.cycle_time();
@@ -111,7 +107,7 @@ public:
 
                 // Compute new child.
                 auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-                child->node_id = node_id_;
+                child->id = node_id_;
                 node_id_++;
                 child->parent = parent;
                 child->job_id = job_id;
@@ -188,7 +184,7 @@ public:
 
             // Compute new child.
             auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-            child->node_id = node_id_;
+            child->id = node_id_;
             node_id_++;
             child->parent = parent;
             child->job_id = longest_valid_remaining_job;
@@ -241,7 +237,7 @@ public:
 
             // Compute new child.
             auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-            child->node_id = node_id_;
+            child->id = node_id_;
             node_id_++;
             child->parent = parent;
             child->job_id = job_id;
@@ -275,7 +271,7 @@ public:
         //    return node_1->number_of_jobs < node_2->number_of_jobs;
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1->node_id < node_2->node_id;
+        return node_1->id < node_2->id;
     }
 
     inline bool leaf(
@@ -466,5 +462,48 @@ private:
 
 };
 
-}
+int main(int argc, char *argv[])
+{
+    // Setup options.
+    boost::program_options::options_description desc = setup_args();
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+
+    // Create instance.
+    InstanceBuilder instance_builder;
+    instance_builder.read(
+            vm["input"].as<std::string>(),
+            vm["format"].as<std::string>());
+    const Instance instance = instance_builder.build();
+
+    // Create branching scheme.
+    BranchingScheme branching_scheme(instance);
+
+    // Run algorithm.
+    std::string algorithm = vm["algorithm"].as<std::string>();
+    Output<BranchingScheme> output = run_iterative_beam_search_2(branching_scheme, vm);
+
+    // Run checker.
+    if (vm["print-checker"].as<int>() > 0
+            && vm["certificate"].as<std::string>() != "") {
+        std::cout << std::endl
+            << "Checker" << std::endl
+            << "-------" << std::endl;
+        instance.check(
+                vm["certificate"].as<std::string>(),
+                std::cout,
+                vm["print-checker"].as<int>());
+    }
+
+    return 0;
 }

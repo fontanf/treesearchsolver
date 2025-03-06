@@ -10,5 +10,3 @@ target_link_libraries(TreeSearchSolver_treesearchsolver PUBLIC
 add_library(TreeSearchSolver::treesearchsolver ALIAS TreeSearchSolver_treesearchsolver)
 set_target_properties(TreeSearchSolver_treesearchsolver PROPERTIES OUTPUT_NAME "treesearchsolver")
 install(TARGETS TreeSearchSolver_treesearchsolver)
-
-add_subdirectory(examples)

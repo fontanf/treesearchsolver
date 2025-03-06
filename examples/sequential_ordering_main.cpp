@@ -10,7 +10,7 @@
  *
  */
 
-#pragma once
+#include "read_args.hpp"
 
 #include "optimizationtools/utils/utils.hpp"
 #include "optimizationtools/containers/sorted_on_demand_array.hpp"
@@ -20,11 +20,7 @@
 #include <memory>
 #include <sstream>
 
-namespace treesearchsolver
-{
-namespace sequential_ordering
-{
-
+using namespace treesearchsolver;
 using namespace orproblems::sequential_ordering;
 
 using NodeId = int64_t;
@@ -69,7 +65,7 @@ public:
         LocationPos next_child_pos = 0;
 
         /** Unique id of the node. */
-        NodeId node_id = -1;
+        NodeId id = -1;
     };
 
     BranchingScheme(
@@ -103,7 +99,7 @@ public:
     inline const std::shared_ptr<Node> root() const
     {
         auto r = std::shared_ptr<Node>(new BranchingScheme::Node());
-        r->node_id = node_id_;
+        r->id = node_id_;
         node_id_++;
         r->visited.resize(instance_.number_of_locations(), false);
 
@@ -162,7 +158,7 @@ public:
 
         // Compute new child.
         auto child = std::shared_ptr<Node>(new BranchingScheme::Node());
-        child->node_id = node_id_;
+        child->id = node_id_;
         node_id_++;
         child->parent = parent;
         child->visited = parent->visited;
@@ -194,7 +190,7 @@ public:
         assert(!infertile(node_2));
         if (node_1->guide != node_2->guide)
             return node_1->guide < node_2->guide;
-        return node_1->node_id < node_2->node_id;
+        return node_1->id < node_2->id;
     }
 
     inline bool leaf(
@@ -353,5 +349,57 @@ private:
 
 };
 
-}
+int main(int argc, char *argv[])
+{
+    // Setup options.
+    boost::program_options::options_description desc = setup_args();
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+    try {
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::required_option& e) {
+        std::cout << desc << std::endl;;
+        throw "";
+    }
+
+    // Create instance.
+    InstanceBuilder instance_builder;
+    instance_builder.read(
+            vm["input"].as<std::string>(),
+            vm["format"].as<std::string>());
+    const Instance instance = instance_builder.build();
+
+    // Create branching scheme.
+    BranchingScheme branching_scheme(instance);
+
+    // Run algorithm.
+    std::string algorithm = vm["algorithm"].as<std::string>();
+    Output<BranchingScheme> output =
+        (algorithm == "greedy")?
+        run_greedy(branching_scheme, vm):
+        (algorithm == "best-first-search")?
+        run_best_first_search(branching_scheme, vm):
+        (algorithm == "iterative-beam-search")?
+        run_iterative_beam_search(branching_scheme, vm):
+        (algorithm == "anytime-column-search")?
+        run_anytime_column_search(branching_scheme, vm):
+        run_iterative_memory_bounded_best_first_search(branching_scheme, vm);
+
+    // Run checker.
+    if (vm["print-checker"].as<int>() > 0
+            && vm["certificate"].as<std::string>() != "") {
+        std::cout << std::endl
+            << "Checker" << std::endl
+            << "-------" << std::endl;
+        instance.check(
+                vm["certificate"].as<std::string>(),
+                std::cout,
+                vm["print-checker"].as<int>());
+    }
+
+    return 0;
 }
