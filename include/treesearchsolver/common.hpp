@@ -263,8 +263,6 @@ struct Output: optimizationtools::Output
     /** Elapsed time. */
     double time = 0.0;
 
-    nlohmann::json json_search_tree;
-
     virtual nlohmann::json to_json() const
     {
         return {
@@ -313,7 +311,7 @@ struct Parameters: optimizationtools::Parameters
      */
     std::shared_ptr<Node> cutoff = nullptr;
 
-    bool write_json_search_tree = false;
+    std::string json_search_tree_path;
 
 
     virtual nlohmann::json to_json() const override

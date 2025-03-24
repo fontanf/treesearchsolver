@@ -133,17 +133,16 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
             new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     Depth number_of_queues = 2;
 
-    if (parameters.write_json_search_tree) {
-        output.json_search_tree["Init"] = json_export_init(branching_scheme);
-    }
-
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
+        nlohmann::json json_search_tree;
+        if (!parameters.json_search_tree_path.empty())
+            json_search_tree["Init"] = json_export_init(branching_scheme);
 
         // Initialize queue.
         bool stop = true;
         auto current_node = branching_scheme.root();
-        if (parameters.write_json_search_tree) {
-            output.json_search_tree["Nodes"][current_node->id]
+        if (!parameters.json_search_tree_path.empty()) {
+            json_search_tree["Nodes"][current_node->id]
                 = json_export(branching_scheme, current_node);
         }
         output.number_of_nodes_generated++;
@@ -195,8 +194,8 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                         algorithm_formatter.update_solution(child);
                     }
 
-                    if (parameters.write_json_search_tree) {
-                        output.json_search_tree["Nodes"][child->id]
+                    if (!parameters.json_search_tree_path.empty()) {
+                        json_search_tree["Nodes"][child->id]
                             = json_export(branching_scheme, child);
                     }
 
@@ -296,6 +295,17 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
         std::stringstream ss;
         ss << "q " << output.maximum_size_of_the_queue;
         algorithm_formatter.print(ss);
+
+        if (!parameters.json_search_tree_path.empty()) {
+            std::string json_search_tree_path = parameters.json_search_tree_path
+                + "_q_" + std::to_string(output.maximum_size_of_the_queue)  + ".json";
+            std::ofstream file(json_search_tree_path);
+            if (!file.good()) {
+                throw std::runtime_error(
+                        "Unable to open file \"" + parameters.json_search_tree_path + "\".");
+            }
+            file << std::setw(4) << json_search_tree << std::endl;
+        }
 
         // Increase the size of the queue.
         NodeId maximum_size_of_the_queue_next = std::max(
