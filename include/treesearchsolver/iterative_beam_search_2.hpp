@@ -165,6 +165,12 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                     continue;
                 }
 
+                // Check cutoff.
+                if (parameters.cutoff != nullptr
+                        && branching_scheme.bound(current_node, parameters.cutoff)) {
+                    continue;
+                }
+
                 // Check time.
                 if (parameters.timer.needs_to_end())
                     goto ibsend;
@@ -181,6 +187,13 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                 output.number_of_nodes_expanded++;
 
                 for (const auto& child: children) {
+
+                    // Check that the child node is not nullptr.
+                    if (child.get() == nullptr) {
+                        throw std::runtime_error(
+                                "treesearchsolver::iterative_beam_search_2: "
+                                "'child' must not be 'nullptr'.");
+                    }
 
                     output.number_of_nodes_generated++;
 
@@ -201,7 +214,8 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
 
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
-                            && !branching_scheme.bound(child, output.solution_pool.worst())) {
+                            && !branching_scheme.bound(child, output.solution_pool.worst())
+                            && (parameters.cutoff == nullptr || !branching_scheme.bound(child, parameters.cutoff))) {
 
                         // Create new q and history if needed.
                         while (child_depth >= current_depth + number_of_queues) {
