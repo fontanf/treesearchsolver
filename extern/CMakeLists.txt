@@ -28,8 +28,8 @@ if(TREESEARCHSOLVER_BUILD_EXAMPLES)
   FetchContent_Declare(
       orproblems
       GIT_REPOSITORY https://github.com/fontanf/orproblems.git
-      GIT_TAG ba099d6bd0ac186e4113fe340789a1800fa72852
-#      SOURCE_DIR "${PROJECT_SOURCE_DIR}/../orproblems/"
+      GIT_TAG ba3508d30ca86e84179f526ac9a0f466d525758e
+      #SOURCE_DIR "${PROJECT_SOURCE_DIR}/../orproblems/"
       EXCLUDE_FROM_ALL)
   FetchContent_MakeAvailable(orproblems)
 endif()
