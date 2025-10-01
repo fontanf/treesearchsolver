@@ -133,10 +133,9 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
             new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     Depth number_of_queues = 2;
 
+    bool end = false;
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
         nlohmann::json json_search_tree;
-        if (!parameters.json_search_tree_path.empty())
-            json_search_tree["Init"] = json_export_init(branching_scheme);
 
         // Initialize queue.
         bool stop = true;
@@ -172,15 +171,19 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                 }
 
                 // Check time.
-                if (parameters.timer.needs_to_end())
-                    goto ibsend;
+                if (parameters.timer.needs_to_end()) {
+                    end = true;
+                    break;
+                }
 
                 // Check best known bound.
                 if (parameters.goal != nullptr
                         && !branching_scheme.better(
                             parameters.goal,
-                            output.solution_pool.best()))
-                    goto ibsend;
+                            output.solution_pool.best())) {
+                    end = true;
+                    break;
+                }
 
                 // Get next child.
                 auto children = branching_scheme.children(current_node);
@@ -260,10 +263,13 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
 
                 // Check node limit.
                 if (parameters.maximum_number_of_nodes_expanded != -1
-                        && output.number_of_nodes_expanded > parameters.maximum_number_of_nodes_expanded)
-                    goto ibsend;
-
+                        && output.number_of_nodes_expanded > parameters.maximum_number_of_nodes_expanded) {
+                    end = true;
+                    break;
+                }
             }
+            if (end)
+                break;
 
             // Update q and history.
             if ((Depth)q.size() <= current_depth + number_of_queues) {
@@ -291,6 +297,22 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
 
         }
 
+        // JSON search tree export.
+        if (!parameters.json_search_tree_path.empty()) {
+            json_search_tree["Init"] = json_export_init(branching_scheme);
+            std::string json_search_tree_path = parameters.json_search_tree_path
+                + "_q_" + std::to_string(output.maximum_size_of_the_queue)  + ".json";
+            std::ofstream file(json_search_tree_path);
+            if (!file.good()) {
+                throw std::runtime_error(
+                        "Unable to open file \"" + parameters.json_search_tree_path + "\".");
+            }
+            file << std::setw(4) << json_search_tree << std::endl;
+        }
+
+        if (end)
+            break;
+
         // Update q and history.
         for (Depth d = 0; d < number_of_queues; ++d) {
             q[d] = q[current_depth + d];
@@ -310,17 +332,6 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
         ss << "q " << output.maximum_size_of_the_queue;
         algorithm_formatter.print(ss);
 
-        if (!parameters.json_search_tree_path.empty()) {
-            std::string json_search_tree_path = parameters.json_search_tree_path
-                + "_q_" + std::to_string(output.maximum_size_of_the_queue)  + ".json";
-            std::ofstream file(json_search_tree_path);
-            if (!file.good()) {
-                throw std::runtime_error(
-                        "Unable to open file \"" + parameters.json_search_tree_path + "\".");
-            }
-            file << std::setw(4) << json_search_tree << std::endl;
-        }
-
         // Increase the size of the queue.
         NodeId maximum_size_of_the_queue_next = std::max(
                 output.maximum_size_of_the_queue + 1,
@@ -333,7 +344,6 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
         if (stop)
             break;
     }
-ibsend:
 
     algorithm_formatter.end();
     return output;
