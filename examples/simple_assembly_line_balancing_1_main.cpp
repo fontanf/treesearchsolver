@@ -75,8 +75,7 @@ public:
     }
 
     inline std::vector<std::shared_ptr<Node>> children(
-            const std::shared_ptr<Node>& parent,
-            NodeId number_of_children = -1) const
+            const std::shared_ptr<Node>& parent) const
     {
         std::vector<std::shared_ptr<Node>> c;
 

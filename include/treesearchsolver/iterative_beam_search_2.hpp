@@ -186,12 +186,10 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                 }
 
                 // Get next child.
-                auto child_nodes = branching_scheme.children(
-                        current_node,
-                        output.maximum_size_of_the_queue);
+                auto children = branching_scheme.children(current_node);
                 output.number_of_nodes_expanded++;
 
-                for (const auto& child: child_nodes) {
+                for (const auto& child: children) {
 
                     // Check that the child node is not nullptr.
                     if (child.get() == nullptr) {
