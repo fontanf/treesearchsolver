@@ -107,8 +107,7 @@ inline const AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
     auto node_hasher = branching_scheme.node_hasher();
     std::vector<NodeSet<BranchingScheme>> q
         = {NodeSet<BranchingScheme>(branching_scheme)};
-    std::vector<NodeMap<BranchingScheme>> history
-        = {NodeMap<BranchingScheme>(0, node_hasher, node_hasher)};
+    NodeMap<BranchingScheme> history(0, node_hasher, node_hasher);
     q[0].insert(branching_scheme.root());
 
     double maximum_number_of_children = parameters.initial_column_size;
@@ -185,12 +184,10 @@ inline const AnytimeColumnSearchOutput<BranchingScheme> anytime_column_search(
                         while ((Counter)q.size() <= child_depth) {
                             q.push_back(NodeSet<BranchingScheme>(
                                         branching_scheme));
-                            history.push_back(NodeMap<BranchingScheme>(
-                                        0, node_hasher, node_hasher));
                         }
                         add_to_history_and_queue(
                                 branching_scheme,
-                                history[child_depth],
+                                history,
                                 q[child_depth],
                                 child);
                     }
