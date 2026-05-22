@@ -20,6 +20,12 @@ struct IterativeBeamSearch2Parameters: Parameters<BranchingScheme>
     /** Maximum number of nodes expanded. */
     NodeId maximum_number_of_nodes_expanded = -1;
 
+    /**
+     * If true, use a single history shared across all depth levels.
+     * If false (default), each depth level has its own history.
+     */
+    bool global_history = false;
+
 
     virtual int format_width() const override { return 37; }
 
@@ -32,6 +38,7 @@ struct IterativeBeamSearch2Parameters: Parameters<BranchingScheme>
             << std::setw(width) << std::left << "Growth factor: " << growth_factor << std::endl
             << std::setw(width) << std::left << "Minimum size of the queue: " << minimum_size_of_the_queue << std::endl
             << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            << std::setw(width) << std::left << "Global history: " << global_history << std::endl
             ;
     }
 
@@ -42,7 +49,8 @@ struct IterativeBeamSearch2Parameters: Parameters<BranchingScheme>
                 {"MaximumNumberOfNodesExpanded", maximum_number_of_nodes_expanded},
                 {"GrowthFactor", growth_factor},
                 {"MinimumSizeOfTheQueue", minimum_size_of_the_queue},
-                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue},
+                {"GlobalHistory", global_history}});
         return json;
     }
 };
@@ -125,12 +133,21 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
     std::vector<std::shared_ptr<NodeMap<BranchingScheme>>> history(2, nullptr);
     q[0] = std::shared_ptr<NodeSet<BranchingScheme>>(
             new NodeSet<BranchingScheme>(branching_scheme));
-    history[0] = std::shared_ptr<NodeMap<BranchingScheme>>(
-            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     q[1] = std::shared_ptr<NodeSet<BranchingScheme>>(
             new NodeSet<BranchingScheme>(branching_scheme));
-    history[1] = std::shared_ptr<NodeMap<BranchingScheme>>(
-            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    std::shared_ptr<NodeMap<BranchingScheme>> global_history_map;
+    if (parameters.global_history) {
+        global_history_map = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    } else {
+        history[0] = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+        history[1] = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    }
+    auto get_history = [&](Depth d) -> NodeMap<BranchingScheme>& {
+        return parameters.global_history? *global_history_map: *history[d];
+    };
     Depth number_of_queues = 2;
 
     bool end = false;
@@ -224,14 +241,16 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                         while (child_depth >= current_depth + number_of_queues) {
                             if ((Depth)q.size() <= current_depth + number_of_queues) {
                                 q.push_back(nullptr);
-                                history.push_back(nullptr);
+                                if (!parameters.global_history)
+                                    history.push_back(nullptr);
                             }
                             q[current_depth + number_of_queues]
                                 = std::shared_ptr<NodeSet<BranchingScheme>>(
                                         new NodeSet<BranchingScheme>(branching_scheme));
-                            history[current_depth + number_of_queues]
-                                = std::shared_ptr<NodeMap<BranchingScheme>>(
-                                        new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+                            if (!parameters.global_history)
+                                history[current_depth + number_of_queues]
+                                    = std::shared_ptr<NodeMap<BranchingScheme>>(
+                                            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
                             number_of_queues++;
                         }
 
@@ -244,16 +263,15 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
                                 || branching_scheme(child, *(std::prev(q[child_depth]->end())))) {
                             bool added = add_to_history_and_queue(
                                     branching_scheme,
-                                    *history[child_depth],
+                                    get_history(child_depth),
                                     *q[child_depth],
                                     child);
                             if (added)
                                 output.number_of_nodes_added++;
-                            //q_next->insert(child);
                             if ((NodeId)q[child_depth]->size() > output.maximum_size_of_the_queue) {
                                 remove_from_history_and_queue(
                                         branching_scheme,
-                                        *history[child_depth],
+                                        get_history(child_depth),
                                         *q[child_depth],
                                         std::prev(q[child_depth]->end()));
                             }
@@ -274,14 +292,17 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
             // Update q and history.
             if ((Depth)q.size() <= current_depth + number_of_queues) {
                 q.push_back(nullptr);
-                history.push_back(nullptr);
+                if (!parameters.global_history)
+                    history.push_back(nullptr);
             }
             q[current_depth]->clear();
-            history[current_depth]->clear();
+            if (!parameters.global_history) {
+                history[current_depth]->clear();
+                history[current_depth + number_of_queues] = history[current_depth];
+                history[current_depth] = nullptr;
+            }
             q[current_depth + number_of_queues] = q[current_depth];
-            history[current_depth + number_of_queues] = history[current_depth];
             q[current_depth] = nullptr;
-            history[current_depth] = nullptr;
 
             // Stop criteria.
             current_depth++;
@@ -316,12 +337,16 @@ inline const IterativeBeamSearch2Output<BranchingScheme> iterative_beam_search_2
         // Update q and history.
         for (Depth d = 0; d < number_of_queues; ++d) {
             q[d] = q[current_depth + d];
-            history[d] = history[current_depth + d];
             q[current_depth + d] = nullptr;
-            history[current_depth + d] = nullptr;
             q[d]->clear();
-            history[d]->clear();
+            if (!parameters.global_history) {
+                history[d] = history[current_depth + d];
+                history[current_depth + d] = nullptr;
+                history[d]->clear();
+            }
         }
+        if (parameters.global_history)
+            global_history_map->clear();
 
         if (stop) {
             output.optimal = true;

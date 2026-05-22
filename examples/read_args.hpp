@@ -31,6 +31,7 @@ boost::program_options::options_description setup_args()
         ("growth-factor", boost::program_options::value<double>(), "set the growth factor")
         ("minimum-size-of-the-queue", boost::program_options::value<int>(), "set the minimum size of the queue")
         ("maximum-size-of-the-queue", boost::program_options::value<int>(), "set the maximum size of the queue")
+        ("global-history", boost::program_options::value<bool>(), "use a single history shared across all depth levels")
         ("initial-column-size", boost::program_options::value<int>(), "set the initial column size")
         ("maximum-number-of-iterations", boost::program_options::value<int>(), "set the maximum number of iterations")
         ;
@@ -128,6 +129,8 @@ const Output<BranchingScheme> run_iterative_beam_search(
         parameters.maximum_size_of_the_queue = vm["maximum-size-of-the-queue"].as<int>();
     if (vm.count("maximum-number-of-nodes"))
         parameters.maximum_number_of_nodes = vm["maximum-number-of-nodes"].as<int>();
+    if (vm.count("global-history"))
+        parameters.global_history = vm["global-history"].as<bool>();
     const Output<BranchingScheme> output = iterative_beam_search(branching_scheme, parameters);
     write_output(branching_scheme, vm, output);
     return output;
@@ -148,6 +151,8 @@ const Output<BranchingScheme> run_iterative_beam_search_2(
         parameters.maximum_size_of_the_queue = vm["maximum-size-of-the-queue"].as<int>();
     if (vm.count("maximum-number-of-nodes"))
         parameters.maximum_number_of_nodes_expanded = vm["maximum-number-of-nodes"].as<int>();
+    if (vm.count("global-history"))
+        parameters.global_history = vm["global-history"].as<bool>();
     const Output<BranchingScheme> output = iterative_beam_search_2(branching_scheme, parameters);
     write_output(branching_scheme, vm, output);
     return output;

@@ -20,6 +20,12 @@ struct IterativeBeamSearchParameters: Parameters<BranchingScheme>
     /** Maximum number of nodes. */
     NodeId maximum_number_of_nodes = -1;
 
+    /**
+     * If true, use a single history shared across all depth levels.
+     * If false (default), each depth level has its own history.
+     */
+    bool global_history = false;
+
 
     virtual int format_width() const override { return 36; }
 
@@ -32,6 +38,7 @@ struct IterativeBeamSearchParameters: Parameters<BranchingScheme>
             << std::setw(width) << std::left << "Growth factor: " << growth_factor << std::endl
             << std::setw(width) << std::left << "Minimum size of the queue: " << minimum_size_of_the_queue << std::endl
             << std::setw(width) << std::left << "Maximum size of the queue: " << maximum_size_of_the_queue << std::endl
+            << std::setw(width) << std::left << "Global history: " << global_history << std::endl
             ;
     }
 
@@ -42,7 +49,8 @@ struct IterativeBeamSearchParameters: Parameters<BranchingScheme>
                 {"MaximumNumberOfNodes", maximum_number_of_nodes},
                 {"GrowthFactor", growth_factor},
                 {"MinimumSizeOfTheQueue", minimum_size_of_the_queue},
-                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue}});
+                {"MaximumSizeOfTheQueue", maximum_size_of_the_queue},
+                {"GlobalHistory", global_history}});
         return json;
     }
 };
@@ -110,67 +118,103 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
     std::vector<std::shared_ptr<NodeMap<BranchingScheme>>> history(2, nullptr);
     q[0] = std::shared_ptr<NodeSet<BranchingScheme>>(
             new NodeSet<BranchingScheme>(branching_scheme));
-    history[0] = std::shared_ptr<NodeMap<BranchingScheme>>(
-            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
     q[1] = std::shared_ptr<NodeSet<BranchingScheme>>(
             new NodeSet<BranchingScheme>(branching_scheme));
-    history[1] = std::shared_ptr<NodeMap<BranchingScheme>>(
-            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    std::shared_ptr<NodeMap<BranchingScheme>> global_history_map;
+    if (parameters.global_history) {
+        global_history_map = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    } else {
+        history[0] = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+        history[1] = std::shared_ptr<NodeMap<BranchingScheme>>(
+                new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+    }
+    auto get_history = [&](Depth d) -> NodeMap<BranchingScheme>& {
+        return parameters.global_history? *global_history_map: *history[d];
+    };
     Depth number_of_queues = 2;
 
+    bool end = false;
     for (output.maximum_size_of_the_queue = parameters.minimum_size_of_the_queue;;) {
+        //std::cout << "beam_size " << output.maximum_size_of_the_queue << std::endl;
 
         // Initialize queue.
         bool stop = true;
-        auto current_node = branching_scheme.root();
-        q[0]->insert(current_node);
+        q[0]->insert(branching_scheme.root());
 
         Depth current_depth = 0;
         for (;;) {
 
-            current_node = nullptr;
-            while (current_node != nullptr || !q[current_depth]->empty()) {
+            while (!q[current_depth]->empty()) {
 
                 // Get node from the queue.
-                if (current_node == nullptr) {
-                    current_node = *q[current_depth]->begin();
-                    q[current_depth]->erase(q[current_depth]->begin());
+                auto current_node = *q[current_depth]->begin();
+                q[current_depth]->erase(q[current_depth]->begin());
 
-                    // Bound.
-                    if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
-                        current_node = nullptr;
-                        continue;
-                    }
+                // Bound.
+                if (branching_scheme.bound(current_node, output.solution_pool.worst())) {
+                    continue;
                 }
 
-                if ((NodeId)q[current_depth + 1]->size() == output.maximum_size_of_the_queue
-                        && branching_scheme(*(std::prev(q[current_depth + 1]->end())), current_node)) {
-                    stop = false;
+                // Check cutoff.
+                if (parameters.cutoff != nullptr
+                        && branching_scheme.bound(current_node, parameters.cutoff)) {
+                    continue;
+                }
+
+                // Check time.
+                if (parameters.timer.needs_to_end()) {
+                    end = true;
+                    break;
+                }
+
+                // Check best known bound.
+                if (parameters.goal != nullptr
+                        && !branching_scheme.better(
+                            parameters.goal,
+                            output.solution_pool.best())) {
+                    end = true;
                     break;
                 }
 
                 // Get next child.
-                auto child = branching_scheme.next_child(current_node);
+                bool all_children_generated = false;
+                for (NodeId child_id = 0;
+                        child_id < output.maximum_size_of_the_queue;
+                        ++child_id) {
+                    if (branching_scheme.infertile(current_node)) {
+                        all_children_generated = true;
+                        break;
+                    }
 
-                if (child != nullptr) {
+                    auto child = branching_scheme.next_child(current_node);
+                    if (child == nullptr)
+                        continue;
 
                     output.number_of_nodes++;
 
                     // Check time.
-                    if (parameters.timer.needs_to_end())
-                        goto ibsend;
+                    if (parameters.timer.needs_to_end()) {
+                        end = true;
+                        break;
+                    }
 
                     // Check node limit.
                     if (parameters.maximum_number_of_nodes != -1
-                            && output.number_of_nodes > parameters.maximum_number_of_nodes)
-                        goto ibsend;
+                            && output.number_of_nodes > parameters.maximum_number_of_nodes) {
+                        end = true;
+                        break;
+                    }
 
                     // Check goal.
                     if (parameters.goal != nullptr
                             && !branching_scheme.better(
                                 parameters.goal,
-                                output.solution_pool.best()))
-                        goto ibsend;
+                                output.solution_pool.best())) {
+                        end = true;
+                        break;
+                    }
 
                     // Get child depth.
                     Depth child_depth = depth(branching_scheme, child);
@@ -184,20 +228,23 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
 
                     // Add child to the queue.
                     if (!branching_scheme.leaf(child)
-                            && !branching_scheme.bound(child, output.solution_pool.worst())) {
+                            && !branching_scheme.bound(child, output.solution_pool.worst())
+                            && (parameters.cutoff == nullptr || !branching_scheme.bound(child, parameters.cutoff))) {
 
                         // Create new q and history if needed.
                         while (child_depth >= current_depth + number_of_queues) {
                             if ((Depth)q.size() <= current_depth + number_of_queues) {
                                 q.push_back(nullptr);
-                                history.push_back(nullptr);
+                                if (!parameters.global_history)
+                                    history.push_back(nullptr);
                             }
                             q[current_depth + number_of_queues]
                                 = std::shared_ptr<NodeSet<BranchingScheme>>(
                                         new NodeSet<BranchingScheme>(branching_scheme));
-                            history[current_depth + number_of_queues]
-                                = std::shared_ptr<NodeMap<BranchingScheme>>(
-                                        new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
+                            if (!parameters.global_history)
+                                history[current_depth + number_of_queues]
+                                    = std::shared_ptr<NodeMap<BranchingScheme>>(
+                                            new NodeMap<BranchingScheme>(0, node_hasher, node_hasher));
                             number_of_queues++;
                         }
 
@@ -210,42 +257,38 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                                 || branching_scheme(child, *(std::prev(q[child_depth]->end())))) {
                             add_to_history_and_queue(
                                     branching_scheme,
-                                    *history[child_depth],
+                                    get_history(child_depth),
                                     *q[child_depth],
                                     child);
-                            //q_next->insert(child);
                             if ((NodeId)q[child_depth]->size() > output.maximum_size_of_the_queue)
                                 remove_from_history_and_queue(
                                         branching_scheme,
-                                        *history[child_depth],
+                                        get_history(child_depth),
                                         *q[child_depth],
                                         std::prev(q[child_depth]->end()));
                         }
                     }
                 }
-
-                // If current_node still has children, put it back to the queue.
-                if (branching_scheme.infertile(current_node)) {
-                    current_node = nullptr;
-                } else if (!q[current_depth]->empty()
-                        && branching_scheme(*(q[current_depth]->begin()), current_node)) {
-                    q[current_depth]->insert(current_node);
-                    current_node = nullptr;
-                }
-
+                if (!all_children_generated)
+                    stop = false;
             }
+            if (end)
+                break;
 
             // Update q and history.
             if ((Depth)q.size() <= current_depth + number_of_queues) {
                 q.push_back(nullptr);
-                history.push_back(nullptr);
+                if (!parameters.global_history)
+                    history.push_back(nullptr);
             }
             q[current_depth]->clear();
-            history[current_depth]->clear();
+            if (!parameters.global_history) {
+                history[current_depth]->clear();
+                history[current_depth + number_of_queues] = history[current_depth];
+                history[current_depth] = nullptr;
+            }
             q[current_depth + number_of_queues] = q[current_depth];
-            history[current_depth + number_of_queues] = history[current_depth];
             q[current_depth] = nullptr;
-            history[current_depth] = nullptr;
 
             // Stop criteria.
             current_depth++;
@@ -260,16 +303,22 @@ inline const IterativeBeamSearchOutput<BranchingScheme> iterative_beam_search(
                 break;
 
         }
+        if (end)
+            break;
 
         // Update q and history.
         for (Depth d = 0; d < number_of_queues; ++d) {
             q[d] = q[current_depth + d];
-            history[d] = history[current_depth + d];
             q[current_depth + d] = nullptr;
-            history[current_depth + d] = nullptr;
             q[d]->clear();
-            history[d]->clear();
+            if (!parameters.global_history) {
+                history[d] = history[current_depth + d];
+                history[current_depth + d] = nullptr;
+                history[d]->clear();
+            }
         }
+        if (parameters.global_history)
+            global_history_map->clear();
 
         if (stop) {
             output.optimal = true;
