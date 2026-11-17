@@ -399,15 +399,19 @@ inline void remove_from_history(
         NodeMap<BranchingScheme>& history,
         const std::shared_ptr<typename BranchingScheme::Node>& node)
 {
-    // Remove from history.
+    // Remove from history. The node is looked up once, and its entry is
+    // erased through the iterator, so that it is hashed once.
     if (branching_scheme.comparable(node)) {
-        auto& list = history[node];
+        auto history_it = history.find(node);
+        if (history_it == history.end())
+            return;
+        auto& list = history_it->second;
         for (auto it = list.begin(); it != list.end();) {
             if (*it == node) {
                 *it = list.back();
                 list.pop_back();
                 if (list.empty())
-                    history.erase(node);
+                    history.erase(history_it);
                 break;
             } else {
                 ++it;
